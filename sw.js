@@ -1,93 +1,51 @@
-// LazEstate Service Worker v2.5
-const CACHE_NAME = 'lazestate-v3.0';
-const OFFLINE_URL = './index.html';
-
-// Files to cache on install
-const PRECACHE = [
-  './index.html',
-  './manifest.json',
-  './icons/icon-192x192.png',
-  './icons/icon-512x512.png'
+// LazEstate Landing Page Service Worker
+// Scope: /lazestate/ — does NOT handle /lazestate/app/ (app has its own SW)
+const CACHE_NAME = 'lazestate-landing-v1';
+const STATIC_ASSETS = [
+  '/lazestate/',
+  '/lazestate/index.html',
+  '/lazestate/manifest.json',
+  '/lazestate/icons/icon-192x192.png',
+  '/lazestate/icons/icon-512x512.png',
+  'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap'
 ];
 
-// Install — cache app shell
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Take control immediately
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE))
-      .catch(err => console.log('SW cache error:', err))
+    caches.open(CACHE_NAME).then(cache => {
+      const local    = STATIC_ASSETS.filter(u => !u.startsWith('http'));
+      const external = STATIC_ASSETS.filter(u =>  u.startsWith('http'));
+      return cache.addAll(local).then(() =>
+        Promise.allSettled(
+          external.map(url => fetch(url).then(r => cache.put(url, r)).catch(() => {}))
+        )
+      );
+    }).then(() => self.skipWaiting())
   );
 });
 
-// Activate — clean old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      ))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
-// Fetch strategy:
-// - App shell (index.html): cache-first with network fallback
-// - External APIs (Groq, maps, Overpass): network-only, never cache
-// - CDN assets (Leaflet): cache-first
-const NETWORK_ONLY = [
-  'api.groq.com',
-  'overpass-api.de',
-  'nominatim.openstreetmap.org',
-  'localhost:7844',
-  'msc.fema.gov',
-  'hazards.fema.gov'
-];
-
-const CDN_CACHE = [
-  'cdnjs.cloudflare.com',
-  'basemaps.cartocdn.com',
-  'fonts.googleapis.com',
-  'fonts.gstatic.com'
-];
-
 self.addEventListener('fetch', event => {
-  const url = event.request.url;
+  const url = new URL(event.request.url);
+  // Let the app's own SW handle everything under /lazestate/app/
+  if (url.pathname.startsWith('/lazestate/app/')) return;
 
-  // Always network-only for APIs
-  if (NETWORK_ONLY.some(domain => url.includes(domain))) return;
-
-  // Cache-first for CDN assets
-  if (CDN_CACHE.some(domain => url.includes(domain))) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(cache =>
-        cache.match(event.request).then(cached => {
-          if (cached) return cached;
-          return fetch(event.request).then(response => {
-            if (response.ok) cache.put(event.request, response.clone());
-            return response;
-          });
-        })
-      )
-    );
-    return;
-  }
-
-  // Network-first for HTML — always get fresh app shell
-  // Cache-first only for static assets
-  if (event.request.mode === 'navigate' || 
-      event.request.url.includes('index.html')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(OFFLINE_URL))
-    );
-    return;
-  }
-
-  // Cache-first for everything else
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
-      return fetch(event.request).catch(() => caches.match(OFFLINE_URL));
+      return fetch(event.request).then(response => {
+        if (!response || response.status !== 200 || response.type === 'opaque') return response;
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+        return response;
+      }).catch(() => caches.match('/lazestate/index.html'));
     })
   );
 });
