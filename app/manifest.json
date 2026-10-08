@@ -1,45 +1,29 @@
 {
-  "name": "LazEstate",
-  "short_name": "LazEstate",
-  "description": "AI-powered real estate valuation and portfolio management",
-  "start_url": "/lazestate/app/index.html",
-  "scope": "/lazestate/app/",
+  "id": "/estatepro/app/",
+  "name": "EstatePro — AI Real Estate Intelligence",
+  "short_name": "EstatePro",
+  "description": "Value properties, track a portfolio and run deal math. Your data stays on your device.",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#060a0e",
-  "theme_color": "#1de9b6",
+  "background_color": "#0b1322",
+  "theme_color": "#0b1322",
   "categories": ["finance", "productivity", "business"],
   "icons": [
-    { "src": "icons/icon-72x72.png",   "sizes": "72x72",   "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-96x96.png",   "sizes": "96x96",   "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-128x128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-144x144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-152x152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icons/icon-384x384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "shot-narrow-1.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Portfolio overview" },
+    { "src": "shot-narrow-2.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Property valuation" },
+    { "src": "shot-wide-1.png", "sizes": "1920x1080", "type": "image/png", "form_factor": "wide", "label": "Valuation on desktop" }
   ],
   "shortcuts": [
-    {
-      "name": "Valuate Property",
-      "short_name": "Valuate",
-      "description": "Run an AI property valuation",
-      "url": "/lazestate/app/index.html#valuate",
-      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "My Portfolio",
-      "short_name": "Portfolio",
-      "description": "View your property portfolio",
-      "url": "/lazestate/app/index.html#portfolio",
-      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Deal Pipeline",
-      "short_name": "Deals",
-      "description": "Track active deals",
-      "url": "/lazestate/app/index.html#deals",
-      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
-    }
+    { "name": "Value a property", "short_name": "Value", "url": "./index.html#valuate", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "My portfolio", "short_name": "Portfolio", "url": "./index.html#portfolio", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Deal pipeline", "short_name": "Deals", "url": "./index.html#deals", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
   ]
 }

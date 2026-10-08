@@ -1,60 +1,51 @@
-// LazEstate App Service Worker
-// Scope: /lazestate/app/
-const CACHE_NAME = 'lazestate-app-v3';
-const STATIC_ASSETS = [
-  '/lazestate/app/',
-  '/lazestate/app/index.html',
-  '/lazestate/app/manifest.json',
-  '/lazestate/app/icons/icon-192x192.png',
-  '/lazestate/app/icons/icon-512x512.png',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap'
-];
+// EstatePro service worker
+// Keep VERSION in sync with APP_VERSION in index.html (the visible version stamp).
+const VERSION = '4.0.0';
+const CACHE = 'estatepro-app-v' + VERSION;
+const SCOPE = self.registration.scope;
+const PRECACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png']
+  .map(p => new URL(p, SCOPE).href);
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      const local    = STATIC_ASSETS.filter(u => !u.startsWith('http'));
-      const external = STATIC_ASSETS.filter(u =>  u.startsWith('http'));
-      return cache.addAll(local).then(() =>
-        Promise.allSettled(
-          external.map(url => fetch(url).then(r => cache.put(url, r)).catch(() => {}))
-        )
-      );
-    }).then(() => self.skipWaiting())
-  );
+  // No skipWaiting here: the page shows "Reload" and asks us to activate (see message handler).
+  event.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('estatepro-app-') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  // Never touch AI, map or any cross-origin traffic.
+  if (url.origin !== location.origin || !url.href.startsWith(SCOPE)) return;
 
-  // Pass AI/API requests straight to network — never cache Groq calls
-  const isApiCall =
-    url.hostname !== location.hostname ||
-    url.hostname.includes('api.groq.com') ||
-    url.hostname.includes('googleapis') ||
-    url.hostname.includes('nominatim') ||
-    url.hostname.includes('openstreetmap') ||
-    url.pathname.includes('/api/');
-
-  if (isApiCall) return;
-
+  const isPage = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+  if (isPage) {
+    // Network-first so a new deploy shows up right away; cached copy when offline.
+    event.respondWith(
+      fetch(req).then(res => {
+        if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(new URL('./index.html', SCOPE).href, copy)); }
+        return res;
+      }).catch(() => caches.match(new URL('./index.html', SCOPE).href))
+    );
+    return;
+  }
+  // Cache-first for icons, manifest and screenshots.
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (!response || response.status !== 200 || response.type === 'opaque') return response;
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-        return response;
-      }).catch(() => caches.match('/lazestate/app/index.html'));
-    })
+    caches.match(req).then(hit => hit || fetch(req).then(res => {
+      if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
+      return res;
+    }))
   );
 });

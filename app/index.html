@@ -5,60 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <!-- Primary Meta -->
-  <title>LazEstate — AI Property Intelligence</title>
+  <title>EstatePro — AI Property Intelligence</title>
   <meta name="description" content="AI-powered real estate valuation, portfolio management, and deal analysis.">
-  <meta name="application-name" content="LazEstate">
-  <meta name="author" content="LazEstate">
+  <meta name="application-name" content="EstatePro">
+  <meta name="author" content="EstatePro">
 
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
 
   <!-- Theme Color (all browsers) -->
-  <meta name="theme-color" content="#1de9b6">
+  <meta name="theme-color" content="#0b1322">
   <meta name="msapplication-TileColor" content="#060a0e">
-  <meta name="msapplication-TileImage" content="icons/icon-144x144.png">
+  <meta name="msapplication-TileImage" content="icon-192.png">
 
   <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="LazEstate">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="EstatePro">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <!-- iOS Splash Screens (covers common sizes) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
   <!-- Android Chrome -->
   <meta name="mobile-web-app-capable" content="yes">
 
   <style>
 /* ═══════════════════════════════════════════════════════
-   LAZESTATE — DARK LUXURY REAL ESTATE INTELLIGENCE
+   ESTATEPRO — DARK LUXURY REAL ESTATE INTELLIGENCE
    ═══════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg:        #0a0807;
-  --bg2:       #110e0c;
-  --bg3:       #131a22;
-  --card:      #14100e;
-  --border:    #2a1f18;
-  --border2:   #3a2a20;
-  --gold:      #1de9b6;
+  --bg:        #0b1322;
+  --bg2:       #101a2e;
+  --bg3:       #15223a;
+  --card:      #121d33;
+  --border:    #22314d;
+  --border2:   #2e4166;
+  --gold:      #e2b04a;
   --gold2:     #e8c96a;
   --gold-dim:  #7a5f28;
-  --teal:      #1de9b6;
-  --teal-dim:  #0d7a5f;
+  --teal:      #e2b04a;
+  --teal-dim:  #8a6a24;
   --crimson:   #e53935;
   --sky:       #4fc3f7;
-  --text:      #dce8f0;
+  --text:      #e8eef7;
   --text2:     #8a9bab;
-  --text3:     #4a5d6e;
+  --text3:     #6c7f99;
   --success:   #43a047;
   --warn:      #f9a825;
   --radius:    10px;
@@ -72,14 +71,14 @@
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
   background-image:
     radial-gradient(ellipse 80% 40% at 50% -10%, rgba(201,168,76,0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 30% at 80% 110%, rgba(29,233,182,0.04) 0%, transparent 60%);
+    radial-gradient(ellipse 60% 30% at 80% 110%, rgba(226,176,74,0.04) 0%, transparent 60%);
 }
 
 /* ── SCROLLBAR ── */
@@ -92,8 +91,8 @@ body {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center;
   padding: 0; height: 54px;
-  background: #060d12;
-  border-bottom: 1px solid rgba(29,233,182,0.12);
+  background: #08101e;
+  border-bottom: 1px solid rgba(226,176,74,0.12);
   box-shadow: 0 2px 24px rgba(0,0,0,0.6);
 }
 
@@ -101,21 +100,21 @@ body {
   display: flex; align-items: center;
   padding: 0 18px;
   height: 100%;
-  border-right: 1px solid rgba(29,233,182,0.1);
+  border-right: 1px solid rgba(226,176,74,0.1);
   flex-shrink: 0;
   cursor: default;
 }
 
 .wordmark {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter',system-ui,sans-serif;
   font-size: 1.22rem;
   font-weight: 900;
   letter-spacing: 0.01em;
-  color: #4a9eca;
+  color: var(--text);
   white-space: nowrap;
 }
 .wordmark-e {
-  color: #1de9b6;
+  color: #e2b04a;
   margin-left: 1px;
 }
 
@@ -139,7 +138,7 @@ body {
   border: none;
   background: transparent;
   color: var(--text2);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
@@ -150,10 +149,10 @@ body {
 }
 .nav-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
 .nav-tab.active {
-  background: linear-gradient(180deg, rgba(196,130,74,0.14) 0%, rgba(196,130,74,0.06) 100%);
+  background: linear-gradient(180deg, rgba(226,176,74,0.14) 0%, rgba(226,176,74,0.06) 100%);
   color: var(--gold2);
-  border: 1px solid rgba(196,130,74,0.25);
-  box-shadow: inset 0 -2px 0 rgba(196,130,74,0.35);
+  border: 1px solid rgba(226,176,74,0.25);
+  box-shadow: inset 0 -2px 0 rgba(226,176,74,0.35);
 }
 
 .topbar-actions { display: flex; gap: 8px; align-items: center; }
@@ -186,7 +185,7 @@ body {
   margin-bottom: 20px;
 }
 .section-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter',system-ui,sans-serif;
   color: var(--gold2);
   font-size: 1.4rem;
   font-weight: 700;
@@ -299,7 +298,7 @@ body {
 .stat-tile.red::before   { background: linear-gradient(90deg, transparent, var(--crimson), transparent); }
 .stat-tile.sky::before   { background: linear-gradient(90deg, transparent, var(--sky), transparent); }
 .stat-label { font-size: 0.68rem; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
-.stat-value { font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 500; color: var(--text); }
+.stat-value { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 1.5rem; font-weight: 500; color: var(--text); }
 .stat-delta { font-size: 0.75rem; margin-top: 4px; }
 .stat-delta.up   { color: var(--success); }
 .stat-delta.down { color: var(--crimson); }
@@ -318,7 +317,7 @@ input, select, textarea {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   font-size: 0.9rem;
   padding: 10px 13px;
   width: 100%;
@@ -337,7 +336,7 @@ textarea { resize: vertical; min-height: 80px; }
   padding: 10px 20px;
   border-radius: var(--radius);
   border: none;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -359,11 +358,11 @@ textarea { resize: vertical; min-height: 80px; }
 .btn-secondary:hover { border-color: var(--gold-dim); color: var(--gold2); }
 
 .btn-teal {
-  background: rgba(29,233,182,0.1);
-  border: 1px solid rgba(29,233,182,0.25);
+  background: rgba(226,176,74,0.1);
+  border: 1px solid rgba(226,176,74,0.25);
   color: var(--teal);
 }
-.btn-teal:hover { background: rgba(29,233,182,0.18); }
+.btn-teal:hover { background: rgba(226,176,74,0.18); }
 
 .btn-sm { padding: 6px 14px; font-size: 0.78rem; }
 .btn-full { width: 100%; }
@@ -387,7 +386,7 @@ textarea { resize: vertical; min-height: 80px; }
   font-size: 0.62rem;
   letter-spacing: 0.15em;
   padding: 0 8px;
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 .ai-box-content {
   color: var(--text2);
@@ -397,7 +396,7 @@ textarea { resize: vertical; min-height: 80px; }
 }
 .ai-box-content strong { color: var(--gold2); font-weight: 600; }
 .ai-valuation {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter',system-ui,sans-serif;
   font-size: 2.2rem;
   font-weight: 900;
   color: var(--gold2);
@@ -433,7 +432,7 @@ textarea { resize: vertical; min-height: 80px; }
   text-transform: uppercase;
 }
 .badge-gold  { background: rgba(201,168,76,0.15); color: var(--gold2); border: 1px solid rgba(201,168,76,0.25); }
-.badge-teal  { background: rgba(29,233,182,0.1);  color: var(--teal);  border: 1px solid rgba(29,233,182,0.2); }
+.badge-teal  { background: rgba(226,176,74,0.1);  color: var(--teal);  border: 1px solid rgba(226,176,74,0.2); }
 .badge-sky   { background: rgba(79,195,247,0.1);  color: var(--sky);   border: 1px solid rgba(79,195,247,0.2); }
 .badge-red   { background: rgba(229,57,53,0.1);   color: var(--crimson); border: 1px solid rgba(229,57,53,0.2); }
 
@@ -488,7 +487,7 @@ textarea { resize: vertical; min-height: 80px; }
   border-radius: 2px; overflow: hidden;
 }
 .conf-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
-.conf-pct { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text2); width: 36px; text-align: right; }
+.conf-pct { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 0.72rem; color: var(--text2); width: 36px; text-align: right; }
 
 /* ── COMP TABLE ── */
 .comp-table {
@@ -511,7 +510,7 @@ textarea { resize: vertical; min-height: 80px; }
   color: var(--text2);
 }
 .comp-table tr:hover td { background: rgba(255,255,255,0.02); }
-.comp-table .price-cell { color: var(--gold2); font-family: 'DM Mono', monospace; font-weight: 500; }
+.comp-table .price-cell { color: var(--gold2); font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight: 500; }
 
 /* ══════════════════════════════════════════════
    PANEL: PORTFOLIO
@@ -540,7 +539,7 @@ textarea { resize: vertical; min-height: 80px; }
   margin-bottom: 12px;
 }
 .property-address {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter',system-ui,sans-serif;
   font-size: 1rem;
   font-weight: 700;
   color: var(--text);
@@ -555,7 +554,7 @@ textarea { resize: vertical; min-height: 80px; }
 }
 .pval-item { text-align: center; }
 .pval-label { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
-.pval-num { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: var(--gold2); }
+.pval-num { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 0.9rem; color: var(--gold2); }
 
 .port-actions { display: flex; gap: 6px; }
 
@@ -588,7 +587,7 @@ textarea { resize: vertical; min-height: 80px; }
 .pulse-icon { font-size: 1.6rem; }
 .pulse-info { flex: 1; }
 .pulse-name { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-.pulse-val { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--text2); }
+.pulse-val { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 0.8rem; color: var(--text2); }
 .pulse-trend { font-size: 0.8rem; font-weight: 600; }
 .trend-up   { color: var(--success); }
 .trend-dn   { color: var(--crimson); }
@@ -613,7 +612,7 @@ textarea { resize: vertical; min-height: 80px; }
   padding: 16px;
 }
 .nh-name { font-weight: 600; font-size: 0.9rem; color: var(--text); margin-bottom: 4px; }
-.nh-price { font-family: 'DM Mono', monospace; font-size: 1.1rem; color: var(--gold2); }
+.nh-price { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 1.1rem; color: var(--gold2); }
 .nh-meta { font-size: 0.72rem; color: var(--text3); margin-top: 3px; }
 .nh-score-bar { margin-top: 8px; }
 .nh-score-track { height: 3px; background: var(--border); border-radius: 2px; }
@@ -682,13 +681,13 @@ textarea { resize: vertical; min-height: 80px; }
   text-align: center;
 }
 .roi-tile-label { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
-.roi-tile-val { font-family: 'DM Mono', monospace; font-size: 1.2rem; color: var(--gold2); }
+.roi-tile-val { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 1.2rem; color: var(--gold2); }
 
 /* ── CASHFLOW TABLE ── */
 .cf-table { width: 100%; font-size: 0.82rem; border-collapse: collapse; margin-top: 8px; }
 .cf-table td { padding: 6px 8px; border-bottom: 1px solid rgba(30,45,61,0.4); }
 .cf-table .cf-label { color: var(--text3); }
-.cf-table .cf-val   { color: var(--text2); font-family: 'DM Mono', monospace; text-align: right; }
+.cf-table .cf-val   { color: var(--text2); font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; text-align: right; }
 .cf-table .cf-total { border-top: 1px solid var(--border2); }
 .cf-table .cf-total .cf-label { color: var(--text); font-weight: 600; }
 .cf-table .cf-total .cf-val   { color: var(--gold2); font-weight: 600; }
@@ -711,7 +710,7 @@ textarea { resize: vertical; min-height: 80px; }
 .hi-info { flex: 1; }
 .hi-address { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
 .hi-meta { font-size: 0.72rem; color: var(--text3); }
-.hi-price { font-family: 'DM Mono', monospace; font-size: 1rem; color: var(--gold2); }
+.hi-price { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 1rem; color: var(--gold2); }
 .hi-actions { display: flex; gap: 6px; }
 
 /* ══════════════════════════════════════════════
@@ -745,7 +744,7 @@ textarea { resize: vertical; min-height: 80px; }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 .modal-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter',system-ui,sans-serif;
   font-size: 1.2rem; font-weight: 700;
   color: var(--text);
   margin-bottom: 18px;
@@ -799,7 +798,7 @@ textarea { resize: vertical; min-height: 80px; }
   display: flex; align-items: center; gap: 12px;
 }
 .api-banner-text { flex: 1; font-size: 0.82rem; color: var(--text2); }
-.api-banner.has-key { border-color: rgba(29,233,182,0.2); background: rgba(29,233,182,0.04); }
+.api-banner.has-key { border-color: rgba(226,176,74,0.2); background: rgba(226,176,74,0.04); }
 .api-banner.has-key .api-banner-text { color: var(--teal); }
 
 /* ══════════════════════════════════════════════
@@ -818,7 +817,7 @@ textarea { resize: vertical; min-height: 80px; }
 .gold-text  { color: var(--gold2); }
 .teal-text  { color: var(--teal); }
 .muted-text { color: var(--text3); }
-.mono       { font-family: 'DM Mono', monospace; }
+.mono       { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
 .fw-bold    { font-weight: 700; }
 .mb-8  { margin-bottom: 8px; }
 .mb-16 { margin-bottom: 16px; }
@@ -846,7 +845,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* ── VERSION STAMP ── */
 .version-stamp {
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   font-size: 0.6rem;
   color: var(--text3);
   letter-spacing: 0.06em;
@@ -900,8 +899,8 @@ input[type="range"]::-webkit-slider-thumb {
 .addr-lookup-row input { flex: 1; }
 
 .lookup-result-bar {
-  background: rgba(29,233,182,0.06);
-  border: 1px solid rgba(29,233,182,0.2);
+  background: rgba(226,176,74,0.06);
+  border: 1px solid rgba(226,176,74,0.2);
   border-radius: var(--radius);
   padding: 10px 14px;
   margin-top: -6px;
@@ -916,8 +915,8 @@ input[type="range"]::-webkit-slider-thumb {
   display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
 }
 .lookup-chip {
-  background: rgba(29,233,182,0.1);
-  border: 1px solid rgba(29,233,182,0.2);
+  background: rgba(226,176,74,0.1);
+  border: 1px solid rgba(226,176,74,0.2);
   border-radius: 20px;
   padding: 2px 8px;
   font-size: 0.7rem;
@@ -965,7 +964,7 @@ input[type="range"]::-webkit-slider-thumb {
   color: #fff;
   display: flex; align-items: center; justify-content: center;
   padding: 0 3px;
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 
 .note-item {
@@ -984,7 +983,7 @@ input[type="range"]::-webkit-slider-thumb {
 .note-type-bug    { color: var(--crimson); }
 .note-type-update { color: var(--gold2); }
 .note-type-other  { color: var(--text3); }
-.note-date { font-size: 0.65rem; color: var(--text3); font-family: 'DM Mono', monospace; }
+.note-date { font-size: 0.65rem; color: var(--text3); font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
 .note-text { font-size: 0.82rem; color: var(--text2); line-height: 1.5; }
 .note-del-btn {
   background: none; border: none; color: var(--text3);
@@ -1012,7 +1011,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Portfolio status badges */
 .ps { display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.65rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase; }
-.ps-own    { background:rgba(29,233,182,0.12);color:var(--teal);border:1px solid rgba(29,233,182,0.25); }
+.ps-own    { background:rgba(226,176,74,0.12);color:var(--teal);border:1px solid rgba(226,176,74,0.25); }
 .ps-rental { background:rgba(79,195,247,0.12);color:var(--sky);border:1px solid rgba(79,195,247,0.25); }
 .ps-watch  { background:rgba(249,168,37,0.12);color:var(--warn);border:1px solid rgba(249,168,37,0.25); }
 .ps-sold   { background:rgba(67,160,71,0.12);color:var(--success);border:1px solid rgba(67,160,71,0.25); }
@@ -1029,10 +1028,10 @@ input[type="range"]::-webkit-slider-thumb {
 /* ── VALUATION MULTIPLIER ── */
 .multiplier-bar { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .mult-label { font-size:0.72rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; }
-.mult-val { font-family:'DM Mono',monospace; font-size:1rem; color:var(--gold2); font-weight:700; min-width:44px; text-align:center; }
+.mult-val { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:1rem; color:var(--gold2); font-weight:700; min-width:44px; text-align:center; }
 .mult-slider { flex:1; min-width:120px; accent-color:var(--gold); }
 .mult-badge { font-size:0.68rem; padding:2px 8px; border-radius:20px; white-space:nowrap; }
-.mult-under  { background:rgba(29,233,182,0.1); color:var(--teal); }
+.mult-under  { background:rgba(226,176,74,0.1); color:var(--teal); }
 .mult-over   { background:rgba(229,57,53,0.1);  color:var(--crimson); }
 .mult-flat   { background:rgba(201,168,76,0.1); color:var(--gold2); }
 
@@ -1061,10 +1060,10 @@ input[type="range"]::-webkit-slider-thumb {
 .pipeline-col-count { background:var(--border2); border-radius:10px; padding:1px 6px; font-size:0.65rem; }
 .deal-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:10px; margin-bottom:8px; cursor:pointer; transition:border-color 0.15s; }
 .deal-card:hover { border-color:var(--border2); }
-.deal-card-active { border-color:var(--teal) !important; background:rgba(29,233,182,0.04) !important; }
+.deal-card-active { border-color:var(--teal) !important; background:rgba(226,176,74,0.04) !important; }
 .deal-card-addr { font-size:0.82rem; font-weight:600; color:var(--text); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .deal-card-meta { font-size:0.7rem; color:var(--text3); }
-.deal-card-price { font-family:'DM Mono',monospace; font-size:0.82rem; color:var(--gold2); margin-top:4px; }
+.deal-card-price { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:0.82rem; color:var(--gold2); margin-top:4px; }
 .stage-watching  { border-top:2px solid var(--text3); }
 .stage-offer     { border-top:2px solid var(--warn); }
 .stage-contract  { border-top:2px solid var(--sky); }
@@ -1088,11 +1087,11 @@ input[type="range"]::-webkit-slider-thumb {
 .comp-table th:hover { color:var(--text2); }
 .comp-table td { padding:8px 8px; border-bottom:1px solid rgba(30,45,61,0.3); color:var(--text2); vertical-align:middle; }
 .comp-table tr:hover td { background:rgba(255,255,255,0.02); }
-.comp-price { font-family:'DM Mono',monospace; color:var(--gold2); font-weight:600; }
-.comp-psf   { font-family:'DM Mono',monospace; color:var(--teal); font-size:0.78rem; }
+.comp-price { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--gold2); font-weight:600; }
+.comp-psf   { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--teal); font-size:0.78rem; }
 .comp-badge { display:inline-block; padding:1px 6px; border-radius:4px; font-size:0.65rem; font-weight:600; }
 .comp-above { background:rgba(229,57,53,0.1); color:var(--crimson); }
-.comp-below { background:rgba(29,233,182,0.1); color:var(--teal); }
+.comp-below { background:rgba(226,176,74,0.1); color:var(--teal); }
 .comp-match { background:rgba(201,168,76,0.1); color:var(--gold2); }
 
 /* ── MORTGAGE SCENARIOS ── */
@@ -1101,11 +1100,11 @@ input[type="range"]::-webkit-slider-thumb {
 .scenario-col { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px; }
 .scenario-col.highlight { border-color:var(--gold-dim); background:rgba(201,168,76,0.04); }
 .sc-title { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text3); margin-bottom:10px; text-align:center; }
-.sc-val   { font-family:'DM Mono',monospace; font-size:1.1rem; color:var(--text); font-weight:700; text-align:center; margin-bottom:4px; }
+.sc-val   { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:1.1rem; color:var(--text); font-weight:700; text-align:center; margin-bottom:4px; }
 .sc-sub   { font-size:0.68rem; color:var(--text3); text-align:center; }
 .sc-row   { display:flex; justify-content:space-between; font-size:0.75rem; padding:4px 0; border-bottom:1px solid rgba(30,45,61,0.3); }
 .sc-label { color:var(--text3); }
-.sc-num   { font-family:'DM Mono',monospace; color:var(--text2); }
+.sc-num   { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--text2); }
 
 /* ── CONFIDENCE CALLOUT ── */
 .conf-callout { background:rgba(249,168,37,0.07); border:1px solid rgba(249,168,37,0.2); border-radius:var(--radius); padding:10px 14px; font-size:0.8rem; color:var(--warn); line-height:1.5; margin-top:10px; display:flex; gap:8px; }
@@ -1115,12 +1114,12 @@ input[type="range"]::-webkit-slider-thumb {
 .type-extra-fields.visible { display:block; }
 
 /* ── HISTORY NOTE ── */
-.hist-note-input { background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:5px 8px; font-size:0.78rem; color:var(--text); font-family:'DM Sans',sans-serif; width:100%; margin-top:6px; resize:none; }
+.hist-note-input { background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:5px 8px; font-size:0.78rem; color:var(--text); font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif; width:100%; margin-top:6px; resize:none; }
 .hist-note-text { font-size:0.78rem; color:var(--text3); font-style:italic; margin-top:4px; padding:4px 8px; background:rgba(201,168,76,0.05); border-radius:4px; }
 
 /* ── COUNTY PA DROPDOWN ── */
 .county-row { display:flex; gap:8px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap; }
-.county-select { flex:1; min-width:160px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.82rem; padding:9px 10px; outline:none; }
+.county-select { flex:1; min-width:160px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif; font-size:0.82rem; padding:9px 10px; outline:none; }
 .county-select:focus { border-color:var(--gold-dim); }
 
 /* ── SITE / MAP ── */
@@ -1150,7 +1149,7 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-tap-highlight-color: transparent;
 }
 .pdf-row:hover { background: rgba(255,255,255,0.04); }
-.pdf-row.active { background: rgba(29,233,182,0.06); }
+.pdf-row.active { background: rgba(226,176,74,0.06); }
 .pdf-row-check {
   width: 20px; height: 20px; border-radius: 4px;
   border: 2px solid var(--border2);
@@ -1188,8 +1187,8 @@ input[type="range"]::-webkit-slider-thumb {
   display: none;
   align-items: center; gap: 6px;
   padding: 5px 12px;
-  background: rgba(29,233,182,0.1);
-  border: 1px solid rgba(29,233,182,0.3);
+  background: rgba(226,176,74,0.1);
+  border: 1px solid rgba(226,176,74,0.3);
   border-radius: 20px;
   color: var(--gold2);
   font-size: 0.72rem;
@@ -1198,15 +1197,15 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.2s;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
 }
-.install-btn:hover { background: rgba(29,233,182,0.18); }
+.install-btn:hover { background: rgba(226,176,74,0.18); }
 .install-btn.visible { display: flex; }
 
 .ios-install-banner {
   display: none;
-  background: rgba(29,233,182,0.08);
-  border: 1px solid rgba(29,233,182,0.2);
+  background: rgba(226,176,74,0.08);
+  border: 1px solid rgba(226,176,74,0.2);
   border-radius: var(--radius);
   padding: 10px 14px;
   font-size: 0.78rem;
@@ -1233,6 +1232,76 @@ input[type="range"]::-webkit-slider-thumb {
 .amort-table th:first-child { text-align: left; }
 .amort-table td { padding: 5px 8px; text-align: right; color: var(--text2); border-bottom: 1px solid rgba(30,45,61,0.3); }
 .amort-table td:first-child { text-align: left; }
+
+/* ═══════════ ESTATEPRO v4 ═══════════ */
+:root { --tabbar-h: 62px; --blue: #4aa3e8; }
+body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,163,232,0.10) 0%, transparent 70%), radial-gradient(ellipse 60% 30% at 80% 110%, rgba(226,176,74,0.06) 0%, transparent 60%); }
+.topbar-ico { width: 30px; height: 30px; border-radius: 8px; margin-right: 9px; flex-shrink: 0; }
+.wordmark { font-weight: 800; letter-spacing: -0.01em; font-size: 1.15rem; }
+.wordmark-e { color: var(--gold); margin-left: 0; }
+.topbar-actions .version-stamp { margin-right: 4px; }
+.version-stamp .ver-num { color: var(--text3); }
+.server-dot { display: none; }
+.fold { border: 1px solid var(--border); border-radius: var(--radius); margin: 10px 0 14px; background: rgba(255,255,255,0.02); }
+.fold > summary { list-style: none; cursor: pointer; min-height: 46px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.84rem; font-weight: 600; color: var(--gold2); }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::after { content: '+'; margin-left: auto; font-size: 1.2rem; color: var(--text2); }
+.fold[open] > summary::after { content: '\2013'; }
+.fold-hint { font-size: 0.68rem; font-weight: 400; color: var(--text3); }
+.fold-body { padding: 4px 14px 6px; }
+.fold.adv { margin-top: 0; }
+.est-note { font-size: 0.72rem; line-height: 1.5; color: var(--text3); margin-top: 10px; }
+.model-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.model-status { font-size: 0.7rem; color: var(--text3); }
+.model-status.warn { color: var(--warn); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.tabbar, .sheet-overlay, .update-bar { display: none; }
+.update-bar { position: fixed; left: 12px; right: 12px; bottom: 16px; z-index: 600; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--gold-dim); border-radius: 12px; box-shadow: var(--shadow); font-size: 0.82rem; }
+.update-bar.show { display: flex; }
+.sheet-overlay { position: fixed; inset: 0; z-index: 400; background: rgba(3,8,18,0.62); align-items: flex-end; }
+.sheet-overlay.open { display: flex; }
+.sheet { width: 100%; background: var(--bg2); border-top: 1px solid var(--border2); border-radius: 18px 18px 0 0; padding: 8px 14px calc(18px + env(safe-area-inset-bottom)); max-height: 80vh; overflow-y: auto; animation: sheetUp .2s ease-out; }
+@keyframes sheetUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet-grab { width: 38px; height: 4px; border-radius: 2px; background: var(--border2); margin: 4px auto 12px; }
+.sheet-title { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin: 4px 4px 8px; }
+.sheet-item { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; padding: 10px 12px; margin-bottom: 6px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.sheet-item:active { background: var(--bg3); }
+.sheet-item .si-ico { font-size: 1.3rem; width: 28px; text-align: center; }
+.sheet-item .si-t { font-weight: 600; font-size: 0.92rem; }
+.sheet-item .si-d { font-size: 0.74rem; color: var(--text2); margin-top: 1px; }
+.sheet-foot { text-align: center; margin-top: 10px; }
+@media (max-width: 768px) {
+  .nav-tabs, .status-dots, .topbar-actions .version-stamp, #installBtn { display: none !important; }
+  .topbar { height: 52px; }
+  .topbar-logo-wrap { border-right: none; flex: 1; padding: 0 14px; }
+  .topbar-actions { padding-right: 10px; }
+  .tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 300; padding-bottom: env(safe-area-inset-bottom); height: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); background: rgba(8,16,30,0.97); border-top: 1px solid var(--border2); backdrop-filter: blur(10px); }
+  .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: none; color: var(--text2); font: inherit; font-size: 0.64rem; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; min-height: 48px; }
+  .tabbar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tabbar svg circle { fill: currentColor; stroke: none; }
+  .tabbar button.active { color: var(--gold); }
+  body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px); }
+  .notes-fab { display: none !important; }
+  .form-row { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+  .modal .form-row { grid-template-columns: 1fr !important; }
+  .toast-container { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px); right: 12px; left: 12px; align-items: stretch; }
+  .update-bar { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 10px); }
+  .icon-btn { width: 44px; height: 44px; }
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 40px; }
+  input, select, textarea { font-size: 16px !important; min-height: 44px; }
+  .prop-type-btn { min-height: 64px; }
+  .val-cta { position: sticky; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px); z-index: 20; padding: 10px; margin: 12px -4px 0; background: linear-gradient(180deg, rgba(11,19,34,0) 0%, rgba(11,19,34,0.96) 28%); }
+  .addr-lookup-row { flex-wrap: wrap; }
+  .addr-lookup-row input { flex: 1 1 100%; }
+  .addr-lookup-row .btn { flex: 1 1 100%; }
+  .county-row { flex-wrap: wrap; }
+  .panel { padding-bottom: 8px; }
+  .section-sub { display: block; margin-left: 0; }
+  .section-header { flex-wrap: wrap; }
+}
+@media (min-width: 769px) { #moreDetail { display: block; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 </style>
 </head>
 <body>
@@ -1240,9 +1309,9 @@ input[type="range"]::-webkit-slider-thumb {
 <!-- ── TOP BAR ── -->
 <div class="topbar">
   <div class="topbar-logo-wrap">
-    <span class="wordmark">Laz<span class="wordmark-e">Estate</span></span>
+    <img class="topbar-ico" src="icon-192.png" alt="" width="30" height="30"><span class="wordmark">Estate<span class="wordmark-e">Pro</span></span>
   </div>
-  <nav class="nav-tabs">
+  <nav class="nav-tabs" aria-label="Primary">
     <button class="nav-tab active" onclick="showPanel('valuate')">Valuate</button>
     <button class="nav-tab" onclick="showPanel('portfolio')">Portfolio</button>
     <button class="nav-tab" onclick="showPanel('deals')">Deals</button>
@@ -1254,14 +1323,15 @@ input[type="range"]::-webkit-slider-thumb {
   </nav>
   <div class="topbar-actions">
     <!-- Status dots — compact, hidden labels -->
-    <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+    <div class="status-dots" style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
       <div class="light-dot off" id="lightGroq" title="Groq API" style="width:7px;height:7px;border-radius:50%;cursor:default;"></div>
       <div class="light-dot off" id="lightLookup" title="Data" style="width:7px;height:7px;border-radius:50%;cursor:default;"></div>
-      <div id="serverDot" title="Local server" style="width:7px;height:7px;border-radius:50%;background:var(--border2);cursor:pointer;" onclick="checkServer()"></div>
+      <div id="serverDot" class="server-dot" title="Local server" style="width:7px;height:7px;border-radius:50%;background:var(--border2);cursor:pointer;" onclick="checkServer()"></div>
     </div>
+    <span class="version-stamp" id="verStamp" title="EstatePro"></span>
     <button class="install-btn" id="installBtn" onclick="triggerInstall()" title="Install App">⬇ Install</button>
-    <button class="icon-btn" onclick="openSettings()" title="Settings" style="flex-shrink:0;">⚙</button>
-    <button class="icon-btn" onclick="exportFullSuite()" title="Export" style="flex-shrink:0;">↓</button>
+    <button class="icon-btn" onclick="openSettings()" title="Settings" aria-label="Settings" style="flex-shrink:0;">⚙</button>
+    <button class="icon-btn" onclick="exportFullSuite()" title="Export" aria-label="Export all data" style="flex-shrink:0;">↓</button>
   </div>
 </div>
 
@@ -1274,7 +1344,7 @@ input[type="range"]::-webkit-slider-thumb {
   <div class="ios-install-banner" id="iosInstallBanner">
     <span style="font-size:1.2rem;">📱</span>
     <div>
-      <strong style="color:var(--gold2);">Install LazEstate</strong> — tap 
+      <strong style="color:var(--gold2);">Install EstatePro</strong> — tap 
       <strong style="color:var(--gold2);">Share</strong> 
       <span style="font-size:1rem;">⎙</span> then 
       <strong style="color:var(--gold2);">Add to Home Screen</strong> for the full app experience.
@@ -1326,6 +1396,7 @@ input[type="range"]::-webkit-slider-thumb {
             <input type="text" id="propAddress" placeholder="123 Oak Street, City, State ZIP" onkeydown="if(event.key==='Enter') lookupAddress()">
             <button class="btn btn-teal btn-sm" onclick="lookupAddress()" id="lookupBtn" style="white-space:nowrap; flex-shrink:0;">🔍 Lookup</button>
           </div>
+          <details class="fold"><summary>County &amp; listing link <span class="fold-hint">optional</span></summary><div class="fold-body">
           <div class="county-row">
             <div style="flex:1;">
               <div class="field-label">Florida County <span style="color:var(--text3);font-size:0.65rem;">(optional — opens Property Appraiser)</span></div>
@@ -1338,7 +1409,7 @@ input[type="range"]::-webkit-slider-thumb {
           </div>
           <div class="field-group" style="margin-bottom:8px;">
             <div class="field-label" style="display:flex;align-items:center;gap:6px;">
-              Zillow / Realtor.com URL <span style="font-size:0.65rem;color:var(--teal);background:rgba(29,233,182,0.08);padding:1px 6px;border-radius:4px;">Optional</span>
+              Zillow / Realtor.com URL <span style="font-size:0.65rem;color:var(--teal);background:rgba(226,176,74,0.08);padding:1px 6px;border-radius:4px;">Optional</span>
             </div>
             <div style="display:flex;gap:8px;">
               <input type="text" id="propUrl" placeholder="Paste Zillow or Realtor.com listing URL here..." style="flex:1;">
@@ -1346,6 +1417,7 @@ input[type="range"]::-webkit-slider-thumb {
             </div>
             <div style="font-size:0.7rem;color:var(--text3);margin-top:3px;">Paste a Zillow or Realtor URL to extract the address from the URL path. Note: Groq cannot access live page data — run valuation after to get AI analysis.</div>
           </div>
+          </div></details>
           <div class="lookup-result-bar" id="lookupBar">
             <span>✅</span>
             <div>
@@ -1470,6 +1542,7 @@ input[type="range"]::-webkit-slider-thumb {
           </select>
         </div>
 
+        <details class="fold" id="moreDetail"><summary>Add more detail <span class="fold-hint">features, notes, pasted listing</span></summary><div class="fold-body">
         <div class="field-group">
           <div class="field-label">Key Features (comma-separated)</div>
           <input type="text" id="propFeatures" placeholder="Pool, Garage, Waterfront, New Roof, Solar...">
@@ -1482,7 +1555,7 @@ input[type="range"]::-webkit-slider-thumb {
 
         <div class="field-group">
           <div class="field-label" style="display:flex;align-items:center;justify-content:space-between;">
-            <span>Zillow / Realtor Page Data <span style="color:var(--teal);font-size:0.65rem;background:rgba(29,233,182,0.08);padding:1px 6px;border-radius:4px;margin-left:4px;">Paste Raw Text</span></span>
+            <span>Zillow / Realtor Page Data <span style="color:var(--teal);font-size:0.65rem;background:rgba(226,176,74,0.08);padding:1px 6px;border-radius:4px;margin-left:4px;">Paste Raw Text</span></span>
             <button class="btn btn-secondary btn-sm" style="font-size:0.68rem;" onclick="document.getElementById('zillowPaste').value='';updateZillowPasteCount()">Clear</button>
           </div>
           <textarea id="zillowPaste" placeholder="Go to Zillow or Realtor.com, select all text on the page (Ctrl+A then Ctrl+C), paste it here. Groq will extract the Zestimate, price history, tax data, and comps directly from the page content." style="min-height:90px;font-size:0.78rem;" oninput="updateZillowPasteCount()"></textarea>
@@ -1492,12 +1565,15 @@ input[type="range"]::-webkit-slider-thumb {
           </div>
         </div>
 
-        <div class="flex-between gap-8">
+        </div></details>
+
+        <div class="flex-between gap-8 val-cta">
           <button class="btn btn-primary" style="flex:1" onclick="runValuation()">
             🏡 Get AI Valuation
           </button>
           <button class="btn btn-secondary btn-sm" onclick="clearForm()">Clear</button>
         </div>
+        <p class="est-note">Estimate only. Values come from an AI model's knowledge, not live comps or an appraisal. Verify with MLS or your county appraiser before you act.</p>
       </div>
     </div>
 
@@ -1526,7 +1602,7 @@ input[type="range"]::-webkit-slider-thumb {
 <div class="panel" id="panel-portfolio">
   <div class="portfolio-header">
     <div>
-      <div class="section-title" style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;">My Portfolio</div>
+      <div class="section-title" style="font-family:'Inter',system-ui,sans-serif;font-size:1.4rem;font-weight:700;">My Portfolio</div>
       <div class="section-sub">Property Management · Expenses · Notes</div>
     </div>
     <div style="display:flex;gap:6px;">
@@ -1586,14 +1662,14 @@ input[type="range"]::-webkit-slider-thumb {
 <div class="panel" id="panel-deals">
   <div class="flex-between mb-20">
     <div>
-      <div class="section-title" style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;">Deal Pipeline</div>
+      <div class="section-title" style="font-family:'Inter',system-ui,sans-serif;font-size:1.4rem;font-weight:700;">Deal Pipeline</div>
       <div class="section-sub">Track every deal from lead to close</div>
     </div>
     <button class="btn btn-primary btn-sm" onclick="openDealModal(null)">+ New Deal</button>
   </div>
 
   <!-- Pipeline kanban -->
-  <div id="activeDealBar" style="display:none;background:rgba(29,233,182,0.07);border:1px solid rgba(29,233,182,0.2);border-radius:var(--radius);padding:8px 14px;margin-bottom:12px;font-size:0.8rem;color:var(--teal);align-items:center;gap:10px;"><span id="activeDealLabel"></span><button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:0.68rem;" onclick="window._activeDealIdx=null;renderDeals();">Clear</button></div>  <div class="pipeline-board" id="pipelineBoard"></div>
+  <div id="activeDealBar" style="display:none;background:rgba(226,176,74,0.07);border:1px solid rgba(226,176,74,0.2);border-radius:var(--radius);padding:8px 14px;margin-bottom:12px;font-size:0.8rem;color:var(--teal);align-items:center;gap:10px;"><span id="activeDealLabel"></span><button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:0.68rem;" onclick="window._activeDealIdx=null;renderDeals();">Clear</button></div>  <div class="pipeline-board" id="pipelineBoard"></div>
 
   <!-- AI Tools -->
   <div class="section-title" style="font-size:1rem;margin-bottom:12px;">🤖 AI Deal Tools</div>
@@ -1998,7 +2074,7 @@ input[type="range"]::-webkit-slider-thumb {
 <div class="panel" id="panel-history">
   <div class="flex-between mb-20">
     <div>
-      <div class="section-title" style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;">Valuation History</div>
+      <div class="section-title" style="font-family:'Inter',system-ui,sans-serif;font-size:1.4rem;font-weight:700;">Valuation History</div>
       <div class="section-sub">All previous AI valuations</div>
     </div>
     <button class="btn btn-secondary btn-sm" onclick="clearHistory()">Clear All</button>
@@ -2016,7 +2092,7 @@ input[type="range"]::-webkit-slider-thumb {
      MODAL: SETTINGS
 ═══════════════════════════════════════════ -->
 <div class="modal-overlay" id="settingsModal">
-  <div class="modal" style="max-width:420px;padding:20px;">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Settings" style="max-width:420px;padding:20px;">
 
     <div class="modal-title" style="margin-bottom:14px;">
       ⚙ Settings
@@ -2045,6 +2121,7 @@ input[type="range"]::-webkit-slider-thumb {
           <option value="llama-3.1-8b-instant">llama-3.1-8b (Fast)</option>
           <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
         </select>
+        <div class="model-row"><button type="button" class="btn btn-secondary btn-sm" onclick="refreshModels()">&#8635; Refresh models</button><span id="modelStatus" class="model-status"></span></div>
       </div>
     </div>
 
@@ -2066,20 +2143,21 @@ input[type="range"]::-webkit-slider-thumb {
     <!-- Theme -->
     <div style="font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Theme Color</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px;" id="themeSwatches">
-      <button class="swatch" data-color="#1de9b6" data-dim="rgba(29,233,182,0.35)" data-glow="rgba(29,233,182,0.12)" style="background:#1de9b6;" title="Teal" onclick="applyTheme(this)"></button>
-      <button class="swatch" data-color="#c4824a" data-dim="rgba(196,130,74,0.35)" data-glow="rgba(196,130,74,0.12)" style="background:#c4824a;" title="Copper" onclick="applyTheme(this)"></button>
+      <button class="swatch" data-color="#e2b04a" data-dim="rgba(226,176,74,0.35)" data-glow="rgba(226,176,74,0.12)" style="background:#e2b04a;" title="EstatePro Gold" onclick="applyTheme(this)"></button>
+      <button class="swatch" data-color="#c4824a" data-dim="rgba(226,176,74,0.35)" data-glow="rgba(226,176,74,0.12)" style="background:#c4824a;" title="Copper" onclick="applyTheme(this)"></button>
       <button class="swatch" data-color="#c9a84c" data-dim="rgba(201,168,76,0.35)" data-glow="rgba(201,168,76,0.12)" style="background:#c9a84c;" title="Gold" onclick="applyTheme(this)"></button>
       <button class="swatch" data-color="#e53935" data-dim="rgba(229,57,53,0.35)" data-glow="rgba(229,57,53,0.12)" style="background:#e53935;" title="Red" onclick="applyTheme(this)"></button>
       <button class="swatch" data-color="#7c4dff" data-dim="rgba(124,77,255,0.35)" data-glow="rgba(124,77,255,0.12)" style="background:#7c4dff;" title="Purple" onclick="applyTheme(this)"></button>
       <button class="swatch" data-color="#42a5f5" data-dim="rgba(66,165,245,0.35)" data-glow="rgba(66,165,245,0.12)" style="background:#42a5f5;" title="Blue" onclick="applyTheme(this)"></button>
       <button class="swatch" data-color="#66bb6a" data-dim="rgba(102,187,106,0.35)" data-glow="rgba(102,187,106,0.12)" style="background:#66bb6a;" title="Green" onclick="applyTheme(this)"></button>
-      <input type="color" id="customColorPicker" value="#1de9b6" title="Custom color"
+      <input type="color" id="customColorPicker" value="#e2b04a" title="Custom color"
         style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border);cursor:pointer;padding:1px;background:none;"
         onchange="applyCustomColor(this.value)">
     </div>
 
     <div class="divider" style="margin:12px 0;"></div>
 
+    <details class="fold adv"><summary>Advanced: local server <span class="fold-hint">Windows, optional</span></summary><div class="fold-body">
     <!-- Local Server -->
     <div style="font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Local Server <span style="font-size:0.65rem;text-transform:none;letter-spacing:0;">(map overlays)</span></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
@@ -2088,6 +2166,7 @@ input[type="range"]::-webkit-slider-thumb {
       <button class="btn btn-secondary btn-sm" style="font-size:0.68rem;" onclick="checkServer()">⟳ Check</button>
     </div>
     <div id="serverStatusText" style="font-size:0.72rem;color:var(--text3);margin-bottom:12px;">Checking server...</div>
+    </div></details>
 
     <!-- Save / Cancel -->
     <div style="display:flex;gap:8px;">
@@ -2171,7 +2250,7 @@ input[type="range"]::-webkit-slider-thumb {
 </div>
 
 <!-- NOTES FAB -->
-<button class="notes-fab" onclick="openNotes()" title="Notes & Feedback">
+<button class="notes-fab" onclick="openNotes()" title="Notes & Feedback" aria-label="Notes and feedback">
   📝
   <span class="fab-badge" id="notesBadge" style="display:none;">0</span>
 </button>
@@ -2239,7 +2318,24 @@ input[type="range"]::-webkit-slider-thumb {
 </div>
 
 <!-- TOAST CONTAINER -->
-<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── MOBILE TAB BAR ── -->
+<nav class="tabbar" id="tabbar" aria-label="Main">
+  <button type="button" data-tb="valuate" onclick="showPanel('valuate')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Value</span></button>
+  <button type="button" data-tb="portfolio" onclick="showPanel('portfolio')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>Portfolio</span></button>
+  <button type="button" data-tb="deals" onclick="showPanel('deals')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="4" height="8" rx="1"/></svg><span>Deals</span></button>
+  <button type="button" data-tb="tools" onclick="openSheet('tools')" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Tools</span></button>
+  <button type="button" data-tb="more" onclick="openSheet('more')" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg><span>More</span></button>
+</nav>
+<div class="sheet-overlay" id="sheetOverlay" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="sheet-grab"></div>
+    <div id="sheetBody"></div>
+  </div>
+</div>
+<div class="update-bar" id="updateBar" role="status"><span>A new version of EstatePro is ready.</span><button type="button" class="btn btn-primary btn-sm" onclick="applyUpdate()">Reload</button></div>
+
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
 <!-- ══════════════════════════════════════════
      JAVASCRIPT
@@ -2266,6 +2362,8 @@ let state = {
   const saved = localStorage.getItem('lazestate_v1');
   if (saved) {
     try { Object.assign(state, JSON.parse(saved)); } catch(e) {}
+    // Old default accent was teal. Drop it so the new palette shows (other saved colours are kept).
+    if (state.themeColor === '#1de9b6' || state.themeColor === '#e2b04a') { delete state.themeColor; delete state.themeDim; delete state.themeGlow; }
   }
   updateApiBanner();
   updateStatusLights();
@@ -2297,6 +2395,8 @@ function showPanel(id) {
   if (id === 'compare')   setTimeout(function(){ if(typeof renderComparePicker==='function') renderComparePicker(); }, 50);
   if (id === 'deals')     setTimeout(function(){ renderDeals(); }, 50);
   if (id === 'site')      setTimeout(function(){ initSiteMap(); }, 150);
+  if (typeof syncTabbar === 'function') syncTabbar(id);
+  window.scrollTo(0, 0);
 }
 
 // ═══════════════════════════════════════
@@ -2384,6 +2484,7 @@ async function runValuation() {
 
   const area = document.getElementById('valResultArea');
   area.innerHTML = `<div class="ai-box"><div class="thinking"><div class="spinner"></div> Analyzing property data and generating valuation...</div></div>`;
+  if (window.innerWidth <= 800) area.scrollIntoView({behavior:'smooth', block:'start'});
 
   const propDesc = [
     `Property Type: ${state.selectedType}`,
@@ -2423,12 +2524,12 @@ async function runValuation() {
   var hasPastedData = zillowText.trim().length > 50;
 
   const typePrompts = {
-    'Single Family': 'You are LazEstate, a certified residential appraiser specializing in single-family homes. Estimate TRUE MARKET VALUE using the sales comparison approach. Find recent sold comps within 1-2 miles, adjust for size, age, condition, lot, and features. Use Zillow/Redfin estimates as anchors. Always respond in JSON format only.',
-    'Condo / Townhome': 'You are LazEstate, a certified appraiser specializing in condos and townhomes. Estimate TRUE MARKET VALUE. Key factors: HOA health and fees, building age and reserves, unit floor and views, recent unit sales in same building or complex, parking, amenities. Flag any HOA red flags. Always respond in JSON format only.',
-    'Multi-Family': 'You are LazEstate, a certified commercial/residential appraiser specializing in multi-family investment properties (duplexes through 20-unit). Use INCOME APPROACH as primary: estimate gross rent, vacancy, NOI, cap rate for this market, derive value. Also provide sales comparison from recent multi-family sales. Report GRM and per-unit value. Always respond in JSON format only.',
-    'Vacant Land': 'You are LazEstate, a certified appraiser specializing in vacant land and development sites. Key factors: zoning and permitted uses, utility availability (water/sewer/electric), road access, topography, wetlands/flood risk, nearby development, entitlement status. Use comparable land sales (price per acre or per buildable unit). Always respond in JSON format only.',
-    'Commercial': 'You are LazEstate, a certified commercial appraiser. Use INCOME APPROACH: estimate market rent, NOI, cap rate for this property type and submarket, derive value. Also consider sales comps (price per sqft). Report cap rate, GRM, and price per sqft benchmarks for this market. Assess tenant quality and lease structure. Always respond in JSON format only.',
-    'Farm / Ranch': 'You are LazEstate, a certified appraiser specializing in agricultural properties. Key factors: soil quality, water rights and irrigation, tillable vs. non-tillable acreage, ag exemption status, timber value, mineral rights, proximity to markets. Use comparable agricultural land sales per acre. Always respond in JSON format only.'
+    'Single Family': 'You are EstatePro, a certified residential appraiser specializing in single-family homes. Estimate TRUE MARKET VALUE using the sales comparison approach. Find recent sold comps within 1-2 miles, adjust for size, age, condition, lot, and features. Use Zillow/Redfin estimates as anchors. Always respond in JSON format only.',
+    'Condo / Townhome': 'You are EstatePro, a certified appraiser specializing in condos and townhomes. Estimate TRUE MARKET VALUE. Key factors: HOA health and fees, building age and reserves, unit floor and views, recent unit sales in same building or complex, parking, amenities. Flag any HOA red flags. Always respond in JSON format only.',
+    'Multi-Family': 'You are EstatePro, a certified commercial/residential appraiser specializing in multi-family investment properties (duplexes through 20-unit). Use INCOME APPROACH as primary: estimate gross rent, vacancy, NOI, cap rate for this market, derive value. Also provide sales comparison from recent multi-family sales. Report GRM and per-unit value. Always respond in JSON format only.',
+    'Vacant Land': 'You are EstatePro, a certified appraiser specializing in vacant land and development sites. Key factors: zoning and permitted uses, utility availability (water/sewer/electric), road access, topography, wetlands/flood risk, nearby development, entitlement status. Use comparable land sales (price per acre or per buildable unit). Always respond in JSON format only.',
+    'Commercial': 'You are EstatePro, a certified commercial appraiser. Use INCOME APPROACH: estimate market rent, NOI, cap rate for this property type and submarket, derive value. Also consider sales comps (price per sqft). Report cap rate, GRM, and price per sqft benchmarks for this market. Assess tenant quality and lease structure. Always respond in JSON format only.',
+    'Farm / Ranch': 'You are EstatePro, a certified appraiser specializing in agricultural properties. Key factors: soil quality, water rights and irrigation, tillable vs. non-tillable acreage, ag exemption status, timber value, mineral rights, proximity to markets. Use comparable agricultural land sales per acre. Always respond in JSON format only.'
   };
   var baseSysPrompt = typePrompts[state.selectedType] || typePrompts['Single Family'];
   var sysPrompt = hasPastedData
@@ -2955,7 +3056,7 @@ async function runMarketBriefing() {
 
   area.innerHTML = `<div class="thinking"><div class="spinner"></div> Generating market briefing for ${city}...</div>`;
 
-  const sysPrompt = `You are LazEstate Market Intelligence, a senior real estate market analyst. Provide concise, data-driven market briefings based on your knowledge of US real estate trends.`;
+  const sysPrompt = `You are EstatePro Market Intelligence, a senior real estate market analyst. Provide concise, data-driven market briefings based on your knowledge of US real estate trends.`;
 
   const userMsg = `Generate a real estate market briefing for: ${city}, focusing on the ${segment} segment.
 
@@ -3272,7 +3373,7 @@ function renderSlots() {
           <div style="font-size:0.88rem; font-weight:600; color:var(--text); margin-bottom:4px;">${slot.address}</div>
           <div style="font-size:0.75rem; color:var(--text3);">${slot.type}</div>
           ${slot.beds ? `<div style="font-size:0.75rem; color:var(--text2);">${slot.beds}bd / ${slot.baths}ba · ${slot.sqft ? slot.sqft + ' sqft' : ''}</div>` : ''}
-          ${slot.price ? `<div style="font-family:'DM Mono',monospace; font-size:0.9rem; color:var(--gold2); margin-top:6px;">$${Number(slot.price).toLocaleString()}</div>` : ''}
+          ${slot.price ? `<div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:0.9rem; color:var(--gold2); margin-top:6px;">$${Number(slot.price).toLocaleString()}</div>` : ''}
         </div>`;
     }
   }
@@ -3351,7 +3452,7 @@ Respond ONLY with JSON:
           <div style="font-size:2rem;">🏆</div>
           <div>
             <div style="font-size:0.75rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.1em;">AI Recommends</div>
-            <div style="font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; color:var(--gold2);">Property ${cmp.winner}</div>
+            <div style="font-family:'Inter',system-ui,sans-serif; font-size:1.3rem; font-weight:700; color:var(--gold2);">Property ${cmp.winner}</div>
             <div style="font-size:0.82rem; color:var(--text2);">${cmp.winnerReason}</div>
           </div>
         </div>
@@ -3396,11 +3497,13 @@ Respond ONLY with JSON:
 function openSettings() {
   document.getElementById('groqKeyInput').value = state.apiKey;
   document.getElementById('settingsLocation').value = state.defaultLocation;
+  renderModelOptions();
   document.getElementById('groqModel').value = state.model;
   document.getElementById('settingsModal').classList.add('open');
 }
 
 function saveSettings() {
+  var _oldKey = state.apiKey;
   state.apiKey         = document.getElementById('groqKeyInput').value.trim();
   state.defaultLocation = document.getElementById('settingsLocation').value.trim();
   state.model          = document.getElementById('groqModel').value;
@@ -3409,6 +3512,7 @@ function saveSettings() {
   updateStatusLights();
   closeModal('settingsModal');
   toast('Settings saved!', 'success');
+  if (state.apiKey && state.apiKey !== _oldKey) refreshModels(true);
 }
 
 function closeModal(id) {
@@ -3429,7 +3533,7 @@ function exportData() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `lazestate-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `estatepro-export-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   toast('Data exported!', 'success');
 }
@@ -3741,14 +3845,14 @@ function updateNotesBadge() {
 
 function exportNotes() {
   const data = {
-    app: 'LazEstate v2.5',
+    app: 'EstatePro v4.0',
     exportDate: new Date().toISOString(),
     notes: state.notes
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `lazestate-notes-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `estatepro-notes-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   toast('Notes exported!', 'success');
 }
@@ -3851,7 +3955,7 @@ function exportPortCSV() {
   });
   var csv=[hdr.join(',')].concat(rows).join('\n');
   var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='lazestate-portfolio-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  a.download='estatepro-portfolio-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
   toast('Exported!','success');
 }
 
@@ -4011,11 +4115,11 @@ function printReport(j, propData, opts) {
   var lat=_currentLat?_currentLat.toFixed(5):null;
   var lng=_currentLng?_currentLng.toFixed(5):null;
 
-  var css='@import url(\'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;600&family=DM+Mono&display=swap\');'+
+  var css='@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\');'+
     '*{box-sizing:border-box;margin:0;padding:0;}body{font-family:\'DM Sans\',sans-serif;color:#1a1a2e;background:#f4f4f0;font-size:13px;line-height:1.5;}'+
     '.page{max-width:860px;margin:0 auto;background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.08);}'+
     '.rh{background:linear-gradient(135deg,#1a1408,#2a1a0e);color:#fff;padding:28px 32px 20px;display:flex;justify-content:space-between;align-items:flex-start;}'+
-    '.rb{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(196,130,74,.8);margin-bottom:6px;}'+
+    '.rb{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(226,176,74,.8);margin-bottom:6px;}'+
     '.rt{font-family:\'Playfair Display\',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:3px;}'+
     '.rs{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;}'+
     '.gg{width:46px;height:46px;border-radius:50%;border:2px solid;font-family:\'Playfair Display\',serif;font-size:19px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 0 5px auto;}'+
@@ -4023,7 +4127,7 @@ function printReport(j, propData, opts) {
     '.ks{display:grid;grid-template-columns:repeat(4,1fr);background:#1a1408;}'+
     '.kc{padding:13px 15px;border-right:1px solid rgba(255,255,255,.07);}'+
     '.kc:last-child{border-right:none;}'+
-    '.kl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:rgba(196,130,74,.7);margin-bottom:3px;}'+
+    '.kl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:rgba(226,176,74,.7);margin-bottom:3px;}'+
     '.kv{font-family:\'DM Mono\',monospace;font-size:16px;color:#fff;font-weight:700;}'+
     '.ksb{font-size:9px;color:rgba(255,255,255,.35);margin-top:2px;}'+
     '.cb{height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:5px;}'+
@@ -4149,10 +4253,10 @@ function printReport(j, propData, opts) {
 
   // Build full HTML as a blob — works even with popup blockers
   var fullHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-    '<title>LazEstate Report -- '+addr+'</title>' +
+    '<title>EstatePro Report -- '+addr+'</title>' +
     '<style>'+css+'</style></head><body><div class="page">'+
     '<div class="rh">'+
-      '<div><div class="rb">LazEstate v2.5 - AI Property Intelligence</div>'+
+      '<div><div class="rb">EstatePro v4.0 - AI Property Intelligence</div>'+
         '<div class="rt">'+addr+'</div>'+
         '<div class="rs">'+(propData.type||'Residential')+(propData.city?' - '+propData.city+(propData.state_?', '+propData.state_:''):'')+'</div></div>'+
       '<div style="text-align:right;margin-left:16px;">'+
@@ -4167,10 +4271,10 @@ function printReport(j, propData, opts) {
       '<div class="kc"><div class="kl">Grade</div><div class="kv" style="color:'+gc+'">'+grade+'</div><div class="ksb">'+(j.appreciationOutlook||'')+'</div></div>'+
     '</div>'+
     '<div class="bd">'+sections+'</div>'+
-    '<div class="ft"><span>LazEstate v2.5 - Confidential</span><span>AI analysis for informational use only</span></div>'+
+    '<div class="ft"><span>EstatePro v4.0 - Confidential</span><span>AI analysis for informational use only</span></div>'+
     '<div class="pb" onclick="window.print()">Print / Save as PDF</div>'+
-  '</div><!-- © LAZLAB Creations -->
-</body></html>';
+  '</div><!-- © LAZLAB Creations -->'+
+'</body></html>';
   fullHtml += '';
   var blob = new Blob([fullHtml], {type: 'text/html'});
   var url  = URL.createObjectURL(blob);
@@ -4178,7 +4282,7 @@ function printReport(j, propData, opts) {
   if (!w) {
     // Popup blocked — download as file instead
     var a = document.createElement('a');
-    a.href = url; a.download = 'LazEstate-Report.html'; a.click();
+    a.href = url; a.download = 'EstatePro-Report.html'; a.click();
     toast('PDF saved as HTML file — open in browser to print.', 'success');
   }
 }
@@ -4186,7 +4290,7 @@ function printReport(j, propData, opts) {
 // SETUP FILE DOWNLOADS
 function downloadServerPy() {
   var code = `#!/usr/bin/env python3
-# LazEstate - Local Proxy Server - localhost:7844
+# EstatePro - Local Proxy Server - localhost:7844
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.request import urlopen, Request
@@ -4197,7 +4301,7 @@ PORT = 7844
 _start_time = time.time()
 
 
-class LazEstateHandler(BaseHTTPRequestHandler):
+class EstateProHandler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -4211,7 +4315,7 @@ class LazEstateHandler(BaseHTTPRequestHandler):
 
         # ── Health check ──────────────────────────────────────────────
         if path == '/ping':
-            self._j({'ok': True, 'server': 'LazEstate', 'port': PORT,
+            self._j({'ok': True, 'server': 'EstatePro', 'port': PORT,
                      'uptime': round(time.time() - _start_time)})
 
         # ── Generic proxy — fetch any URL server-side ─────────────────
@@ -4221,7 +4325,7 @@ class LazEstateHandler(BaseHTTPRequestHandler):
                 self._j({'error': 'Missing url param'}, 400); return
             try:
                 req = Request(target, headers={
-                    'User-Agent': 'LazEstate/2.5 (local proxy)',
+                    'User-Agent': 'EstatePro/2.5 (local proxy)',
                     'Accept': 'application/json, */*'
                 })
                 with urlopen(req, timeout=20) as r:
@@ -4248,7 +4352,7 @@ class LazEstateHandler(BaseHTTPRequestHandler):
             try:
                 url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + quote(q)
                 req = Request(url, headers={
-                    'User-Agent': 'LazEstate/2.5 (lazestate-local)',
+                    'User-Agent': 'EstatePro/4.0 (estatepro-local)',
                     'Accept-Language': 'en'
                 })
                 with urlopen(req, timeout=15) as r:
@@ -4302,7 +4406,7 @@ class LazEstateHandler(BaseHTTPRequestHandler):
             _, z, y, x = parts
             try:
                 url = f'https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/tile/{z}/{y}/{x}'
-                req = Request(url, headers={'User-Agent': 'LazEstate/2.5'})
+                req = Request(url, headers={'User-Agent': 'EstatePro/2.5'})
                 with urlopen(req, timeout=10) as r:
                     tile  = r.read()
                     ctype = r.headers.get('Content-Type', 'image/png')
@@ -4351,19 +4455,19 @@ class LazEstateHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == '__main__':
-    print(f'LazEstate server running at http://localhost:{PORT}')
+    print(f'EstatePro server running at http://localhost:{PORT}')
     print('Close this window to stop.')
-    HTTPServer(('localhost', PORT), LazEstateHandler).serve_forever()
+    HTTPServer(('localhost', PORT), EstateProHandler).serve_forever()
 `;
   var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([code], {type:'text/plain'}));
-  a.download = 'lazestate_server.py'; a.click();
-  toast('Downloaded lazestate_server.py', 'success');
+  a.download = 'estatepro_server.py'; a.click();
+  toast('Downloaded estatepro_server.py', 'success');
 }
 
 function downloadStartBat() {
   var code = `@echo off
-:: LazEstate - Start Local Server
+:: EstatePro - Start Local Server
 :: Double-click to launch. Starts proxy server then opens app in Chrome.
 
 pushd "%~dp0"
@@ -4380,27 +4484,27 @@ if errorlevel 1 (
 powershell -WindowStyle Hidden -Command "Stop-Process -Id (Get-NetTCPConnection -LocalPort 7844 -ErrorAction SilentlyContinue).OwningProcess -ErrorAction SilentlyContinue" >nul 2>&1
 timeout /t 1 /nobreak >nul
 
-:: ── Start LazEstate proxy server (hidden) ────────────────────────────────────
-powershell -WindowStyle Hidden -Command "Start-Process pythonw -ArgumentList 'lazestate_server.py' -WorkingDirectory '%~dp0' -WindowStyle Hidden -ErrorAction SilentlyContinue"
+:: ── Start EstatePro proxy server (hidden) ────────────────────────────────────
+powershell -WindowStyle Hidden -Command "Start-Process pythonw -ArgumentList 'estatepro_server.py' -WorkingDirectory '%~dp0' -WindowStyle Hidden -ErrorAction SilentlyContinue"
 if errorlevel 1 (
-    powershell -WindowStyle Hidden -Command "Start-Process python -ArgumentList 'lazestate_server.py' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
+    powershell -WindowStyle Hidden -Command "Start-Process python -ArgumentList 'estatepro_server.py' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
 )
 
 :: ── Wait for server to start ──────────────────────────────────────────────────
 timeout /t 2 /nobreak >nul
 
-:: ── Open LazEstate in Chrome ──────────────────────────────────────────────────
-set "FILE_URL=file:///%~dp0lazestate_v2.5.html"
+:: ── Open EstatePro in Chrome ──────────────────────────────────────────────────
+set "FILE_URL=file:///%~dp0estatepro.html"
 set "FILE_URL=%FILE_URL:\\=/%"
-start "" "chrome.exe" --disable-web-security --user-data-dir="%TEMP%\\lazestate_chrome" "%FILE_URL%" 2>nul
-if errorlevel 1 ( start "" "lazestate_v2.5.html" )
+start "" "chrome.exe" --disable-web-security --user-data-dir="%TEMP%\\estatepro_chrome" "%FILE_URL%" 2>nul
+if errorlevel 1 ( start "" "estatepro.html" )
 
 exit /b 0
 `;
   var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([code], {type:'text/plain'}));
-  a.download = 'start_lazestate.bat'; a.click();
-  toast('Downloaded start_lazestate.bat', 'success');
+  a.download = 'start_estatepro.bat'; a.click();
+  toast('Downloaded start_estatepro.bat', 'success');
 }
 
 
@@ -4434,7 +4538,7 @@ function printSiteReport() {
   var lng = _currentLng ? _currentLng.toFixed(5) : '—';
   var femaUrl = 'https://msc.fema.gov/portal/search?AddressQuery=' + encodeURIComponent(addr) + '#searchresultsanchor';
 
-  var css = '@import url(\'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=DM+Mono&display=swap\');' +
+  var css = '@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\');' +
     '*{box-sizing:border-box;margin:0;padding:0;}body{font-family:\'DM Sans\',sans-serif;color:#1a1a2e;background:#f4f4f0;font-size:13px;}' +
     '.page{max-width:860px;margin:0 auto;background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.08);}' +
     '.ph{background:linear-gradient(135deg,#1a1a2e,#0e1f3d);color:#fff;padding:24px 32px;display:flex;justify-content:space-between;align-items:center;}' +
@@ -4460,7 +4564,7 @@ function printSiteReport() {
   var w = window.open('', '_blank', 'width=900,height=750');
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Location Report — ' + addr + '</title><style>' + css + '</style></head><body><div class="page">' +
 
-    '<div class="ph"><div><div class="ph-brand">LazEstate v2.5 · Location Analysis Report</div><div class="ph-title">' + addr + '</div></div>' +
+    '<div class="ph"><div><div class="ph-brand">EstatePro v4.0 · Location Analysis Report</div><div class="ph-title">' + addr + '</div></div>' +
     '<div class="ph-date">' + new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) + '</div></div>' +
 
     '<div class="kbar">' +
@@ -4483,10 +4587,10 @@ function printSiteReport() {
 
     '</div>' +
 
-    '<div class="footer"><span>LazEstate v2.5 · Location Analysis · Confidential</span><span>Data: OpenStreetMap, Overpass API, FEMA</span></div>' +
+    '<div class="footer"><span>EstatePro v4.0 · Location Analysis · Confidential</span><span>Data: OpenStreetMap, Overpass API, FEMA</span></div>' +
     '<div class="pbtn" onclick="window.print()">🖨 Print / Save as PDF</div>' +
-    '</div><!-- © LAZLAB Creations -->
-</body></html>');
+    '</div><!-- © LAZLAB Creations -->'+
+'</body></html>');
   w.document.close();
 }
 
@@ -4532,7 +4636,7 @@ function calcMaxOffer() {
   var actualCoC = (ncf / downAmt * 100).toFixed(1);
 
   res.innerHTML =
-    '<div style="background:rgba(196,130,74,0.07);border:1px solid rgba(196,130,74,0.2);border-radius:var(--radius);padding:14px;">' +
+    '<div style="background:rgba(226,176,74,0.07);border:1px solid rgba(226,176,74,0.2);border-radius:var(--radius);padding:14px;">' +
       '<div style="font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Max Offer for ' + (target*100).toFixed(0) + '% CoC</div>' +
       '<div style="font-family:\'DM Mono\',monospace;font-size:1.6rem;color:var(--gold2);font-weight:700;margin-bottom:10px;">$' + Math.round(maxPrice).toLocaleString() + '</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">' +
@@ -4595,8 +4699,8 @@ function setAccentColor(color, dim, glow) {
   var root = document.documentElement;
   root.style.setProperty('--gold',      color);
   root.style.setProperty('--gold2',     color);
-  root.style.setProperty('--gold-dim',  dim   || 'rgba(29,233,182,0.35)');
-  root.style.setProperty('--gold-glow', glow  || 'rgba(29,233,182,0.12)');
+  root.style.setProperty('--gold-dim',  dim   || 'rgba(226,176,74,0.35)');
+  root.style.setProperty('--gold-glow', glow  || 'rgba(226,176,74,0.12)');
 }
 
 function restoreTheme() {
@@ -4610,18 +4714,12 @@ function restoreTheme() {
     if (cp) cp.value = state.themeColor;
   } else {
     // Mark teal as default active
-    var defaultSwatch = document.querySelector('.swatch[data-color="#1de9b6"]');
+    var defaultSwatch = document.querySelector('.swatch[data-color="#e2b04a"]');
     if (defaultSwatch) defaultSwatch.classList.add('active');
   }
 }
 
 
-  // Service Worker for GitHub Pages PWA
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('sw.js', { scope: '/lazestate/app/' }).catch(function(e){ console.log('SW:', e); });
-    });
-  }
 
 // ═══════════════════════════════════════════════════════
 // DEAL PIPELINE
@@ -4854,7 +4952,7 @@ function triggerInstall() {
     if (result.outcome === 'accepted') {
       var btn = document.getElementById('installBtn');
       if (btn) btn.classList.remove('visible');
-      toast('LazEstate installed!', 'success');
+      toast('EstatePro installed!', 'success');
     }
     _installPrompt = null;
   });
@@ -4865,7 +4963,7 @@ window.addEventListener('appinstalled', function() {
   var btn = document.getElementById('installBtn');
   if (btn) btn.classList.remove('visible');
   _installPrompt = null;
-  toast('LazEstate installed successfully!', 'success');
+  toast('EstatePro installed successfully!', 'success');
 });
 
 
@@ -4959,6 +5057,7 @@ function renderMortgageScenarios() {
 // SERVER CHECK
 // ═══════════════════════════════════════════════════════
 function checkServer() {
+  try { localStorage.setItem('estatepro_server', '1'); } catch(e) {}
   fetch('http://localhost:7844/ping', {signal: AbortSignal.timeout(1500)})
     .then(function(r){ return r.json(); })
     .then(function() {
@@ -4976,7 +5075,7 @@ function checkServer() {
       if (st) { st.style.color='var(--warn)'; st.textContent='Server not running — download files in Settings'; }
     });
 }
-setTimeout(checkServer, 2000);
+try { if (localStorage.getItem('estatepro_server') === '1') setTimeout(checkServer, 2000); } catch(e) {}
 
 // ═══════════════════════════════════════════════════════
 // ACTIVITY LOG
@@ -5179,8 +5278,8 @@ function printPortfolioReport() {
     return '<tr><td style="font-weight:600;">'+(p.address||p.city||'--')+'</td><td>'+(p.type||'--')+'</td><td>'+(sL[p.status]||'Watchlist')+'</td><td style="text-align:right;font-family:monospace;">$'+Number(p.estimatedValue||0).toLocaleString()+'</td><td style="text-align:right;font-family:monospace;color:'+(eq>=0?'#2e7d32':'#b00020')+';font-weight:600;">'+(p.purchasePrice?(eq>=0?'+':'')+' $'+Math.abs(Math.round(eq)).toLocaleString():'--')+'</td><td style="text-align:right;font-family:monospace;color:'+(cf>0?'#2e7d32':cf<0?'#b00020':'#555')+';font-weight:600;">'+(p.monthlyRent?(cf>=0?'+':'')+' $'+Math.abs(cf).toLocaleString()+'/mo':'--')+'</td><td style="text-align:right;font-family:monospace;color:#b00020;">'+(exp?'$'+Math.round(exp).toLocaleString():'--')+'</td><td style="text-align:center;font-weight:700;color:'+gc+';">'+(p.investmentGrade||'--')+'</td></tr>';
   }).join('');
   var css='*{box-sizing:border-box;margin:0;padding:0;}body{font-family:sans-serif;color:#1a1a2e;background:#f4f4f0;font-size:13px;}.page{max-width:960px;margin:0 auto;background:#fff;}.ph{background:linear-gradient(135deg,#1a1a2e,#0e1f3d);color:#fff;padding:20px 28px;display:flex;justify-content:space-between;align-items:center;}.ph-title{font-size:18px;font-weight:700;}.kbar{display:grid;grid-template-columns:repeat(5,1fr);background:#0e1f3d;}.kc{padding:12px 14px;border-right:1px solid rgba(255,255,255,.07);}.kl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:rgba(201,168,76,.7);margin-bottom:3px;}.kv{font-family:monospace;font-size:15px;color:#fff;font-weight:700;}.body{padding:20px 28px;}.st{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:#888;border-bottom:1px solid #e8e8e8;padding-bottom:4px;margin-bottom:10px;font-weight:700;}.mt{width:100%;border-collapse:collapse;}.mt th{font-size:9px;text-transform:uppercase;color:#888;padding:5px 7px;border-bottom:2px solid #e0e0e0;text-align:left;}.mt td{padding:7px 7px;border-bottom:1px solid #f0f0f0;font-size:12px;}.ft{background:#1a1a2e;color:rgba(255,255,255,.3);padding:10px 28px;font-size:9px;display:flex;justify-content:space-between;}.pb{text-align:center;padding:12px;background:#f8f8f0;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a2e;}@media print{.pb{display:none!important;}}';
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Portfolio Report</title><style>'+css+'</style></head><body><div class="page"><div class="ph"><div><div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:rgba(201,168,76,.7);margin-bottom:4px;">LazEstate v3.0 Portfolio Report</div><div class="ph-title">Property Portfolio</div></div><div style="font-size:10px;color:rgba(255,255,255,.4);">'+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'<br>'+props.length+' Properties</div></div><div class="kbar"><div class="kc"><div class="kl">Properties</div><div class="kv">'+props.length+'</div></div><div class="kc"><div class="kl">Portfolio Value</div><div class="kv">$'+Math.round(totalVal/1000)+'K</div></div><div class="kc"><div class="kl">Total Equity</div><div class="kv" style="color:'+(totalEquity>=0?'#4caf50':'#ef5350')+';"> $'+Math.abs(Math.round(totalEquity/1000))+'K</div></div><div class="kc"><div class="kl">Monthly Cash Flow</div><div class="kv" style="color:'+(totalCF>=0?'#4caf50':'#ef5350')+';">$'+Math.abs(totalCF).toLocaleString()+'</div></div><div class="kc"><div class="kl">Total Expenses</div><div class="kv" style="color:#ef5350;">$'+Math.round(totalExp).toLocaleString()+'</div></div></div><div class="body"><div class="st">All Properties</div><table class="mt"><thead><tr><th>Address</th><th>Type</th><th>Status</th><th>Est. Value</th><th>Equity</th><th>Cash Flow</th><th>Expenses</th><th>Grade</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="ft"><span>LazEstate v3.0 Confidential</span><span>For internal use only</span></div><div class="pb" onclick="window.print()">Print / Save as PDF</div></div><!-- © LAZLAB Creations -->
-</body></html>';
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Portfolio Report</title><style>'+css+'</style></head><body><div class="page"><div class="ph"><div><div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:rgba(201,168,76,.7);margin-bottom:4px;">EstatePro v4.0 Portfolio Report</div><div class="ph-title">Property Portfolio</div></div><div style="font-size:10px;color:rgba(255,255,255,.4);">'+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'<br>'+props.length+' Properties</div></div><div class="kbar"><div class="kc"><div class="kl">Properties</div><div class="kv">'+props.length+'</div></div><div class="kc"><div class="kl">Portfolio Value</div><div class="kv">$'+Math.round(totalVal/1000)+'K</div></div><div class="kc"><div class="kl">Total Equity</div><div class="kv" style="color:'+(totalEquity>=0?'#4caf50':'#ef5350')+';"> $'+Math.abs(Math.round(totalEquity/1000))+'K</div></div><div class="kc"><div class="kl">Monthly Cash Flow</div><div class="kv" style="color:'+(totalCF>=0?'#4caf50':'#ef5350')+';">$'+Math.abs(totalCF).toLocaleString()+'</div></div><div class="kc"><div class="kl">Total Expenses</div><div class="kv" style="color:#ef5350;">$'+Math.round(totalExp).toLocaleString()+'</div></div></div><div class="body"><div class="st">All Properties</div><table class="mt"><thead><tr><th>Address</th><th>Type</th><th>Status</th><th>Est. Value</th><th>Equity</th><th>Cash Flow</th><th>Expenses</th><th>Grade</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="ft"><span>EstatePro v4.0 Confidential</span><span>For internal use only</span></div><div class="pb" onclick="window.print()">Print / Save as PDF</div></div><!-- © LAZLAB Creations -->'+
+'</body></html>';
   var blob=new Blob([html],{type:'text/html'});
   var url=URL.createObjectURL(blob);
   var w=window.open(url,'_blank');
@@ -5297,6 +5396,144 @@ document.addEventListener('keydown', e => {
     document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
   }
 });
+
+// ═══════════════════════════════════════
+// ESTATEPRO v4 — shell, models, updates
+// ═══════════════════════════════════════
+var APP_VERSION = '4.0.0';
+(function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
+
+
+var SHEETS = {
+  tools: { title: 'Tools', items: [
+    ['market', '📊', 'Market', 'Rates, trends and area snapshot'],
+    ['analyze', '🧮', 'Analyze', 'Mortgage, rental ROI and cash flow'],
+    ['compare', '⚖️', 'Compare', 'Put up to three properties side by side'],
+    ['site', '📍', 'Location', 'Map, nearby places and flood info']
+  ]},
+  more: { title: 'More', items: [
+    ['history', '🕘', 'History', 'Past valuations'],
+    ['@settings', '⚙️', 'Settings', 'API key, AI model, theme'],
+    ['@notes', '📝', 'Notes & feedback', 'Your running notes log'],
+    ['@export', '⬇️', 'Export everything', 'Full JSON backup'],
+    ['@install', '📲', 'Install app', 'Add EstatePro to your home screen']
+  ]}
+};
+function openSheet(kind) {
+  var d = SHEETS[kind]; if (!d) return;
+  var h = '<div class="sheet-title">' + d.title + '</div>';
+  d.items.forEach(function(it) {
+    h += '<button type="button" class="sheet-item" onclick="sheetGo(\'' + it[0] + '\')"><span class="si-ico">' + it[1] + '</span><span><div class="si-t">' + it[2] + '</div><div class="si-d">' + it[3] + '</div></span></button>';
+  });
+  if (kind === 'more') h += '<div class="sheet-foot"><span class="version-stamp"><span class="ver-num">EstatePro v' + APP_VERSION + '</span></span></div>';
+  document.getElementById('sheetBody').innerHTML = h;
+  document.getElementById('sheetOverlay').classList.add('open');
+}
+function closeSheet() { var o = document.getElementById('sheetOverlay'); if (o) o.classList.remove('open'); }
+function sheetGo(id) {
+  closeSheet();
+  if (id === '@settings') return openSettings();
+  if (id === '@export') return exportFullSuite();
+  if (id === '@notes') return openNotes();
+  if (id === '@install') return triggerInstall();
+  showPanel(id);
+}
+function syncTabbar(id) {
+  var map = { valuate: 'valuate', portfolio: 'portfolio', deals: 'deals', market: 'tools', analyze: 'tools', compare: 'tools', site: 'tools', history: 'more' };
+  document.querySelectorAll('#tabbar button').forEach(function(b) { b.classList.toggle('active', b.dataset.tb === map[id]); });
+  document.querySelectorAll('.nav-tab').forEach(function(t) { t.removeAttribute('aria-current'); if (t.classList.contains('active')) t.setAttribute('aria-current', 'page'); });
+  try { history.replaceState(null, '', '#' + id); } catch(e) {}
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSheet(); });
+
+// Deep links (manifest shortcuts): app/#valuate, #portfolio, #deals ...
+function openFromHash() {
+  var h = (location.hash || '').slice(1);
+  if (h && document.getElementById('panel-' + h)) showPanel(h); else syncTabbar('valuate');
+}
+window.addEventListener('hashchange', openFromHash);
+
+// Label every plain field for screen readers
+function labelFields() {
+  document.querySelectorAll('.field-group').forEach(function(g) {
+    var l = g.querySelector('.field-label'), c = g.querySelector('input,select,textarea');
+    if (l && c && !c.getAttribute('aria-label')) c.setAttribute('aria-label', l.textContent.replace(/\s+/g, ' ').trim());
+  });
+  document.querySelectorAll('.modal').forEach(function(m) { if (!m.getAttribute('role')) { m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); } });
+  document.querySelectorAll('.modal-close').forEach(function(b) { b.setAttribute('aria-label', 'Close'); });
+}
+
+// Open the optional-detail fold by default on wide screens
+(function() { var f = document.getElementById('moreDetail'); if (f && window.innerWidth > 768) f.open = true; })();
+
+// ── Groq model list: update only, never replace ──
+var BASE_MODELS = [
+  ['llama-3.3-70b-versatile', 'llama-3.3-70b (Best)'],
+  ['llama-3.1-8b-instant', 'llama-3.1-8b (Fast)'],
+  ['mixtral-8x7b-32768', 'mixtral-8x7b']
+];
+function isChatModel(id) { return !/whisper|tts|playai|orpheus|guard|safeguard|embed|moderation/i.test(id); }
+function renderModelOptions() {
+  var sel = document.getElementById('groqModel'); if (!sel) return;
+  var cur = state.model, live = state.modelList || null, st = document.getElementById('modelStatus');
+  var gone = function(id) { return live && live.indexOf(id) === -1; };
+  var html = '', baseIds = BASE_MODELS.map(function(b) { return b[0]; });
+  BASE_MODELS.forEach(function(b) { html += '<option value="' + b[0] + '">' + b[1] + (gone(b[0]) ? ' — not in Groq\'s current list' : '') + '</option>'; });
+  var extra = (live || []).filter(function(id) { return baseIds.indexOf(id) === -1; });
+  if (extra.length) html += '<optgroup label="Available from Groq">' + extra.map(function(id) { return '<option value="' + id + '">' + id + '</option>'; }).join('') + '</optgroup>';
+  if (cur && baseIds.indexOf(cur) === -1 && extra.indexOf(cur) === -1) html += '<option value="' + cur + '">' + cur + (live ? ' — saved, not in Groq\'s current list' : ' (saved)') + '</option>';
+  sel.innerHTML = html; sel.value = cur;
+  if (st) {
+    if (live && gone(cur)) { st.className = 'model-status warn'; st.textContent = 'Your saved model is not in Groq\'s current list. It is kept, but calls may fail. Pick another to switch.'; }
+    else if (live) { st.className = 'model-status'; st.textContent = live.length + ' chat models · updated ' + new Date(state.modelListAt).toLocaleDateString(); }
+    else { st.className = 'model-status'; st.textContent = ''; }
+  }
+}
+async function refreshModels(silent) {
+  var keyEl = document.getElementById('groqKeyInput');
+  var key = ((keyEl && keyEl.value) || state.apiKey || '').trim();
+  var st = document.getElementById('modelStatus');
+  if (!key) { if (!silent) toast('Add your Groq key first.', 'error'); return; }
+  if (st) { st.className = 'model-status'; st.textContent = 'Fetching models…'; }
+  try {
+    var r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+    if (!r.ok) throw new Error(r.status === 401 ? 'Key rejected (401)' : 'HTTP ' + r.status);
+    var j = await r.json();
+    var ids = (j.data || []).filter(function(m) { return m.active !== false; }).map(function(m) { return m.id; }).filter(isChatModel).sort();
+    if (!ids.length) throw new Error('No chat models returned');
+    state.modelList = ids; state.modelListAt = Date.now(); save();
+    var keep = document.getElementById('groqModel') ? document.getElementById('groqModel').value : state.model;
+    renderModelOptions();
+    var sel = document.getElementById('groqModel'); if (sel && keep) sel.value = keep;
+    if (!silent) toast('Model list updated.', 'success');
+  } catch (e) {
+    if (st) { st.className = 'model-status warn'; st.textContent = 'Could not refresh: ' + e.message + '. Your current list is unchanged.'; }
+  }
+}
+(function() {
+  var k = document.getElementById('groqKeyInput');
+  if (k) k.addEventListener('change', function() { if (k.value.trim() && k.value.trim() !== state.apiKey) refreshModels(true); });
+})();
+
+// ── Updates: new service worker waits until the person taps Reload ──
+var _swReg = null;
+function showUpdateBar() { var b = document.getElementById('updateBar'); if (b) b.classList.add('show'); }
+function applyUpdate() { if (_swReg && _swReg.waiting) _swReg.waiting.postMessage({ type: 'SKIP_WAITING' }); else location.reload(); }
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      _swReg = reg;
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdateBar();
+      reg.addEventListener('updatefound', function() {
+        var nw = reg.installing; if (!nw) return;
+        nw.addEventListener('statechange', function() { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBar(); });
+      });
+    }).catch(function(e) { console.log('SW:', e); });
+    var reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function() { if (reloaded) return; reloaded = true; location.reload(); });
+  });
+}
+window.addEventListener('load', function() { labelFields(); renderModelOptions(); openFromHash(); });
 </script>
 <!-- PROPERTY MANAGEMENT MODAL -->
 <div class="modal-overlay" id="propMgmtModal">
@@ -5338,7 +5575,7 @@ document.addEventListener('keydown', e => {
     <div class="divider"></div>
     <div class="flex-between mb-8">
       <div style="font-size:0.78rem;font-weight:600;color:var(--gold2);">Expenses</div>
-      <div style="font-size:0.72rem;color:var(--text3);">Total: <span id="mgmtExpTotal" style="color:var(--gold2);font-family:'DM Mono',monospace;">$0</span></div>
+      <div style="font-size:0.72rem;color:var(--text3);">Total: <span id="mgmtExpTotal" style="color:var(--gold2);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;">$0</span></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 110px 100px 70px;gap:8px;align-items:end;margin-bottom:8px;">
       <div class="field-group" style="margin-bottom:0;"><div class="field-label">Description</div><input type="text" id="mgmtExpDesc" placeholder="Roof, Insurance, HOA..."></div>
@@ -5362,14 +5599,14 @@ document.addEventListener('keydown', e => {
 <div class="panel" id="panel-site">
   <div class="flex-between mb-16">
     <div>
-      <div class="section-title" style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;">Site Analysis</div>
+      <div class="section-title" style="font-family:'Inter',system-ui,sans-serif;font-size:1.4rem;font-weight:700;">Site Analysis</div>
       <div class="section-sub">Map · Flood Zones · Nearby POIs · AI Site Report</div>
     </div>
     <button class="btn btn-primary btn-sm" onclick="loadSiteForCurrentProperty()">📍 Load Active Property</button>
   </div>
 
   <div class="site-controls">
-    <input type="text" id="siteSearchInput" placeholder="Enter address to map..." style="flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;padding:8px 12px;outline:none;" onkeydown="if(event.key==='Enter')searchSiteAddress()">
+    <input type="text" id="siteSearchInput" placeholder="Enter address to map..." style="flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:0.85rem;padding:8px 12px;outline:none;" onkeydown="if(event.key==='Enter')searchSiteAddress()">
     <button class="btn btn-teal btn-sm" onclick="searchSiteAddress()">🔍 Map It</button>
     <button class="btn btn-secondary btn-sm" onclick="toggleFloodLayer()">💧 FEMA Flood Map</button>
     <button class="btn btn-secondary btn-sm" onclick="loadPOIs()">📍 Nearby POIs</button>
@@ -5447,6 +5684,6 @@ document.addEventListener('keydown', e => {
   </div>
 </div>
 
-<!-- © LAZLAB Creations -->
-</body>
+<!-- © LAZLAB Creations -->'+
+'</body>
 </html>
