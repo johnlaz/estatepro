@@ -2956,16 +2956,16 @@ function openListing(site) {
   if (!street) full = [p.city, p.state_, p.zip].filter(Boolean).join(', ');
   var url;
   if (site === 'zillow') url = 'https://www.zillow.com/homes/' + encodeURIComponent(full.replace(/,/g, '').replace(/\s+/g, '-')) + '_rb/';
-  else if (site === 'realtor') url = 'https://www.google.com/search?btnI=1&q=' + encodeURIComponent(full + ' site:realtor.com');   // "I'm Feeling Lucky": jumps to the top result
-  else if (site === 'redfin') url = 'https://www.google.com/search?btnI=1&q=' + encodeURIComponent(full + ' site:redfin.com');
+  else if (site === 'realtor') url = 'https://www.google.com/search?q=' + encodeURIComponent(full + ' site:realtor.com');
+  else if (site === 'redfin') url = 'https://www.google.com/search?q=' + encodeURIComponent(full + ' site:redfin.com');
   else url = 'https://www.google.com/search?q=' + encodeURIComponent(full + ' home value sold price');
-  var newTab = true; try { newTab = localStorage.getItem('ep_newtab') !== '0'; } catch (e) {}
+  var newTab = state.newTab !== false;
   if (!newTab) { location.href = url; return; }
   var a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
 }
-function newTabLabel() { var on = true; try { on = localStorage.getItem('ep_newtab') !== '0'; } catch (e) {} return on ? '↗ Opens in a new tab · tap to change' : '↪ Opens in this window · tap to change'; }
+function newTabLabel() { var on = state.newTab !== false; return on ? '↗ Opens in a new tab · tap to change' : '↪ Opens in this window · tap to change'; }
 function toggleNewTab() {
-  var on = true; try { on = localStorage.getItem('ep_newtab') !== '0'; localStorage.setItem('ep_newtab', on ? '0' : '1'); } catch (e) {}
+  state.newTab = state.newTab === false; save();
   var b = document.getElementById('newTabBtn'); if (b) b.textContent = newTabLabel();
 }
 function renderValuationResult(j, propData) {
@@ -5070,7 +5070,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.16';
+var APP_VERSION = '4.3.17';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════

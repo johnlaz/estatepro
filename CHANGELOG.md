@@ -83,3 +83,6 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 
 ## 4.3.16
 - New-tab toggle is now a labelled button (the checkbox rendered as a wide empty box).
+
+## 4.3.17
+- Realtor.com and Redfin buttons back to a site-restricted Google search (the lucky redirect still showed a Google click-through page). New-tab choice is saved with the app data.
