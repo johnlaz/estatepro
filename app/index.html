@@ -1328,7 +1328,6 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
     <!-- Status dots — compact, hidden labels -->
     <div class="status-dots" style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
       <div class="light-dot off" id="lightGroq" title="Groq API" style="width:7px;height:7px;border-radius:50%;cursor:default;"></div>
-      <div class="light-dot off" id="lightLookup" title="Data" style="width:7px;height:7px;border-radius:50%;cursor:default;"></div>
       <div id="serverDot" class="server-dot" title="Local server" style="width:7px;height:7px;border-radius:50%;background:var(--border2);cursor:pointer;" onclick="checkServer()"></div>
     </div>
     <span class="version-stamp" id="verStamp" title="EstatePro"></span>
@@ -1394,10 +1393,9 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
         </div>
 
         <div class="field-group">
-          <div class="field-label">Street Address <span style="color:var(--teal); font-size:0.65rem;">(optional · Lookup finds the ZIP)</span></div>
+          <div class="field-label">Street Address <span style="color:var(--teal); font-size:0.65rem;">(optional · a ZIP in the address fills the ZIP field)</span></div>
           <div class="addr-lookup-row">
-            <input type="text" id="propAddress" placeholder="123 Oak Street, City, State ZIP" onchange="syncZipFromAddress()" onkeydown="if(event.key==='Enter') lookupAddress()">
-            <button class="btn btn-teal btn-sm" onclick="lookupAddress()" id="lookupBtn" style="white-space:nowrap; flex-shrink:0;">🔍 Lookup</button>
+            <input type="text" id="propAddress" placeholder="123 Oak Street, City, State ZIP" onchange="syncZipFromAddress()" onkeydown="if(event.key==='Enter') syncZipFromAddress()">
           </div>
           <details class="fold"><summary>County property appraiser <span class="fold-hint">optional · check sq ft and sales</span></summary><div class="fold-body">
           <div class="county-row">
@@ -2824,7 +2822,7 @@ async function zipPreload(zip) {
     var m = /^(.+), ([A-Z]{2})$/.exec(D.zipG.n || '');
     var stCode = D.zipG.st || (D.countyG && D.countyG.st) || (m ? m[2] : '');
     var cityEl = document.getElementById('propCity');
-    if (m && (!cityEl.value || cityEl.dataset.auto === '1')) { cityEl.value = m[1]; cityEl.dataset.auto = '1'; }
+    if (m) { cityEl.value = m[1]; cityEl.dataset.auto = '1'; }
     var stEl = document.getElementById('propState');
     if (stCode) for (var i = 0; i < stEl.options.length; i++) if (stEl.options[i].value === stCode) { stEl.selectedIndex = i; break; }
     var z = S.zip;
@@ -3865,162 +3863,10 @@ function toast(msg, type = '') {
 // ═══════════════════════════════════════
 function updateStatusLights() {
   const groqDot   = document.getElementById('lightGroq');
-  const lookupDot = document.getElementById('lightLookup');
   if (state.apiKey) {
     groqDot.className   = 'light-dot on';
-    lookupDot.className = 'light-dot on';
   } else {
     groqDot.className   = 'light-dot off';
-    lookupDot.className = 'light-dot off';
-  }
-}
-
-// ═══════════════════════════════════════
-// ADDRESS LOOKUP — AI AUTO-FILL
-// ═══════════════════════════════════════
-async function lookupAddress() {
-  const addr = document.getElementById('propAddress').value.trim();
-  if (!addr) { toast('Enter an address first.', 'error'); return; }
-  var _zf = mktZipFrom(addr), _ze = document.getElementById('propZip');
-  if (_zf && _ze && !_ze.value) { _ze.value = _zf; onZipInput(_ze); }
-  if (!state.apiKey) { toast(_zf ? 'ZIP found, loading market data. Add a Groq key to also auto-fill specs.' : 'Add the ZIP code to load market data. Auto-filling specs needs a Groq key.', ''); return; }
-
-  const btn = document.getElementById('lookupBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;"></div>';
-
-  // Flash lookup light to amber while working
-  const lookupDot = document.getElementById('lightLookup');
-  lookupDot.className = 'light-dot warn';
-
-  const sysPrompt = `You are a real estate data specialist with deep knowledge of US property records, MLS data, and county assessor databases. When given an address, recall everything you know about that specific property from your training data — Zillow, Redfin, county records, MLS listings, etc. Always respond ONLY with a valid JSON object. Never add commentary or markdown.`;
-
-  const userMsg = `Look up this property address and return all available data you know about it:
-
-"${addr}"
-
-Use your knowledge of public property records, past MLS listings, Zillow/Redfin data, and county assessor records.
-
-Respond ONLY with this JSON structure (use null for fields you truly don't know):
-{
-  "found": true|false,
-  "confidence": "high"|"medium"|"low",
-  "normalizedAddress": string,
-  "city": string or null,
-  "state": string (2-letter abbreviation) or null,
-  "zip": string or null,
-  "propertyType": "Single Family"|"Condo / Townhome"|"Multi-Family"|"Vacant Land"|"Commercial"|"Farm / Ranch" or null,
-  "bedrooms": number or null,
-  "bathrooms": number or null,
-  "livingAreaSqft": number or null,
-  "lotSizeAcres": number or null,
-  "lotSizeSqft": number or null,
-  "yearBuilt": number or null,
-  "lastSalePrice": number or null,
-  "lastSaleYear": number or null,
-  "estimatedCurrentValue": number or null,
-  "pricePerSqft": number or null,
-  "taxAssessedValue": number or null,
-  "annualTaxes": number or null,
-  "HOA": number or null,
-  "features": string or null,
-  "condition": "Excellent / Move-in Ready"|"Good / Minor Updates Needed"|"Fair / Moderate Renovation"|"Poor / Major Renovation" or null,
-  "notes": string or null,
-  "dataSource": string
-}
-
-Be as specific and accurate as possible. Use your best knowledge of this exact property. For estimated current value, use comparable recent sales in the area and current market conditions — be realistic and precise, not a round number.`;
-
-  try {
-    const raw = await groqCall([{ role: 'user', content: userMsg }], sysPrompt, 800);
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const d = JSON.parse(clean);
-
-    btn.disabled = false;
-    btn.innerHTML = '🔍 Lookup';
-    lookupDot.className = 'light-dot on';
-
-    if (!d.found) {
-      toast('Address not found in AI knowledge base — fill fields manually.', '');
-      document.getElementById('lookupBar').className = 'lookup-result-bar';
-      return;
-    }
-
-    // Auto-fill form fields
-    const filled = [];
-
-    if (d.normalizedAddress) document.getElementById('propAddress').value = d.normalizedAddress;
-
-    if (d.city) { document.getElementById('propCity').value = d.city; filled.push('City'); }
-    if (d.zip && _ze && !_ze.value && /^\d{5}$/.test(String(d.zip))) { _ze.value = String(d.zip); onZipInput(_ze); filled.push('ZIP'); }
-    if (d.state) {
-      const stSel = document.getElementById('propState');
-      for (let i = 0; i < stSel.options.length; i++) {
-        if (stSel.options[i].value === d.state) { stSel.selectedIndex = i; break; }
-      }
-      filled.push('State');
-    }
-    if (d.propertyType) {
-      // Set property type button
-      document.querySelectorAll('.prop-type-btn').forEach(b => {
-        if (b.dataset.type === d.propertyType) { selectType(b); }
-      });
-      filled.push('Type');
-    }
-    if (d.bedrooms) {
-      document.getElementById('propBeds').value = d.bedrooms <= 6 ? String(d.bedrooms) : '6+';
-      filled.push(`${d.bedrooms} Beds`);
-    }
-    if (d.bathrooms) {
-      const bathEl = document.getElementById('propBaths');
-      const bVal = String(d.bathrooms);
-      for (let i = 0; i < bathEl.options.length; i++) {
-        if (bathEl.options[i].value === bVal) { bathEl.selectedIndex = i; break; }
-      }
-      filled.push(`${d.bathrooms} Baths`);
-    }
-    if (d.livingAreaSqft) {
-      document.getElementById('propSqft').value = d.livingAreaSqft;
-      (function () { var sq = document.getElementById('propSqft'); sq.style.borderColor = 'var(--warn)'; sq.title = 'Recalled by AI, verify before relying on it'; sq.addEventListener('input', function () { sq.style.borderColor = ''; sq.title = ''; }, { once: true }); })();
-      filled.push(`${d.livingAreaSqft.toLocaleString()} sqft (verify)`);
-    }
-    if (d.yearBuilt) {
-      document.getElementById('propYear').value = d.yearBuilt;
-      filled.push(`Built ${d.yearBuilt}`);
-    }
-    if (d.lotSizeAcres || d.lotSizeSqft) {
-      const lotStr = d.lotSizeAcres ? `${d.lotSizeAcres} acres` : `${d.lotSizeSqft.toLocaleString()} sqft`;
-      document.getElementById('propLot').value = lotStr;
-      filled.push(`Lot: ${lotStr}`);
-    }
-    if (d.condition) {
-      const condEl = document.getElementById('propCondition');
-      for (let i = 0; i < condEl.options.length; i++) {
-        if (condEl.options[i].value === d.condition) { condEl.selectedIndex = i; break; }
-      }
-    }
-    if (d.features) { document.getElementById('propFeatures').value = d.features; filled.push('Features'); }
-    if (d.notes) {
-      const existing = document.getElementById('propNotes').value;
-      document.getElementById('propNotes').value = (existing ? existing + '\n' : '') + d.notes;
-    }
-
-    // Show result bar
-    const bar = document.getElementById('lookupBar');
-    bar.className = 'lookup-result-bar visible';
-    document.getElementById('lookupMsg').textContent =
-      `AI-recalled specs, may be wrong. Check living area against your county property appraiser.`;
-    document.getElementById('lookupChips').innerHTML =
-      filled.map(f => `<span class="lookup-chip">${f}</span>`).join('');
-    document.getElementById('dataCaveat').style.display = 'flex';
-
-    toast(`✅ Auto-filled ${filled.length} fields from AI lookup`, 'success');
-
-  } catch(err) {
-    btn.disabled = false;
-    btn.innerHTML = '🔍 Lookup';
-    lookupDot.className = state.apiKey ? 'light-dot on' : 'light-dot off';
-    toast('Lookup error: ' + err.message, 'error');
   }
 }
 
@@ -5697,7 +5543,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.5';
+var APP_VERSION = '4.3.6';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
