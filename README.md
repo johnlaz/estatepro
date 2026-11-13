@@ -64,6 +64,9 @@ Static files only, served by GitHub Pages from the repo root.
 
 ## Changelog
 
+### 4.3.4
+- Nearby POIs asks three public map-data servers at once and uses the first answer (the main one is often very slow).
+
 ### 4.3.3
 - Map It: removed a geocoder option that caused the lookup to fail in some browsers.
 
