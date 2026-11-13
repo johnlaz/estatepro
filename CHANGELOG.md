@@ -59,3 +59,6 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 
 ## 4.3.8
 - Removed the optional local server (header dot, Settings downloads, localhost calls). Map It and nearby places already used OpenStreetMap directly.
+
+## 4.3.9
+- Nearby places: added fire, police, gas stations; added a wider search (about 25 miles) for airport, hospital, interstate, mall and university, keeping the nearest few; popups show distance; map zooms to fit.

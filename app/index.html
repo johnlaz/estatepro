@@ -5226,14 +5226,26 @@ function overpassRace(q) {                      // the public Overpass servers a
     });
   });
 }
-function nominatimPois(lat, lng) {            // fast first pass: category searches inside a box around the pin (about 6 quick requests)
-  var d=0.03, vb=[lng-d,lat+d,lng+d,lat-d].join(','), cats=['school','hospital','clinic','pharmacy','supermarket','park'], els=[];
-  return cats.reduce(function(chain,c){
+function poiMiles(a,b,c,d){var R=3958.8,r=Math.PI/180,x=(c-a)*r,y=(d-b)*r,h=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)*Math.sin(y/2);return 2*R*Math.asin(Math.sqrt(h));}
+// Two passes: everyday places close to the pin, and "always want to know" places (airport, hospital, highway, mall, university) searched about 25 miles out, nearest few kept.
+function nominatimPois(lat, lng) {
+  var jobs=[
+    {q:'school',d:0.03,keep:8,cat:'school'},{q:'pharmacy',d:0.03,keep:4,cat:'medical'},{q:'supermarket',d:0.03,keep:5,cat:'shopping'},
+    {q:'park',d:0.03,keep:6,cat:'park'},{q:'fire station',d:0.05,keep:2,cat:'fire'},{q:'police station',d:0.05,keep:2,cat:'police'},{q:'gas station',d:0.03,keep:3,cat:'gas'},
+    {q:'airport',d:0.4,keep:3,cat:'airport'},{q:'hospital',d:0.25,keep:4,cat:'hospital'},{q:'interstate',d:0.25,keep:3,cat:'highway'},
+    {q:'shopping mall',d:0.25,keep:3,cat:'shopping'},{q:'university',d:0.25,keep:2,cat:'school'}
+  ], els=[];
+  return jobs.reduce(function(chain,j){
     return chain.then(function(){
       return new Promise(function(res){setTimeout(res,1100);}).then(function(){
-        return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=10&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(c)).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];});
+        var vb=[lng-j.d,lat+j.d,lng+j.d,lat-j.d].join(',');
+        return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=15&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(j.q)).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];});
       }).then(function(rows){
-        rows.forEach(function(r){var tags={name:(r.display_name||'').split(',')[0]};tags[r.class]=r.type;els.push({lat:+r.lat,lon:+r.lon,tags:tags});});
+        var seen={};
+        rows.map(function(r){return {lat:+r.lat,lon:+r.lon,name:(r.display_name||'').split(',')[0],mi:poiMiles(lat,lng,+r.lat,+r.lon)};})
+          .sort(function(a,b){return a.mi-b.mi;})
+          .filter(function(r){var k=r.name+Math.round(r.lat*100)+Math.round(r.lon*100);if(seen[k])return false;seen[k]=1;return true;})
+          .slice(0,j.keep).forEach(function(r){els.push({lat:r.lat,lon:r.lon,tags:{name:r.name,_cat:j.cat},_mi:r.mi});});
       });
     });
   },Promise.resolve()).then(function(){return {elements:els};});
@@ -5248,22 +5260,23 @@ function ensureMapped(cb, tries) {            // Nearby POIs works straight from
 function loadPOIs() {
   if(!_currentLat||!_currentLng){ensureMapped(loadPOIs);return;}
   _poiLayers.forEach(function(l){_siteMap.removeLayer(l);});_poiLayers=[];
-  toast('Loading nearby places. This can take up to 40 seconds.','');
+  toast('Loading nearby places. This takes about 15 seconds.','');
   var radius=2000;
   var q='[out:json][timeout:30];(node["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');way["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');node["amenity"~"hospital|clinic|doctors|pharmacy"](around:'+radius+','+_currentLat+','+_currentLng+');node["shop"~"supermarket|mall"](around:'+radius+','+_currentLat+','+_currentLng+');node["leisure"~"park|recreation_ground"](around:'+radius+','+_currentLat+','+_currentLng+');way["leisure"="park"](around:'+radius+','+_currentLat+','+_currentLng+');node["highway"~"motorway_junction"](around:1500,'+_currentLat+','+_currentLng+');way["highway"~"motorway|trunk"](around:1000,'+_currentLat+','+_currentLng+'););out center;';
   var poiFetch=nominatimPois(_currentLat,_currentLng).then(function(d){return d.elements.length?d:overpassRace(q);});
   poiFetch.then(function(data){
     if(!data.elements||!data.elements.length){toast('No POIs found.','');return;}
-    function classify(t){if(!t)return null;var a=t.amenity,s=t.shop,l=t.leisure,h=t.highway;if(a==='school'||a==='college'||a==='university')return{color:'#e53935',emoji:'🏫',label:'School'};if(a==='hospital')return{color:'#1565c0',emoji:'🏥',label:'Hospital'};if(a==='clinic'||a==='doctors'||a==='pharmacy')return{color:'#1565c0',emoji:'🏥',label:'Medical'};if(s==='supermarket'||s==='mall')return{color:'#2e7d32',emoji:'🛒',label:'Shopping'};if(l==='park'||l==='recreation_ground')return{color:'#fb8c00',emoji:'🌳',label:'Park'};if(h==='motorway_junction'||h==='motorway'||h==='trunk')return{color:'#5d4037',emoji:'🛣',label:'Highway'};return null;}
+    function classify(t){if(!t)return null;var C={school:['#e53935','🏫','School'],hospital:['#1565c0','🏥','Hospital'],medical:['#1565c0','💊','Pharmacy'],shopping:['#2e7d32','🛒','Shopping'],park:['#fb8c00','🌳','Park'],fire:['#d84315','🚒','Fire station'],police:['#283593','🚓','Police'],gas:['#6d4c41','⛽','Gas station'],airport:['#00838f','✈️','Airport'],highway:['#5d4037','🛣','Highway']};if(t._cat&&C[t._cat])return{color:C[t._cat][0],emoji:C[t._cat][1],label:C[t._cat][2]};var a=t.amenity,s=t.shop,l=t.leisure,h=t.highway;if(a==='school'||a==='college'||a==='university')return{color:'#e53935',emoji:'🏫',label:'School'};if(a==='hospital')return{color:'#1565c0',emoji:'🏥',label:'Hospital'};if(a==='clinic'||a==='doctors'||a==='pharmacy')return{color:'#1565c0',emoji:'🏥',label:'Medical'};if(s==='supermarket'||s==='mall')return{color:'#2e7d32',emoji:'🛒',label:'Shopping'};if(l==='park'||l==='recreation_ground')return{color:'#fb8c00',emoji:'🌳',label:'Park'};if(h==='motorway_junction'||h==='motorway'||h==='trunk')return{color:'#5d4037',emoji:'🛣',label:'Highway'};return null;}
     data.elements.forEach(function(el){
       var lat=el.lat||(el.center&&el.center.lat),lon=el.lon||(el.center&&el.center.lon);
       if(!lat||!lon)return;
       var info=classify(el.tags);if(!info)return;
       var name=(el.tags&&el.tags.name)||info.label;
       var pi=L.divIcon({html:'<div style="background:'+info.color+';color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.8);">'+info.emoji+'</div>',iconSize:[24,24],iconAnchor:[12,12],className:''});
-      var m=L.marker([lat,lon],{icon:pi}).addTo(_siteMap).bindPopup('<strong>'+name+'</strong><br><small>'+info.label+'</small>');
+      var m=L.marker([lat,lon],{icon:pi}).addTo(_siteMap).bindPopup('<strong>'+name+'</strong><br><small>'+info.label+(el._mi!=null?' · '+el._mi.toFixed(1)+' mi':'')+'</small>');
       _poiLayers.push(m);
     });
+    try{if(_poiLayers.length){var g=L.featureGroup(_poiLayers.concat(_siteMarker?[_siteMarker]:[]));_siteMap.fitBounds(g.getBounds().pad(0.1));}}catch(e){}
     toast(_poiLayers.length+' nearby points loaded','success');
   }).catch(function(e){toast('POI error: '+e.message,'error');});
 }
@@ -5279,7 +5292,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.8';
+var APP_VERSION = '4.3.9';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
