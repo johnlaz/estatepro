@@ -1,0 +1,59 @@
+# Monthly refresh of EstatePro's market data (app/d/).
+# Source: realtor.com Data Library, Inventory Core Metrics (free, public).
+# Method: tools/build.py, from Zip Market Explorer by the GeniusPete Project.
+# Runs on the 8th, 15th and 22nd (realtor.com posts the new month in the first half of the month);
+# it does nothing when the data has not changed. Run it by hand from the Actions tab any time.
+name: Refresh market data
+
+on:
+  schedule:
+    - cron: '17 9 8,15,22 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency: refresh-data
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      BASE: https://econdata.s3-us-west-2.amazonaws.com/Reports/Core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas numpy
+      - name: Download realtor.com history files
+        run: |
+          mkdir -p tools/raw
+          for k in Zip County Metro State Country; do
+            curl -fL --retry 3 -o "tools/raw/RDC_Inventory_Core_Metrics_${k}_History.csv" "$BASE/RDC_Inventory_Core_Metrics_${k}_History.csv"
+          done
+          ls -l tools/raw
+      - name: Build and validate (fails on any mismatch)
+        working-directory: tools
+        run: python build.py
+      - name: Trim into app/d (stays unchanged if anything fails)
+        run: |
+          OLD=$(python3 -c "import json;print(json.load(open('app/d/info.json'))['lastYM'])")
+          python3 -I tools/trim-market-data.py tools/site/d /tmp/newd
+          NEW=$(python3 -c "import json;print(json.load(open('/tmp/newd/info.json'))['lastYM'])")
+          echo "previous month $OLD, new month $NEW"
+          if [ "$NEW" -lt "$OLD" ]; then echo "New data is older than what is published; refusing."; exit 1; fi
+          rm -rf app/d && cp -r /tmp/newd app/d
+      - name: Commit and publish
+        run: |
+          if git diff --quiet -- app/d && [ -z "$(git ls-files --others --exclude-standard app/d)" ]; then echo "No change."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/d
+          git commit -m "Refresh market data ($(python3 -c "import json;print(json.load(open('app/d/info.json'))['lastYM'])"))"
+          git push
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
+        env:
+          GH_TOKEN: ${{ github.token }}

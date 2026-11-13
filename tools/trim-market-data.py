@@ -6,10 +6,10 @@ Zip Market Explorer is a GeniusPete Project (https://petelazzaro.github.io/zip-m
 Its data is realtor.com Inventory Core Metrics (listing metrics, not closed sales). EstatePro
 keeps a trimmed copy in app/d/ so valuations keep working even if the original host moves.
 
-The explorer publishes its data to the gh-pages branch of petelazzaro/zip-market-explorer.
+Normally the monthly GitHub Action (.github/workflows/refresh-data.yml) runs tools/build.py on the
+free realtor.com files and then this script. To run it by hand against any explorer-format data:
 
-    git clone --depth 1 --branch gh-pages https://github.com/petelazzaro/zip-market-explorer /tmp/zme
-    python3 -I docs/refresh-market-data.py /tmp/zme/d app/d
+    python3 -I tools/trim-market-data.py <explorer d/ folder> app/d
 
 What it keeps: the ZIP and county shards and the state file, last 24 months, only the series the
 app uses. Records keep the explorer's format, plus "e": the global month index of the last value
@@ -56,6 +56,12 @@ def main(src_dir, out_dir):
     src, out = Path(src_dir), Path(out_dir)
     if not (src / 'states.json').exists():
         sys.exit('No states.json in %s: point this at the explorer\'s d/ folder' % src)
+    z2c_keep = None
+    if not (src / 'zip_to_county.json').exists():          # build.py does not make it; it only changes once a decade (Census ZCTA file)
+        old = out / 'zip_to_county.json'
+        if not old.exists():
+            sys.exit('No zip_to_county.json in the source or in %s' % out)
+        z2c_keep = old.read_bytes()
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -64,8 +70,11 @@ def main(src_dir, out_dir):
         for f in sorted((src / kind).glob('*.json')):
             counts[kind] += trim_file(f, out / kind / f.name)
     trim_file(src / 'states.json', out / 'states.json')
-    shutil.copyfile(src / 'zip_to_county.json', out / 'zip_to_county.json')
-    shutil.copyfile(src / 'us.json', out / 'us.json')
+    if z2c_keep is not None:
+        (out / 'zip_to_county.json').write_bytes(z2c_keep)
+    else:
+        shutil.copyfile(src / 'zip_to_county.json', out / 'zip_to_county.json')
+    trim_file(src / 'us.json', out / 'us.json')
     for m in sorted((src / 'metro').glob('*.json')):
         trim_file(m, out / 'metro' / m.name)
     meta = json.loads((src / 'meta.json').read_text(encoding='utf-8'))
@@ -81,6 +90,8 @@ def main(src_dir, out_dir):
     }
     (out / 'info.json').write_text(json.dumps(info, indent=1), encoding='utf-8')
     total = sum(p.stat().st_size for p in out.rglob('*') if p.is_file())
+    if counts['zip'] < 30000 or counts['county'] < 3000:
+        sys.exit('Sanity check failed: only %d zips and %d counties, refusing to publish' % (counts['zip'], counts['county']))
     print('zips: %d, counties: %d, last month: %s, size: %.1f MB' % (counts['zip'], counts['county'], info['lastYM'], total / 1e6))
 
 

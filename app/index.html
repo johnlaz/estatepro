@@ -2438,8 +2438,8 @@ function selectType(btn) {
 // These are LISTING metrics (asking prices, active inventory), not closed sales.
 // ═══════════════════════════════════════
 var MKT = {
-  base: 'https://petelazzaro.github.io/zip-market-explorer/d/',   // GeniusPete Project, live and freshest
-  local: 'd/',                                // EstatePro's own trimmed copy (app/d/), used if the live host fails
+  base: 'https://petelazzaro.github.io/zip-market-explorer/d/',   // GeniusPete Project explorer: backup only
+  local: 'd/',                                // EstatePro's own trimmed data (app/d/), rebuilt monthly from realtor.com
   keep: 24,                                   // months of history kept per geography
   series: ['p','f','s','al','pl','dom','prs','pis','pr','q'],
   scale: { prs: 10000, pis: 10000, pr: 10000 },
@@ -2720,9 +2720,9 @@ function mktJSON(path) {
         return r.json();
       });
     };
-    _mktP[path] = get(MKT.base).catch(function (e) {
-      // live host down, blocked, or gone (a removed Pages site also answers 404): use our own copy
-      return get(MKT.local).catch(function (e2) { throw (e2 && e2.status === 404) ? e2 : e; });
+    _mktP[path] = get(MKT.local).catch(function (e) {
+      // our own copy (refreshed monthly by .github/workflows/refresh-data.yml) comes first; the explorer's live files are a backup
+      return get(MKT.base).catch(function () { throw e; });
     }).catch(function (e) { delete _mktP[path]; throw e; });
   }
   return _mktP[path];
