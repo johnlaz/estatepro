@@ -5632,6 +5632,18 @@ function overpassRace(q) {                      // the public Overpass servers a
     });
   });
 }
+function nominatimPois(lat, lng) {            // fast first pass: category searches inside a box around the pin (about 6 quick requests)
+  var d=0.03, vb=[lng-d,lat+d,lng+d,lat-d].join(','), cats=['school','hospital','clinic','pharmacy','supermarket','park'], els=[];
+  return cats.reduce(function(chain,c){
+    return chain.then(function(){
+      return new Promise(function(res){setTimeout(res,1100);}).then(function(){
+        return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=10&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(c)).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];});
+      }).then(function(rows){
+        rows.forEach(function(r){var tags={name:(r.display_name||'').split(',')[0]};tags[r.class]=r.type;els.push({lat:+r.lat,lon:+r.lon,tags:tags});});
+      });
+    });
+  },Promise.resolve()).then(function(){return {elements:els};});
+}
 function ensureMapped(cb, tries) {            // Nearby POIs works straight from a typed address, no need to press Map It first
   if(_currentLat&&_currentLng){cb();return;}
   var a=((document.getElementById('siteSearchInput')||{}).value||'').trim();
@@ -5645,7 +5657,7 @@ function loadPOIs() {
   toast('Loading nearby places. This can take up to 40 seconds.','');
   var radius=2000;
   var q='[out:json][timeout:30];(node["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');way["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');node["amenity"~"hospital|clinic|doctors|pharmacy"](around:'+radius+','+_currentLat+','+_currentLng+');node["shop"~"supermarket|mall"](around:'+radius+','+_currentLat+','+_currentLng+');node["leisure"~"park|recreation_ground"](around:'+radius+','+_currentLat+','+_currentLng+');way["leisure"="park"](around:'+radius+','+_currentLat+','+_currentLng+');node["highway"~"motorway_junction"](around:1500,'+_currentLat+','+_currentLng+');way["highway"~"motorway|trunk"](around:1000,'+_currentLat+','+_currentLng+'););out center;';
-  var poiFetch=_serverAvail?fetch('http://localhost:7844/pois?lat='+_currentLat+'&lng='+_currentLng+'&radius='+radius).then(function(r){return r.json();}):overpassRace(q);
+  var poiFetch=_serverAvail?fetch('http://localhost:7844/pois?lat='+_currentLat+'&lng='+_currentLng+'&radius='+radius).then(function(r){return r.json();}):nominatimPois(_currentLat,_currentLng).then(function(d){return d.elements.length?d:overpassRace(q);});
   poiFetch.then(function(data){
     if(!data.elements||!data.elements.length){toast('No POIs found.','');return;}
     function classify(t){if(!t)return null;var a=t.amenity,s=t.shop,l=t.leisure,h=t.highway;if(a==='school'||a==='college'||a==='university')return{color:'#e53935',emoji:'🏫',label:'School'};if(a==='hospital')return{color:'#1565c0',emoji:'🏥',label:'Hospital'};if(a==='clinic'||a==='doctors'||a==='pharmacy')return{color:'#1565c0',emoji:'🏥',label:'Medical'};if(s==='supermarket'||s==='mall')return{color:'#2e7d32',emoji:'🛒',label:'Shopping'};if(l==='park'||l==='recreation_ground')return{color:'#fb8c00',emoji:'🌳',label:'Park'};if(h==='motorway_junction'||h==='motorway'||h==='trunk')return{color:'#5d4037',emoji:'🛣',label:'Highway'};return null;}
@@ -5685,7 +5697,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.4';
+var APP_VERSION = '4.3.5';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════

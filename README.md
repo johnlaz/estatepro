@@ -64,6 +64,9 @@ Static files only, served by GitHub Pages from the repo root.
 
 ## Changelog
 
+### 4.3.5
+- Nearby POIs tries a fast OpenStreetMap place search first and only falls back to the slow Overpass servers if that finds nothing.
+
 ### 4.3.4
 - Nearby POIs asks three public map-data servers at once and uses the first answer (the main one is often very slow).
 
