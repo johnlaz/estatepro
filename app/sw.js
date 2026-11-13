@@ -1,6 +1,6 @@
 // EstatePro service worker
 // Keep VERSION in sync with APP_VERSION in index.html (the visible version stamp).
-const VERSION = '4.1.0';
+const VERSION = '4.2.0';
 const CACHE = 'estatepro-app-v' + VERSION;
 const SCOPE = self.registration.scope;
 const PRECACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png']
@@ -29,6 +29,9 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   // Never touch AI, map or any cross-origin traffic.
   if (url.origin !== location.origin || !url.href.startsWith(SCOPE)) return;
+
+  // The market data copy (app/d/) is large and refreshed monthly: leave it to the browser's HTTP cache.
+  if (url.pathname.indexOf('/app/d/') !== -1) return;
 
   const isPage = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
   if (isPage) {
