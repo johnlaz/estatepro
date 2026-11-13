@@ -64,6 +64,10 @@ Static files only, served by GitHub Pages from the repo root.
 
 ## Changelog
 
+### 4.2.1
+- AI models: Groq retired llama-3.3-70b and llama-3.1-8b (Aug 2026). Defaults are now gpt-oss-120b, qwen3.6-27b and gpt-oss-20b; a saved retired model is moved automatically, the list refreshes daily with a key, and a failed call retries once on a current model.
+- Site map: switched tiles to OpenStreetMap (the previous CARTO tiles now require a key). Settings: Save button stays visible.
+
 ### 4.2.0
 - New Explorer tab: browse any ZIP, county, metro, state or the US with trends, market read, state rankings and a one-tap jump into a valuation. Contact link (lazlab.io@gmail.com) added to the Notes panel.
 

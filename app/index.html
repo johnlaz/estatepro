@@ -2083,9 +2083,9 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
       <div class="field-group" style="margin-bottom:0;">
         <div class="field-label">AI Model</div>
         <select id="groqModel">
-          <option value="llama-3.3-70b-versatile">llama-3.3-70b (Best)</option>
-          <option value="llama-3.1-8b-instant">llama-3.1-8b (Fast)</option>
-          <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
+          <option value="openai/gpt-oss-120b">gpt-oss-120b (Best)</option>
+          <option value="qwen/qwen3.6-27b">qwen3.6-27b (Balanced)</option>
+          <option value="openai/gpt-oss-20b">gpt-oss-20b (Fast)</option>
         </select>
         <div class="model-row"><button type="button" class="btn btn-secondary btn-sm" onclick="refreshModels()">&#8635; Refresh models</button><span id="modelStatus" class="model-status"></span></div>
       </div>
@@ -2135,7 +2135,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
     </div></details>
 
     <!-- Save / Cancel -->
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;position:sticky;bottom:-20px;margin:0 -20px -20px;padding:12px 20px 16px;background:var(--bg2);border-top:1px solid var(--border);">
       <button class="btn btn-primary" style="flex:1;" onclick="saveSettings()">Save Settings</button>
       <button class="btn btn-secondary" style="flex:0 0 auto;" onclick="closeModal('settingsModal')">Cancel</button>
     </div>
@@ -2315,7 +2315,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
 // ═══════════════════════════════════════
 let state = {
   apiKey: '',
-  model: 'llama-3.3-70b-versatile',
+  model: 'openai/gpt-oss-120b',
   defaultLocation: 'Orlando, FL',
   portfolio: [],
   history: [],
@@ -2387,7 +2387,7 @@ function checkMarketBanner() {
 // ═══════════════════════════════════════
 // GROQ API CALL
 // ═══════════════════════════════════════
-async function groqCall(messages, systemPrompt, maxTokens = 1200) {
+async function groqCall(messages, systemPrompt, maxTokens = 1200, _retried) {
   if (!state.apiKey) { toast('Please add your Groq API key in Settings.', 'error'); return null; }
 
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -2396,19 +2396,25 @@ async function groqCall(messages, systemPrompt, maxTokens = 1200) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${state.apiKey}`
     },
-    body: JSON.stringify({
+    body: JSON.stringify(Object.assign({
       model: state.model,
       max_tokens: maxTokens,
       messages: [
         { role: 'system', content: systemPrompt },
         ...messages
       ]
-    })
+    }, /gpt-oss/.test(state.model) ? { reasoning_effort: 'low' } : {}))
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `Groq API error ${res.status}`);
+    const msg = err?.error?.message || `Groq API error ${res.status}`;
+    if (!_retried && /model|decommission/i.test(msg) && (res.status === 400 || res.status === 404)) {
+      const before = state.model;
+      await refreshModels(true);                  // moves a retired or unknown model to a current one
+      if (state.model !== before) return groqCall(messages, systemPrompt, maxTokens, true);
+    }
+    throw new Error(msg);
   }
 
   const data = await res.json();
@@ -5036,8 +5042,8 @@ function initSiteMap() {
     var msg=document.getElementById('siteMapMsg');if(msg)msg.style.display='none';
     setTimeout(function(){
       _siteMap=L.map('siteMap',{zoomControl:true}).setView([28.5383,-81.3792],12);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
-        attribution:'CartoDB',subdomains:'abcd',maxZoom:19
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        attribution:'© OpenStreetMap contributors',maxZoom:19
       }).addTo(_siteMap);
       _siteMap.invalidateSize();
       var si=document.getElementById('siteSearchInput');
@@ -5628,7 +5634,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.2.0';
+var APP_VERSION = '4.2.1';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
@@ -5829,17 +5835,28 @@ function labelFields() {
 
 // ── Groq model list: update only, never replace ──
 var BASE_MODELS = [
-  ['llama-3.3-70b-versatile', 'llama-3.3-70b (Best)'],
-  ['llama-3.1-8b-instant', 'llama-3.1-8b (Fast)'],
-  ['mixtral-8x7b-32768', 'mixtral-8x7b']
+  ['openai/gpt-oss-120b', 'gpt-oss-120b (Best)'],
+  ['qwen/qwen3.6-27b', 'qwen3.6-27b (Balanced)'],
+  ['openai/gpt-oss-20b', 'gpt-oss-20b (Fast)']
 ];
+// Groq retired these (Llama 3.x on 2026-08-16, others earlier). A saved choice from this list is moved to a current model.
+var RETIRED_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'llama3-70b-8192', 'llama3-8b-8192', 'qwen/qwen3-32b', 'meta-llama/llama-4-scout-17b-16e-instruct', 'deepseek-r1-distill-llama-70b', 'gemma2-9b-it'];
+function pickModel(live) {                       // best current model: our preference order, else the first live chat model
+  var pref = BASE_MODELS.map(function(b) { return b[0]; });
+  if (!live || !live.length) return pref[0];
+  for (var i = 0; i < pref.length; i++) if (live.indexOf(pref[i]) !== -1) return pref[i];
+  return live.filter(function(id) { return RETIRED_MODELS.indexOf(id) === -1; })[0] || live[0];
+}
+(function migrateModel() {
+  if (RETIRED_MODELS.indexOf(state.model) !== -1) { state.model = pickModel(state.modelList); try { save(); } catch (e) {} }
+})();
 function isChatModel(id) { return !/whisper|tts|playai|orpheus|guard|safeguard|embed|moderation/i.test(id); }
 function renderModelOptions() {
   var sel = document.getElementById('groqModel'); if (!sel) return;
   var cur = state.model, live = state.modelList || null, st = document.getElementById('modelStatus');
   var gone = function(id) { return live && live.indexOf(id) === -1; };
   var html = '', baseIds = BASE_MODELS.map(function(b) { return b[0]; });
-  BASE_MODELS.forEach(function(b) { html += '<option value="' + b[0] + '">' + b[1] + (gone(b[0]) ? ' — not in Groq\'s current list' : '') + '</option>'; });
+  BASE_MODELS.forEach(function(b) { if (!gone(b[0])) html += '<option value="' + b[0] + '">' + b[1] + '</option>'; });
   var extra = (live || []).filter(function(id) { return baseIds.indexOf(id) === -1; });
   if (extra.length) html += '<optgroup label="Available from Groq">' + extra.map(function(id) { return '<option value="' + id + '">' + id + '</option>'; }).join('') + '</optgroup>';
   if (cur && baseIds.indexOf(cur) === -1 && extra.indexOf(cur) === -1) html += '<option value="' + cur + '">' + cur + (live ? ' — saved, not in Groq\'s current list' : ' (saved)') + '</option>';
@@ -5863,7 +5880,9 @@ async function refreshModels(silent) {
     var ids = (j.data || []).filter(function(m) { return m.active !== false; }).map(function(m) { return m.id; }).filter(isChatModel).sort();
     if (!ids.length) throw new Error('No chat models returned');
     state.modelList = ids; state.modelListAt = Date.now(); save();
-    var keep = document.getElementById('groqModel') ? document.getElementById('groqModel').value : state.model;
+    var modalOpen = document.getElementById('settingsModal') && document.getElementById('settingsModal').classList.contains('open');
+    var keep = (modalOpen && document.getElementById('groqModel')) ? document.getElementById('groqModel').value : state.model;   // a model you picked but have not saved yet counts only while Settings is open
+    if (ids.indexOf(keep) === -1 || RETIRED_MODELS.indexOf(keep) !== -1) { keep = pickModel(ids); state.model = keep; save(); if (!silent) toast('Your model is no longer offered. Switched to ' + keep + '.', 'success'); }
     renderModelOptions();
     var sel = document.getElementById('groqModel'); if (sel && keep) sel.value = keep;
     if (!silent) toast('Model list updated.', 'success');
@@ -5894,7 +5913,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', function() { if (reloaded) return; reloaded = true; location.reload(); });
   });
 }
-window.addEventListener('load', function() { labelFields(); renderModelOptions(); openFromHash(); });
+window.addEventListener('load', function() { labelFields(); renderModelOptions(); openFromHash(); if (state.apiKey && (!state.modelListAt || Date.now() - state.modelListAt > 24 * 3600 * 1000)) refreshModels(true); });
 </script>
 <!-- PROPERTY MANAGEMENT MODAL -->
 <div class="modal-overlay" id="propMgmtModal">
