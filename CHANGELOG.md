@@ -49,3 +49,7 @@ Reinstall: no. Saved data is unchanged and old history and portfolio entries sti
 | Removed | root sw.js, root manifest.json, 404.html, both icons/ folders, app/README.md, app/_config.yml, app/download, .keep files | Flatten to target layout |
 
 Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so existing installs must be removed and the app installed again from the new URL. Saved data lives in the browser under key `lazestate_v1` on johnlaz.github.io and carries over automatically; use Settings → Export first if you want a backup.
+
+## 4.3.6
+- Typing a ZIP always fills City and State from the market data.
+- Removed the address Lookup button and status dot (it only asked the AI to recall facts from the address text). A ZIP in the address still fills the ZIP field.
