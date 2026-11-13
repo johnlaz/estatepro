@@ -1,3 +1,24 @@
+# EstatePro 4.1.0 — change log
+
+| File | What changed | Why |
+|---|---|---|
+| app/index.html | Valuation engine: ZIP data → median listing $/sq ft × size × asking-to-sale gap × condition × your adjustment | The old valuation was an AI recalling comps it could not see |
+| app/index.html | Data loader for Zip Market Explorer files (zip, county, state), 3-day local cache, county blend for thin ZIPs | Real inputs, works offline from cache |
+| app/index.html | Result shows each step tagged data / assumption / estimate / you, market evidence table, 36-month chart | Every number can be checked or argued with |
+| app/index.html | Verdict, deal grade, confidence, trend and range computed, not generated | AI no longer produces numbers |
+| app/index.html | AI reduced to one optional call that interprets the numbers; pasted listing is a cross-check only | Was five calls, three of them invented market stats |
+| app/index.html | Removed Parse URL, Floor/Unit, Utilities, Property Segment, mortgage-rate tile, fake comps, comp alert | Dead or meaningless (parseListingUrl was never defined) |
+| app/index.html | Added ZIP field; beds, baths, year, lot, features moved under optional detail | Only ZIP, size, condition and ask change the answer |
+| app/index.html | Market tab rebuilt on real data; invented walkability, school and investment scores removed | Those were made up |
+| app/index.html | Lookup stops writing an AI price into Asking; recalled sq ft is flagged | It poisoned the verdict |
+| app/index.html | Slider recalculates via the engine; resets per property; no history spam | Verdict was stale and history gained an entry per tick |
+| app/sw.js | VERSION 4.1.0 | Matches APP_VERSION |
+| README.md, index.html, docs/*.svg | Copy updated | No more "AI comps" |
+
+Reinstall: no. Saved data is unchanged and old history and portfolio entries still open.
+
+---
+
 # EstatePro 4.0.0 — change log
 
 | File | What changed | Why |

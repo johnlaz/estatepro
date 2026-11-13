@@ -6,7 +6,7 @@
 
   <!-- Primary Meta -->
   <title>EstatePro — AI Property Intelligence</title>
-  <meta name="description" content="AI-powered real estate valuation, portfolio management, and deal analysis.">
+  <meta name="description" content="Market-calculated real estate valuation, portfolio management, and deal analysis.">
   <meta name="application-name" content="EstatePro">
   <meta name="author" content="EstatePro">
 
@@ -1355,13 +1355,13 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
   <!-- API Key Banner -->
   <div class="api-banner" id="apiBanner">
     <span>🔑</span>
-    <div class="api-banner-text">Enter your Groq API key to enable AI-powered property valuations.</div>
+    <div class="api-banner-text">Values are calculated from real market data and need no key. Add a Groq key only if you want AI commentary on the numbers.</div>
     <button class="btn btn-sm btn-primary" onclick="openSettings()">Add Key</button>
   </div>
 
   <div class="section-header">
     <div class="section-title">Property Valuation</div>
-    <div class="section-sub">AI-Powered Estimate</div>
+    <div class="section-sub">Market-Calculated Estimate</div>
   </div>
 
   <div class="val-layout">
@@ -1391,12 +1391,12 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
         </div>
 
         <div class="field-group">
-          <div class="field-label">Street Address <span style="color:var(--teal); font-size:0.65rem;">(AI auto-fill enabled)</span></div>
+          <div class="field-label">Street Address <span style="color:var(--teal); font-size:0.65rem;">(optional · Lookup finds the ZIP)</span></div>
           <div class="addr-lookup-row">
-            <input type="text" id="propAddress" placeholder="123 Oak Street, City, State ZIP" onkeydown="if(event.key==='Enter') lookupAddress()">
+            <input type="text" id="propAddress" placeholder="123 Oak Street, City, State ZIP" onchange="syncZipFromAddress()" onkeydown="if(event.key==='Enter') lookupAddress()">
             <button class="btn btn-teal btn-sm" onclick="lookupAddress()" id="lookupBtn" style="white-space:nowrap; flex-shrink:0;">🔍 Lookup</button>
           </div>
-          <details class="fold"><summary>County &amp; listing link <span class="fold-hint">optional</span></summary><div class="fold-body">
+          <details class="fold"><summary>County property appraiser <span class="fold-hint">optional · check sq ft and sales</span></summary><div class="fold-body">
           <div class="county-row">
             <div style="flex:1;">
               <div class="field-label">Florida County <span style="color:var(--text3);font-size:0.65rem;">(optional — opens Property Appraiser)</span></div>
@@ -1407,16 +1407,6 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
             </div>
             <button class="btn btn-secondary btn-sm" id="paBtn" onclick="openPropertyAppraiser()" style="display:none;white-space:nowrap;">🏛 Open PA Site</button>
           </div>
-          <div class="field-group" style="margin-bottom:8px;">
-            <div class="field-label" style="display:flex;align-items:center;gap:6px;">
-              Zillow / Realtor.com URL <span style="font-size:0.65rem;color:var(--teal);background:rgba(226,176,74,0.08);padding:1px 6px;border-radius:4px;">Optional</span>
-            </div>
-            <div style="display:flex;gap:8px;">
-              <input type="text" id="propUrl" placeholder="Paste Zillow or Realtor.com listing URL here..." style="flex:1;">
-              <button class="btn btn-teal btn-sm" onclick="parseListingUrl()" style="white-space:nowrap;flex-shrink:0;">📋 Parse URL</button>
-            </div>
-            <div style="font-size:0.7rem;color:var(--text3);margin-top:3px;">Paste a Zillow or Realtor URL to extract the address from the URL path. Note: Groq cannot access live page data — run valuation after to get AI analysis.</div>
-          </div>
           </div></details>
           <div class="lookup-result-bar" id="lookupBar">
             <span>✅</span>
@@ -1426,14 +1416,20 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
             </div>
           </div>
           <div class="data-notice" id="dataCaveat" style="display:none;">
-            ⚠ AI-retrieved property data is based on training knowledge and public records — always verify against MLS, county assessor, or Zillow before transacting.
+            ⚠ These specs are recalled by AI, not looked up. Living area drives the calculated value, so verify it (county property appraiser or the listing) first.
           </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">ZIP Code <span style="color:var(--teal); font-size:0.65rem;">(required · loads the real market data)</span></div>
+          <input type="text" id="propZip" inputmode="numeric" maxlength="5" placeholder="32801" autocomplete="postal-code" oninput="onZipInput(this)">
+          <div id="zipStatus" style="font-size:0.72rem; color:var(--text3); margin-top:4px; min-height:1em;"></div>
         </div>
 
         <div class="form-row">
           <div class="field-group">
-            <div class="field-label">City</div>
-            <input type="text" id="propCity" placeholder="Orlando">
+            <div class="field-label">City <span style="color:var(--text3); font-size:0.65rem;">(auto)</span></div>
+            <input type="text" id="propCity" placeholder="Orlando" oninput="this.dataset.auto=''">
           </div>
           <div class="field-group">
             <div class="field-label">State</div>
@@ -1474,65 +1470,27 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
             </div>
           </div>
           <div class="type-extra-fields" id="extraCondo">
-            <div class="form-row">
-              <div class="field-group"><div class="field-label">HOA Monthly ($)</div><input type="number" id="propHOA" placeholder="450"></div>
-              <div class="field-group"><div class="field-label">Floor / Unit #</div><input type="text" id="propFloor" placeholder="4th floor, Unit 402"></div>
-            </div>
+            <div class="field-group"><div class="field-label">HOA Monthly ($) <span style="color:var(--text3); font-size:0.65rem;">(AI context)</span></div><input type="number" id="propHOA" placeholder="450"></div>
           </div>
           <div class="type-extra-fields" id="extraLand">
             <div class="form-row">
               <div class="field-group"><div class="field-label">Zoning</div><input type="text" id="propZoning" placeholder="R-1, C-2, AG..."></div>
-              <div class="field-group"><div class="field-label">Utilities</div><input type="text" id="propUtilities" placeholder="Water, sewer, electric..."></div>
+              <div class="field-group"><div class="field-label">Acreage / Lot Size</div><input type="text" id="propLotLand" placeholder="5 acres"></div>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="field-group">
-              <div class="field-label">Bedrooms</div>
-              <select id="propBeds">
-                <option value="">—</option>
-                <option>Studio</option><option>1</option><option>2</option>
-                <option>3</option><option>4</option><option>5</option>
-                <option>6</option><option>7</option><option>8</option>
-                <option>9</option><option>10+</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <div class="field-label">Bathrooms</div>
-              <select id="propBaths">
-                <option value="">—</option>
-                <option>1</option><option>1.5</option><option>2</option><option>2.5</option>
-                <option>3</option><option>3.5</option><option>4</option><option>4.5</option>
-                <option>5</option><option>5.5</option><option>6</option><option>6.5</option>
-                <option>7+</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="field-group">
-              <div class="field-label">Living Area (sq ft)</div>
-              <input type="number" id="propSqft" placeholder="1,800">
-            </div>
-            <div class="field-group">
-              <div class="field-label">Year Built</div>
-              <input type="number" id="propYear" placeholder="1998">
-            </div>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="field-group">
-            <div class="field-label">Lot Size (acres or sq ft)</div>
-            <input type="text" id="propLot" placeholder="0.25 acres">
           </div>
           <div class="field-group">
-            <div class="field-label">Asking / Purchase Price ($) <span style="font-size:0.63rem;color:var(--text3);font-weight:400;">verdict only — not valuation anchor</span></div>
-            <input type="number" id="propAsk" placeholder="350,000">
+            <div class="field-label">Living Area (sq ft) <span style="color:var(--teal); font-size:0.65rem;">(required · the calculation multiplies by this)</span></div>
+            <input type="number" id="propSqft" inputmode="numeric" placeholder="1,800">
           </div>
         </div>
 
         <div class="field-group">
-          <div class="field-label">Condition</div>
+          <div class="field-label">Asking / Purchase Price ($) <span style="font-size:0.63rem;color:var(--text3);font-weight:400;">compared with the calculated value, never used to build it</span></div>
+          <input type="number" id="propAsk" inputmode="numeric" placeholder="350,000">
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Condition <span style="color:var(--text3); font-size:0.65rem;">(adjusts the value: Excellent +4%, Fair -10%, Poor -22%, Distressed -35%)</span></div>
           <select id="propCondition">
             <option>Excellent / Move-in Ready</option>
             <option>Good / Minor Updates Needed</option>
@@ -1542,7 +1500,21 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
           </select>
         </div>
 
-        <details class="fold" id="moreDetail"><summary>Add more detail <span class="fold-hint">features, notes, pasted listing</span></summary><div class="fold-body">
+        <details class="fold" id="moreDetail"><summary>More detail <span class="fold-hint">AI context only, never changes the value</span></summary><div class="fold-body">
+        <div class="form-row">
+          <div class="field-group">
+            <div class="field-label">Bedrooms</div>
+            <select id="propBeds"><option value="">—</option><option>Studio</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10+</option></select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Bathrooms</div>
+            <select id="propBaths"><option value="">—</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option><option>3.5</option><option>4</option><option>4.5</option><option>5</option><option>5.5</option><option>6</option><option>6.5</option><option>7+</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field-group"><div class="field-label">Year Built</div><input type="number" id="propYear" inputmode="numeric" placeholder="1998"></div>
+          <div class="field-group"><div class="field-label">Lot Size</div><input type="text" id="propLot" placeholder="0.25 acres"></div>
+        </div>
         <div class="field-group">
           <div class="field-label">Key Features (comma-separated)</div>
           <input type="text" id="propFeatures" placeholder="Pool, Garage, Waterfront, New Roof, Solar...">
@@ -1555,12 +1527,12 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
 
         <div class="field-group">
           <div class="field-label" style="display:flex;align-items:center;justify-content:space-between;">
-            <span>Zillow / Realtor Page Data <span style="color:var(--teal);font-size:0.65rem;background:rgba(226,176,74,0.08);padding:1px 6px;border-radius:4px;margin-left:4px;">Paste Raw Text</span></span>
+            <span>Paste a listing page <span style="color:var(--teal);font-size:0.65rem;background:rgba(226,176,74,0.08);padding:1px 6px;border-radius:4px;margin-left:4px;">optional cross-check</span></span>
             <button class="btn btn-secondary btn-sm" style="font-size:0.68rem;" onclick="document.getElementById('zillowPaste').value='';updateZillowPasteCount()">Clear</button>
           </div>
-          <textarea id="zillowPaste" placeholder="Go to Zillow or Realtor.com, select all text on the page (Ctrl+A then Ctrl+C), paste it here. Groq will extract the Zestimate, price history, tax data, and comps directly from the page content." style="min-height:90px;font-size:0.78rem;" oninput="updateZillowPasteCount()"></textarea>
+          <textarea id="zillowPaste" placeholder="Select all text on a Zillow or Realtor.com page and paste it here. The AI compares any Zestimate, list price and sold comps it finds with the calculated value. It never changes the calculation." style="min-height:90px;font-size:0.78rem;" oninput="updateZillowPasteCount()"></textarea>
           <div style="display:flex;justify-content:space-between;margin-top:3px;">
-            <div style="font-size:0.68rem;color:var(--text3);">Paste the full page text — the more data the better. Zestimate, history, and nearby sales are most useful.</div>
+            <div style="font-size:0.68rem;color:var(--text3);">Needs a Groq key. Zestimate and nearby sold prices are the most useful parts.</div>
             <div id="zillowPasteCount" style="font-size:0.68rem;color:var(--text3);white-space:nowrap;margin-left:8px;"></div>
           </div>
         </div>
@@ -1569,27 +1541,27 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
 
         <div class="flex-between gap-8 val-cta">
           <button class="btn btn-primary" style="flex:1" onclick="runValuation()">
-            🏡 Get AI Valuation
+            📐 Calculate Value
           </button>
           <button class="btn btn-secondary btn-sm" onclick="clearForm()">Clear</button>
         </div>
-        <p class="est-note">Estimate only. Values come from an AI model's knowledge, not live comps or an appraisal. Verify with MLS or your county appraiser before you act.</p>
+        <p class="est-note">Built from real realtor.com listing data for the ZIP (asking prices, not closed sales). An estimate, not an appraisal. Verify with closed sales, MLS or your county appraiser before you act.</p>
       </div>
     </div>
 
     <!-- RIGHT: RESULTS -->
     <div>
       <div class="multiplier-bar" id="multBar" style="display:none;">
-        <span class="mult-label">Valuation Adj.</span>
+        <span class="mult-label" title="Your own call for what the data cannot see: lot, view, waterfront, upgrades">Your adjustment</span>
         <input type="range" class="mult-slider" id="multSlider" min="0.75" max="1.25" step="0.01" value="1.0" oninput="updateMultiplier(this.value)">
         <span class="mult-val" id="multVal">1.00×</span>
-        <span class="mult-badge mult-flat" id="multBadge">Market Rate</span>
+        <span class="mult-badge mult-flat" id="multBadge">No adjustment</span>
         <button class="btn btn-secondary btn-sm" onclick="resetMultiplier()" style="font-size:0.68rem;">Reset</button>
       </div>
       <div id="valResultArea">
         <div class="card" style="text-align:center; padding:40px 20px; color:var(--text3);">
           <div style="font-size:3rem; margin-bottom:12px;">🏡</div>
-          <div style="font-size:0.9rem;">Fill in property details and run an AI valuation to see your estimate, market comps, and investment insights.</div>
+          <div style="font-size:0.9rem;">Enter a ZIP code, living area and condition. You get a value calculated from real local listing data, with every step shown.</div>
         </div>
       </div>
     </div>
@@ -1755,12 +1727,12 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
 <div class="panel" id="panel-market">
   <div class="section-header">
     <div class="section-title">Market Intelligence</div>
-    <div class="section-sub">AI Market Briefing</div>
+    <div class="section-sub">Real listing data by ZIP</div>
   </div>
 
   <div class="api-banner" id="marketApiBanner" style="display:none;">
     <span>🔑</span>
-    <div class="api-banner-text">Add your Groq API key in settings to get AI market analysis.</div>
+    <div class="api-banner-text">The numbers load without a key. Add a Groq key in Settings for AI commentary on them.</div>
     <button class="btn btn-sm btn-primary" onclick="openSettings()">Add Key</button>
   </div>
 
@@ -1769,31 +1741,17 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
       <div class="card mb-16">
         <div class="flex-between mb-16">
           <div class="section-title" style="font-size:1rem;">Market Briefing</div>
-          <button class="btn btn-teal btn-sm" onclick="runMarketBriefing()">🔄 Refresh AI</button>
+          <button class="btn btn-teal btn-sm" onclick="runMarketBriefing()">🔄 Load data</button>
         </div>
 
-        <div class="form-row mb-16">
-          <div class="field-group">
-            <div class="field-label">Metro / Market</div>
-            <input type="text" id="marketCity" placeholder="Orlando, FL" value="Orlando, FL">
-          </div>
-          <div class="field-group">
-            <div class="field-label">Property Segment</div>
-            <select id="marketSegment">
-              <option>All Residential</option>
-              <option>Single Family</option>
-              <option>Condos & Townhomes</option>
-              <option>Luxury ($1M+)</option>
-              <option>Multi-Family</option>
-              <option>Land & Lots</option>
-              <option>Commercial</option>
-            </select>
-          </div>
+        <div class="field-group mb-16">
+          <div class="field-label">ZIP code</div>
+          <input type="text" id="marketCity" inputmode="numeric" maxlength="5" placeholder="32801" onkeydown="if(event.key==='Enter') runMarketBriefing()">
         </div>
 
         <div id="marketBriefingArea">
           <div class="thinking">
-            <div style="font-size:0.82rem;color:var(--text3);">Click "Refresh AI" to generate a current market briefing for your selected metro.</div>
+            <div style="font-size:0.82rem;color:var(--text3);">Enter a ZIP and press "Load data". Every number comes from realtor.com listing data. AI only comments on them.</div>
           </div>
         </div>
       </div>
@@ -1804,24 +1762,16 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
         <div class="market-pulse">
           <div class="pulse-icon">📈</div>
           <div class="pulse-info">
-            <div class="pulse-name">Median Home Price</div>
-            <div class="pulse-val">Market-dependent — see AI briefing</div>
+            <div class="pulse-name">Median List Price</div>
+            <div class="pulse-val" id="indMHPVal">Load a ZIP to see it</div>
           </div>
           <div class="pulse-trend trend-up" id="indMHP">—</div>
-        </div>
-        <div class="market-pulse">
-          <div class="pulse-icon">🏦</div>
-          <div class="pulse-info">
-            <div class="pulse-name">30-Yr Mortgage Rate</div>
-            <div class="pulse-val">National average</div>
-          </div>
-          <div class="pulse-trend trend-flat" id="indRate">~6.8%</div>
         </div>
         <div class="market-pulse">
           <div class="pulse-icon">📦</div>
           <div class="pulse-info">
             <div class="pulse-name">Active Inventory</div>
-            <div class="pulse-val">Months of supply</div>
+            <div class="pulse-val" id="indInvVal">Active listings vs a year ago</div>
           </div>
           <div class="pulse-trend" id="indInv">—</div>
         </div>
@@ -1829,7 +1779,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
           <div class="pulse-icon">⚡</div>
           <div class="pulse-info">
             <div class="pulse-name">Days on Market</div>
-            <div class="pulse-val">Avg. time to close</div>
+            <div class="pulse-val" id="indDOMVal">Median days on market</div>
           </div>
           <div class="pulse-trend" id="indDOM">—</div>
         </div>
@@ -1841,23 +1791,23 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
       <div class="card mb-16">
         <div class="flex-between mb-16">
           <div class="section-title" style="font-size:1rem;">Neighborhood Spotlight</div>
-          <button class="btn btn-secondary btn-sm" onclick="runNeighborhoodAnalysis()">Analyze</button>
+          <button class="btn btn-secondary btn-sm" onclick="runNeighborhoodAnalysis()">Look up</button>
         </div>
         <div class="field-group">
-          <div class="field-label">Neighborhood / ZIP</div>
-          <input type="text" id="nhInput" placeholder="e.g. 32801, Winter Park FL, Wynwood...">
+          <div class="field-label">ZIP code</div>
+          <input type="text" id="nhInput" inputmode="numeric" maxlength="5" placeholder="e.g. 32801" onkeydown="if(event.key==='Enter') runNeighborhoodAnalysis()">
         </div>
         <div id="nhArea">
-          <div style="color:var(--text3); font-size:0.82rem; padding:10px 0;">Enter a neighborhood or ZIP code and click Analyze.</div>
+          <div style="color:var(--text3); font-size:0.82rem; padding:10px 0;">Enter a ZIP code and press Look up.</div>
         </div>
       </div>
 
       <!-- Market Heat -->
       <div class="card">
-        <div class="section-title" style="font-size:1rem; margin-bottom:14px;">Market Heat Snapshot</div>
+        <div class="section-title" style="font-size:1rem; margin-bottom:14px;">Market Heat Snapshot <span style="font-size:0.65rem;color:var(--text3);font-weight:400;">from data</span></div>
         <div id="heatGrid" class="grid-2" style="gap:10px;"></div>
         <div style="margin-top:14px;">
-          <button class="btn btn-secondary btn-sm btn-full" onclick="runHeatMap()">🔥 Generate Heat Snapshot</button>
+          <button class="btn btn-secondary btn-sm btn-full" onclick="runHeatMap()">🔄 Refresh snapshot</button>
         </div>
       </div>
     </div>
@@ -2075,7 +2025,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
   <div class="flex-between mb-20">
     <div>
       <div class="section-title" style="font-family:'Inter',system-ui,sans-serif;font-size:1.4rem;font-weight:700;">Valuation History</div>
-      <div class="section-sub">All previous AI valuations</div>
+      <div class="section-sub">All previous valuations</div>
     </div>
     <button class="btn btn-secondary btn-sm" onclick="clearHistory()">Clear All</button>
   </div>
@@ -2083,7 +2033,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
   <div id="historyList">
     <div class="empty-state">
       <div class="empty-icon">🕐</div>
-      <p>No valuation history yet.<br>Run your first AI valuation to get started.</p>
+      <p>No valuation history yet.<br>Run your first valuation to get started.</p>
     </div>
   </div>
 </div>
@@ -2406,7 +2356,7 @@ function updateApiBanner() {
   const banner = document.getElementById('apiBanner');
   if (state.apiKey) {
     banner.className = 'api-banner has-key';
-    banner.innerHTML = `<span>✅</span><div class="api-banner-text">Groq API connected — AI valuations enabled.</div><button class="btn btn-sm btn-secondary" onclick="openSettings()">Manage</button>`;
+    banner.innerHTML = `<span>✅</span><div class="api-banner-text">Groq connected — AI commentary on.</div><button class="btn btn-sm btn-secondary" onclick="openSettings()">Manage</button>`;
   }
 }
 
@@ -2464,394 +2414,782 @@ function selectType(btn) {
 }
 
 // ═══════════════════════════════════════
-// VALUATION
+// MARKET DATA ENGINE — real data in, calculated value out
+// Source: realtor.com Inventory Core Metrics (monthly), served as static JSON by Zip Market Explorer.
+// These are LISTING metrics (asking prices, active inventory), not closed sales.
 // ═══════════════════════════════════════
-async function runValuation() {
-  const city      = document.getElementById('propCity').value.trim();
-  const state_    = document.getElementById('propState').value;
-  const address   = document.getElementById('propAddress').value.trim();
-  const beds      = document.getElementById('propBeds').value;
-  const baths     = document.getElementById('propBaths').value;
-  const sqft      = document.getElementById('propSqft').value;
-  const year      = document.getElementById('propYear').value;
-  const lot       = document.getElementById('propLot').value;
-  const ask       = document.getElementById('propAsk').value;
-  const condition = document.getElementById('propCondition').value;
-  const features  = document.getElementById('propFeatures').value;
-  const notes     = document.getElementById('propNotes').value;
-
-  if (!city && !address) { toast('Please enter at least a city or address.', 'error'); return; }
-
-  const area = document.getElementById('valResultArea');
-  area.innerHTML = `<div class="ai-box"><div class="thinking"><div class="spinner"></div> Analyzing property data and generating valuation...</div></div>`;
-  if (window.innerWidth <= 800) area.scrollIntoView({behavior:'smooth', block:'start'});
-
-  const propDesc = [
-    `Property Type: ${state.selectedType}`,
-    address ? `Address: ${address}` : '',
-    `Location: ${city}${state_ ? ', ' + state_ : ''}`,
-    beds    ? `Bedrooms: ${beds}` : '',
-    baths   ? `Bathrooms: ${baths}` : '',
-    sqft    ? `Living Area: ${sqft} sq ft` : '',
-    year    ? `Year Built: ${year}` : '',
-    lot     ? `Lot Size: ${lot}` : '',
-    // ask price intentionally excluded from propDesc — injected after estimate for unbiased verdict
-    `Condition: ${condition}`,
-    features ? `Features: ${features}` : '',
-    notes    ? `Notes: ${notes}` : '',
-    // Type-specific extra fields
-    state.selectedType === 'Multi-Family' && document.getElementById('propUnits')?.value ? `Number of Units: ${document.getElementById('propUnits').value}` : '',
-    state.selectedType === 'Multi-Family' && document.getElementById('propGrossRent')?.value ? `Gross Monthly Rent: $${Number(document.getElementById('propGrossRent').value).toLocaleString()}` : '',
-    state.selectedType === 'Commercial' && document.getElementById('propLeasable')?.value ? `Leasable SqFt: ${document.getElementById('propLeasable').value}` : '',
-    state.selectedType === 'Commercial' && document.getElementById('propAnnualRent')?.value ? `Current Annual Rent: $${Number(document.getElementById('propAnnualRent').value).toLocaleString()}` : '',
-    state.selectedType === 'Commercial' && document.getElementById('propLeaseType')?.value ? `Lease Type: ${document.getElementById('propLeaseType').value}` : '',
-    state.selectedType === 'Condo / Townhome' && document.getElementById('propHOA')?.value ? `HOA Monthly: $${document.getElementById('propHOA').value}` : '',
-    state.selectedType === 'Condo / Townhome' && document.getElementById('propFloor')?.value ? `Unit: ${document.getElementById('propFloor').value}` : '',
-    state.selectedType === 'Vacant Land' && document.getElementById('propZoning')?.value ? `Zoning: ${document.getElementById('propZoning').value}` : '',
-    state.selectedType === 'Vacant Land' && document.getElementById('propUtilities')?.value ? `Utilities: ${document.getElementById('propUtilities').value}` : '',
-    state.selectedType === 'Farm / Ranch' && document.getElementById('propZoning')?.value ? `Land Classification: ${document.getElementById('propZoning').value}` : ''
-  ].filter(Boolean).join('\n');
-
-  // Zillow/Realtor paste data
-  var zillowText = (document.getElementById('zillowPaste') || {}).value || '';
-  var zillowContext = '';
-  if (zillowText.trim().length > 50) {
-    var trimmed = zillowText.trim().slice(0, 3500);
-    zillowContext = '\n\nRAW PAGE DATA (user copied directly from Zillow or Realtor.com — extract Zestimate, list price, price history, tax data, and comparable sales from this and use as primary anchors):\n' + trimmed + (zillowText.length > 3500 ? '\n[...truncated]' : '');
+var MKT = {
+  base: 'https://petelazzaro.github.io/zip-market-explorer/d/',
+  keep: 36,                                   // months of history kept per geography
+  series: ['p','f','s','al','pl','dom','prs','pis','pr','q'],
+  scale: { prs: 10000, pis: 10000, pr: 10000 },
+  ttlMs: 3 * 24 * 3600 * 1000,
+  cacheKey: 'ep_mkt_v1',
+  maxCached: 12
+};
+// Model assumptions. Everything the data can't measure lives here, in one place, and is labelled in the result.
+var VAL = {
+  shrinkK: 5,                                 // zip blended with county: weight = listings / (listings + K)
+  sizeElasticity: 0.25,                       // $/sq ft falls ~0.25% per 1% the home is larger than the local median
+  sizeClamp: [0.5, 2.0],
+  gap: { base: 0.01, perCutShare: 0.12, perDomDay: 0.0002, domFloor: 30, max: 0.08 },  // asking-to-sale gap
+  condition: {
+    'Excellent / Move-in Ready': 1.04,
+    'Good / Minor Updates Needed': 1.00,
+    'Fair / Moderate Renovation': 0.90,
+    'Poor / Major Renovation': 0.78,
+    'Distressed / Tear-down Candidate': 0.65
   }
+};
 
-  // Type-aware system prompt
-  var hasPastedData = zillowText.trim().length > 50;
+function mktLabel(ym) {
+  var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return M[(ym % 100) - 1] + ' ' + Math.floor(ym / 100);
+}
+function mktYM(idx) {                          // global month index (0 = Jul 2016) -> YYYYMM
+  var y = 2016 + Math.floor((6 + idx) / 12), m = ((6 + idx) % 12) + 1;
+  return y * 100 + m;
+}
+function mktDecode(rec) {
+  var out = { n: rec.n, st: rec.st || '', rk: rec.rk || null, s: {}, lastIdx: 0 }, L = 0;
+  MKT.series.forEach(function (k) {
+    var str = rec.d && rec.d[k];
+    if (str === undefined) { out.s[k] = null; return; }
+    var f = MKT.scale[k] ? 1 / MKT.scale[k] : 1;
+    var a = str.split(',').map(function (v) { return v === '' ? null : (+v) * f; });
+    L = Math.max(L, a.length);
+    out.s[k] = a.slice(-MKT.keep);
+  });
+  var n = Math.min(L, MKT.keep);
+  MKT.series.forEach(function (k) { if (!out.s[k]) out.s[k] = new Array(n).fill(null); });
+  out.len = n;
+  out.lastIdx = L ? L - 1 : 0;
+  return out;
+}
+// Mean of non-null values in the last n months, ending `shift` months before the newest month.
+// Needs at least half the window populated, same rule as the Zip Market Explorer.
+function mktAvg(a, n, shift) {
+  if (!a) return null;
+  var end = a.length - (shift || 0), start = end - n;
+  if (start < 0) return null;
+  var s = 0, c = 0;
+  for (var i = start; i < end; i++) if (a[i] != null) { s += a[i]; c++; }
+  return c >= Math.ceil(n / 2) ? s / c : null;
+}
+function mktCV(a, n) {                           // volatility: std / mean of the last n monthly values
+  if (!a) return null;
+  var v = a.slice(-n).filter(function (x) { return x != null; });
+  if (v.length < 6) return null;
+  var m = v.reduce(function (x, y) { return x + y; }, 0) / v.length;
+  var sd = Math.sqrt(v.reduce(function (x, y) { return x + (y - m) * (y - m); }, 0) / v.length);
+  return m ? sd / m : null;
+}
+function mktRel(now, then) { return (now != null && then) ? now / then - 1 : null; }
 
-  const typePrompts = {
-    'Single Family': 'You are EstatePro, a certified residential appraiser specializing in single-family homes. Estimate TRUE MARKET VALUE using the sales comparison approach. Find recent sold comps within 1-2 miles, adjust for size, age, condition, lot, and features. Use Zillow/Redfin estimates as anchors. Always respond in JSON format only.',
-    'Condo / Townhome': 'You are EstatePro, a certified appraiser specializing in condos and townhomes. Estimate TRUE MARKET VALUE. Key factors: HOA health and fees, building age and reserves, unit floor and views, recent unit sales in same building or complex, parking, amenities. Flag any HOA red flags. Always respond in JSON format only.',
-    'Multi-Family': 'You are EstatePro, a certified commercial/residential appraiser specializing in multi-family investment properties (duplexes through 20-unit). Use INCOME APPROACH as primary: estimate gross rent, vacancy, NOI, cap rate for this market, derive value. Also provide sales comparison from recent multi-family sales. Report GRM and per-unit value. Always respond in JSON format only.',
-    'Vacant Land': 'You are EstatePro, a certified appraiser specializing in vacant land and development sites. Key factors: zoning and permitted uses, utility availability (water/sewer/electric), road access, topography, wetlands/flood risk, nearby development, entitlement status. Use comparable land sales (price per acre or per buildable unit). Always respond in JSON format only.',
-    'Commercial': 'You are EstatePro, a certified commercial appraiser. Use INCOME APPROACH: estimate market rent, NOI, cap rate for this property type and submarket, derive value. Also consider sales comps (price per sqft). Report cap rate, GRM, and price per sqft benchmarks for this market. Assess tenant quality and lease structure. Always respond in JSON format only.',
-    'Farm / Ranch': 'You are EstatePro, a certified appraiser specializing in agricultural properties. Key factors: soil quality, water rights and irrigation, tillable vs. non-tillable acreage, ag exemption status, timber value, mineral rights, proximity to markets. Use comparable agricultural land sales per acre. Always respond in JSON format only.'
+function mktGeoStats(g) {
+  if (!g) return null;
+  var s = g.s, N = 3, st = {
+    name: g.n, rk: g.rk,
+    psf: mktAvg(s.f, N), psfYago: mktAvg(s.f, N, 12),
+    price: mktAvg(s.p, N), priceYago: mktAvg(s.p, N, 12),
+    sqft: mktAvg(s.s, N),
+    al: mktAvg(s.al, N), alYago: mktAvg(s.al, N, 12), al24: mktAvg(s.al, 24),
+    dom: mktAvg(s.dom, N), domYago: mktAvg(s.dom, N, 12),
+    prs: mktAvg(s.prs, N), pis: mktAvg(s.pis, N), pr: mktAvg(s.pr, N),
+    cv: mktCV(s.f, 12),
+    flagged: !!(s.q && s.q.slice(-3).some(function (x) { return x === 1; })),
+    lastYM: mktYM(g.lastIdx)
   };
-  var baseSysPrompt = typePrompts[state.selectedType] || typePrompts['Single Family'];
-  var sysPrompt = hasPastedData
-    ? baseSysPrompt + ' CRITICAL: The user has pasted raw Zillow/Realtor page text. You MUST extract every comparable sale, Zestimate, and price figure from that pasted data. These are real market numbers — use them as your primary anchors. Your estimatedValue must be grounded in the comps found in the pasted data, not in the asking price.'
-    : baseSysPrompt;
+  st.psfYoY = mktRel(st.psf, st.psfYago);
+  st.priceYoY = mktRel(st.price, st.priceYago);
+  st.alYoY = mktRel(st.al, st.alYago);
+  st.domYoY = mktRel(st.dom, st.domYago);
+  return st;
+}
+function mktStats(D) {
+  return { zip: mktGeoStats(D.zipG), county: mktGeoStats(D.countyG), state: mktGeoStats(D.stateG) };
+}
 
-  var fullDesc = propDesc + zillowContext;
+// Pick the $/sq ft basis. A zip with few listings is blended toward its county instead of trusted alone.
+function mktBasis(S) {
+  var z = S.zip, c = S.county, s = S.state, K = VAL.shrinkK, B = {};
+  var zipOK = z && z.psf != null && z.al != null && z.al >= 3;
+  if (zipOK && c && c.psf != null) {
+    var w = z.al / (z.al + K);
+    B.psf = w * z.psf + (1 - w) * c.psf;
+    B.sqft = (z.sqft != null && c.sqft != null) ? w * z.sqft + (1 - w) * c.sqft : (z.sqft || c.sqft);
+    B.geo = 'zip'; B.w = w; B.core = z;
+  } else if (zipOK) {
+    B.psf = z.psf; B.sqft = z.sqft; B.geo = 'zip'; B.w = 1; B.core = z;
+  } else if (c && c.psf != null) {
+    B.psf = c.psf; B.sqft = c.sqft; B.geo = 'county'; B.w = 0; B.core = c;
+  } else if (s && s.psf != null) {
+    B.psf = s.psf; B.sqft = s.sqft; B.geo = 'state'; B.w = 0; B.core = s;
+  } else return null;
+  // Market conditions (DOM, price cuts, trend) come from the zip only when it has enough listings to be stable.
+  var zipStable = z && z.al != null && z.al >= 10;
+  B.ref = zipStable ? z : (c || B.core);
+  B.refGeo = zipStable ? 'zip' : (c ? 'county' : B.geo);
+  B.parent = B.refGeo === 'zip' ? (s || c) : (B.refGeo === 'county' ? s : null);
+  B.thin = !zipStable;
+  B.al = z && z.al != null ? z.al : null;
+  return B;
+}
+function mktGap(ref) {                           // estimated asking-to-sale discount from price-cut share and DOM
+  var g = VAL.gap, v = g.base + g.perCutShare * (ref.prs || 0) + g.perDomDay * Math.max(0, (ref.dom || 0) - g.domFloor);
+  return Math.min(g.max, Math.max(0, v));
+}
+// Market read: six signals, same idea as Zip Market Explorer. >= +2 seller-leaning, <= -2 buyer-leaning.
+function mktRead(ref, parent) {
+  var sig = [];
+  function add(name, val, tag) { sig.push({ name: name, val: val, tag: tag }); }
+  function cmp(a, b, lowerIsSeller, thr) {
+    if (a == null || b == null || !b) return 0;
+    var r = a / b - 1;
+    if (Math.abs(r) < thr) return 0;
+    return (r < 0) === lowerIsSeller ? 1 : -1;
+  }
+  if (parent) {
+    add('Days on market vs parent', mktRel(ref.dom, parent.dom), cmp(ref.dom, parent.dom, true, 0.10));
+    add('Price-cut share vs parent', mktRel(ref.prs, parent.prs), cmp(ref.prs, parent.prs, true, 0.10));
+    add('Pending ratio vs parent', mktRel(ref.pr, parent.pr), cmp(ref.pr, parent.pr, false, 0.10));
+  }
+  add('Active listings vs year ago', ref.alYoY, ref.alYoY == null ? 0 : (ref.alYoY <= -0.10 ? 1 : ref.alYoY >= 0.10 ? -1 : 0));
+  add('Days on market vs year ago', ref.domYoY, ref.domYoY == null ? 0 : (ref.domYoY <= -0.10 ? 1 : ref.domYoY >= 0.10 ? -1 : 0));
+  add('Listing $/sq ft vs year ago', ref.psfYoY, ref.psfYoY == null ? 0 : (ref.psfYoY >= 0.02 ? 1 : ref.psfYoY <= -0.02 ? -1 : 0));
+  var score = sig.reduce(function (a, x) { return a + x.tag; }, 0);
+  return { score: score, label: score >= 2 ? 'Seller-leaning' : score <= -2 ? 'Buyer-leaning' : 'Balanced', signals: sig };
+}
+function mktTrendLabel(yoy) {                    // backward-looking 12-month change in listing $/sq ft
+  if (yoy == null) return 'unknown';
+  return yoy >= 0.05 ? 'strong' : yoy >= 0.01 ? 'moderate' : yoy > -0.02 ? 'flat' : 'declining';
+}
+function mktInventoryLabel(ref) {                // active listings now vs the place's own 24-month average
+  if (ref.al == null || !ref.al24) return '';
+  var r = ref.al / ref.al24;
+  return r < 0.85 ? 'low' : r > 1.15 ? 'high' : 'moderate';
+}
 
-  // Build the prompt — pasted data first (highest weight), ask last (verdict only)
-  var pastedSection = hasPastedData
-    ? '\n\n════ PRIORITY DATA — USER-PROVIDED FROM ZILLOW/REALTOR ════\n' +
-      'The following raw page data was copied directly by the user. This is your PRIMARY source.\n' +
-      'STEP 1: Extract ALL numbers from this data — Zestimate, list price, price history, tax assessment, every comp address and sale price.\n' +
-      'STEP 2: Use these extracted numbers as your anchors. Do NOT ignore or override them with training assumptions.\n' +
-      'STEP 3: Your estimatedValue should reflect the comps and Zestimate found in this data.\n' +
-      zillowContext
-    : '';
+function valClamp(x, lo, hi) { return Math.min(hi, Math.max(lo, x)); }
+function valRound(x, step) { return Math.round(x / step) * step; }
 
-  var askSection = ask
-    ? '\n\nASKING PRICE FOR VERDICT ONLY: $' + Number(ask).toLocaleString() + '\n' +
-      'Do NOT use this to anchor your estimatedValue. Derive your estimate independently from comps and market data.\n' +
-      'Use this ONLY at the end to determine verdict: is the asking price undervalued, fairly priced, or overvalued vs your independent estimate?'
-    : '';
+// inp: { sqft, condition, ask }, S: mktStats(...), userAdj: your multiplier (1 = none)
+function valCalc(inp, S, userAdj) {
+  userAdj = userAdj || 1;
+  var B = mktBasis(S);
+  if (!B) return null;
+  var sqft = +inp.sqft, ref = B.ref;
+  var rawRatio = B.sqft ? sqft / B.sqft : 1;
+  var ratio = valClamp(rawRatio, VAL.sizeClamp[0], VAL.sizeClamp[1]);
+  var sizeAdj = B.sqft ? Math.pow(ratio, -VAL.sizeElasticity) : 1;
+  var gap = mktGap(ref);
+  var cond = VAL.condition[inp.condition]; if (cond == null) cond = 1;
+  var psf = B.psf * sizeAdj * (1 - gap) * cond * userAdj;
+  var value = valRound(psf * sqft, 500);
 
-  const userMsg = `TASK: Estimate the TRUE INDEPENDENT MARKET VALUE of this property using comparable sales and market data — NOT the asking price.
-${pastedSection}
+  var band = 0.05 + 1.5 * (ref.cv != null ? ref.cv : 0.04) + (B.thin ? 0.04 : 0)
+           + ((rawRatio < 0.7 || rawRatio > 1.5) ? 0.03 : 0) + (cond < 0.9 ? 0.04 : 0);
+  band = valClamp(band, 0.05, 0.25);
 
-PROPERTY DETAILS:
-${propDesc}
+  var conf = 90, why = [];
+  if (B.geo === 'county') { conf -= 15; why.push('No usable ZIP data, so the county was used'); }
+  else if (B.geo === 'state') { conf -= 30; why.push('No usable ZIP or county data, so the state was used'); }
+  else if (B.al < 10) { conf -= 18; why.push('Thin ZIP market (under 10 active listings), blended with the county'); }
+  else if (B.al < 25) { conf -= 8; why.push('Moderate listing count in the ZIP'); }
+  if (ref.flagged) { conf -= 8; why.push('realtor.com flagged recent months for data quality'); }
+  if (ref.cv != null && ref.cv > 0.08) { conf -= 6; why.push('Monthly $/sq ft is volatile'); }
+  if (rawRatio < 0.7 || rawRatio > 1.5) { conf -= 8; why.push('Home size is far from the local median'); }
+  if (cond < 0.9) { conf -= 5; why.push('Renovation-level condition adds uncertainty'); }
+  conf = valClamp(conf, 20, 92);
 
-VALUATION RULES:
-1. Derive your estimatedValue INDEPENDENTLY from the asking price. The asking price is shown separately at the end for verdict purposes only — do not anchor to it.
-2. ${hasPastedData ? 'You have user-provided page data above — extract every comp, Zestimate, and price figure from it. These are real numbers. Weight them heavily.' : 'Use your knowledge of recent comparable sales within 1-2 miles for this property type and size.'}
-3. Apply price-per-sqft from real local comps, not national averages.
-4. Adjust for lot size, year built, condition, and features vs comparable properties.
-5. Be precise — use exact numbers like 347500, not round numbers like 350000.
-6. Your confidence should be HIGH (80+) when you have pasted comp data or strong market knowledge, LOW when data is sparse.
-${askSection}
+  var read = mktRead(ref, B.parent);
+  var trendYoY = ref.psfYoY;
+  var j = {
+    estimatedValue: value,
+    valueLow: valRound(value * (1 - band), 500),
+    valueHigh: valRound(value * (1 + band), 500),
+    band: band,
+    confidence: conf,
+    confidenceWhy: why,
+    pricePerSqft: Math.round(psf),
+    localMedianPricePerSqft: Math.round(B.psf),
+    appreciationOutlook: mktTrendLabel(trendYoY),      // backward-looking 12-month trend, not a forecast
+    trendYoY: trendYoY,
+    timeToSell: ref.dom != null ? Math.round(ref.dom) + ' days (' + B.refGeo + ' median)' : '',
+    inventory: mktInventoryLabel(ref),
+    monthsSupply: null,
+    capRateEst: null,
+    comps: [],
+    marketRead: read,
+    userAdj: userAdj,
+    basis: { geo: B.geo, w: B.w, refGeo: B.refGeo, thin: B.thin, al: B.al, psf: B.psf, sqftRef: B.sqft, gap: gap, sizeAdj: sizeAdj, cond: cond, ratio: rawRatio },
+    comparableRange: 'Calculated from ' + (B.geo === 'zip' ? 'ZIP' : B.geo) + ' listing data, band ±' + Math.round(band * 100) + '%',
+    valuationMethod: 'Market-calculated: median listing $/sq ft × size × asking-to-sale gap × condition'
+  };
+  j.steps = [
+    { label: 'Median listing $/sq ft', val: B.psf, kind: 'psf', src: 'data',
+      note: (B.geo === 'zip' ? 'ZIP ' : B.geo === 'county' ? 'County ' : 'State ') + (S[B.geo] ? S[B.geo].name : '') +
+            (B.geo === 'zip' && B.w < 1 ? ' blended with county (' + Math.round(B.w * 100) + '% ZIP, ' + Math.round(B.al * 10) / 10 + ' listings)' : '') + ', 3-month average' },
+    { label: 'Size adjustment', factor: sizeAdj, src: 'assumption',
+      note: sqft.toLocaleString() + ' sq ft vs ' + (B.sqft ? Math.round(B.sqft).toLocaleString() : '?') + ' local median' },
+    { label: 'Asking-to-sale gap', factor: 1 - gap, src: 'estimate',
+      note: 'Listing prices run above closing prices; sized from ' + Math.round((ref.prs || 0) * 100) + '% price cuts and ' + Math.round(ref.dom || 0) + ' days on market' },
+    { label: 'Condition', factor: cond, src: 'assumption', note: inp.condition || 'Good / Minor Updates Needed' },
+    { label: 'Your adjustment', factor: userAdj, src: 'you', note: userAdj === 1 ? 'None (slider at 1.00×)' : 'Set with the slider for lot, view, upgrades the data cannot see' }
+  ];
+  valVerdict(j, inp.ask);
+  return j;
+}
 
-Respond with ONLY a valid JSON object (no markdown):
-{
-  "estimatedValue": number,
-  "valueLow": number,
-  "valueHigh": number,
-  "confidence": number (0-100),
-  "confidenceNote": string or null (if confidence below 70, briefly explain why — sparse comps, unusual property, etc.),
-  "pricePerSqft": number or null,
-  "localMedianPricePerSqft": number or null,
-  "comps": [{"address":string,"price":number,"date":string,"sqft":number or null,"beds":number or null,"baths":number or null,"pricePerSqft":number or null,"notes":string or null}],
-  "verdict": "undervalued"|"fairly priced"|"overvalued"|"no asking price given",
-  "verdictDetail": string,
-  "marketSummary": string,
-  "strengths": [string, string, string],
-  "concerns": [string, string],
-  "recommendation": string,
-  "comparableRange": string,
-  "capRateEst": number or null,
-  "noi": number or null (Multi-Family/Commercial: estimated annual NOI),
-  "grm": number or null (Multi-Family: Gross Rent Multiplier),
-  "pricePerUnit": number or null (Multi-Family: value per unit),
-  "appreciationOutlook": "strong"|"moderate"|"flat"|"declining",
-  "timeToSell": string,
-  "investmentGrade": "A"|"B"|"C"|"D",
-  "inventory": "low"|"moderate"|"high",
-  "monthsSupply": number or null,
-  "valuationMethod": string
-}`;
+function valVerdict(j, ask) {
+  ask = +ask || 0;
+  j.askVsValue = null;
+  if (!ask) {
+    j.verdict = 'no asking price given'; j.investmentGrade = '—';
+    j.verdictDetail = 'Add an asking price to compare it with the calculated value.';
+    return j;
+  }
+  var pct = ask / j.estimatedValue - 1;
+  j.askVsValue = pct;
+  j.verdict = ask < j.valueLow ? 'undervalued' : ask > j.valueHigh ? 'overvalued' : 'fairly priced';
+  j.investmentGrade = pct <= -0.07 ? 'A' : pct <= 0.02 ? 'B' : pct <= 0.10 ? 'C' : 'D';
+  var abs = Math.abs(Math.round(pct * 1000) / 10);
+  j.verdictDetail = 'Asking $' + Math.round(ask).toLocaleString() + ' is ' + abs + '% ' + (pct >= 0 ? 'above' : 'below') +
+    ' the calculated $' + j.estimatedValue.toLocaleString() + ' (range $' + j.valueLow.toLocaleString() + ' to $' + j.valueHigh.toLocaleString() + ').';
+  return j;
+}
 
+function valPct(x, d) { return x == null ? '—' : (x >= 0 ? '+' : '') + (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+
+// Rule-based notes so the result is complete with no AI key. AI, when available, replaces these.
+function valRuleNotes(j, S) {
+  var B = j.basis, ref = (B.refGeo === 'zip' ? S.zip : B.refGeo === 'county' ? S.county : S.state) || {}, par = B.refGeo === 'zip' ? (S.state || S.county) : S.state;
+  var str = [], con = [], r = j.marketRead;
+  if (r.label === 'Seller-leaning') str.push('Market reads seller-leaning (score ' + (r.score > 0 ? '+' : '') + r.score + ' of 6 signals)');
+  if (par && ref.dom != null && par.dom && ref.dom < par.dom * 0.9) str.push('Homes sell faster here: ' + Math.round(ref.dom) + ' days vs ' + Math.round(par.dom) + ' in ' + (par.name || 'the state'));
+  if (j.trendYoY != null && j.trendYoY >= 0.02) str.push('Listing $/sq ft up ' + valPct(j.trendYoY) + ' year over year');
+  if (par && ref.pr != null && par.pr && ref.pr > par.pr * 1.1) str.push('Stronger demand: pending ratio ' + (ref.pr * 100).toFixed(0) + '% vs ' + (par.pr * 100).toFixed(0) + '%');
+  if (j.verdict === 'undervalued') str.push('Asking price is below the calculated range');
+  if (!str.length) str.push('Built from real ' + (B.geo === 'zip' ? 'ZIP-level' : B.geo + '-level') + ' listing data');
+  if (r.label === 'Buyer-leaning') con.push('Market reads buyer-leaning (score ' + r.score + '), so expect room to negotiate');
+  if (j.trendYoY != null && j.trendYoY <= -0.02) con.push('Listing $/sq ft down ' + Math.abs(j.trendYoY * 100).toFixed(1) + '% year over year');
+  if (ref.prs != null && ref.prs >= 0.25) con.push(Math.round(ref.prs * 100) + '% of listings have cut their price');
+  if (B.thin) con.push('Few active listings, so this leans on the county. Verify with recent closed sales');
+  if (j.verdict === 'overvalued') con.push('Asking price is above the calculated range');
+  if (ref.flagged) con.push('Some recent months are flagged for data quality');
+  con.push('ZIP medians mix houses and condos, and the data cannot see lot, view, waterfront or upgrades');
+  var rec;
+  if (j.verdict === 'overvalued') rec = 'Asking is above the calculated range. Anchor offers near $' + j.estimatedValue.toLocaleString() + ' and confirm with closed sales before you go higher.';
+  else if (j.verdict === 'undervalued') rec = 'Asking is below the calculated range. Verify condition and title issues, then move quickly if the numbers hold.';
+  else if (j.verdict === 'fairly priced') rec = 'Asking sits inside the calculated range. Use days on market and price-cut share to decide how hard to negotiate.';
+  else rec = 'Use $' + j.estimatedValue.toLocaleString() + ' (range $' + j.valueLow.toLocaleString() + ' to $' + j.valueHigh.toLocaleString() + ') as a starting point and verify against closed sales.';
+  return {
+    marketSummary: (S.zip ? S.zip.name : '') + ' reads ' + r.label.toLowerCase() + '. ' + (ref.dom != null ? 'Median days on market is ' + Math.round(ref.dom) + '. ' : '') +
+      (j.trendYoY != null ? 'Listing $/sq ft is ' + (j.trendYoY >= 0 ? 'up ' : 'down ') + Math.abs(j.trendYoY * 100).toFixed(1) + '% vs a year ago.' : ''),
+    strengths: str.slice(0, 3), concerns: con.slice(0, 3), recommendation: rec, verify: [], crossCheck: null
+  };
+}
+
+// ---------- loading + cache ----------
+var _mktP = {};
+function mktJSON(path) {
+  if (!_mktP[path]) {
+    _mktP[path] = fetch(MKT.base + path).then(function (r) {
+      if (!r.ok) { var err = new Error('Market data HTTP ' + r.status); err.status = r.status; err.path = path; throw err; }
+      return r.json();
+    }).catch(function (e) { delete _mktP[path]; throw e; });
+  }
+  return _mktP[path];
+}
+function mktCacheRead() { try { return JSON.parse(localStorage.getItem(MKT.cacheKey) || '{}'); } catch (e) { return {}; } }
+function mktCacheWrite(c) {
+  var keys = Object.keys(c).sort(function (a, b) { return c[a].t - c[b].t; });
+  while (keys.length > MKT.maxCached) delete c[keys.shift()];
+  try { localStorage.setItem(MKT.cacheKey, JSON.stringify(c)); }
+  catch (e) { try { localStorage.removeItem(MKT.cacheKey); } catch (e2) {} }
+}
+async function mktLoad(zip) {
+  zip = String(zip || '').trim();
+  if (!/^\d{5}$/.test(zip)) throw new Error('Enter a 5-digit ZIP code.');
+  var cache = mktCacheRead(), hit = cache[zip];
+  if (hit && Date.now() - hit.t < MKT.ttlMs) return hit.data;
   try {
-    const raw = await groqCall([{ role: 'user', content: userMsg }], sysPrompt, 1400);
-    let json;
-    try {
-      const clean = raw.replace(/```json|```/g, '').trim();
-      json = JSON.parse(clean);
-    } catch(e) {
-      area.innerHTML = `<div class="ai-box"><div class="ai-box-content">⚠ Could not parse AI response. Try again.\n\n${raw}</div></div>`;
-      return;
-    }
+    var p1;
+    try { p1 = await Promise.all([mktJSON('zip/' + zip.slice(0, 2) + '.json'), mktJSON('zip_to_county.json')]); }
+    catch (e) { if (e && e.status === 404 && /^zip\//.test(e.path)) throw new Error('ZIP ' + zip + ' has no listing data in the market dataset.'); throw e; }
+    var zr = p1[0][zip];
+    if (!zr) throw new Error('ZIP ' + zip + ' has no listing data in the market dataset.');
+    var link = p1[1][zip], fips = link && link[0];
+    var p2 = await Promise.all([
+      fips ? mktJSON('county/' + fips.slice(0, 2) + '.json').catch(function () { return null; }) : Promise.resolve(null),
+      mktJSON('states.json').catch(function () { return null; })
+    ]);
+    var cr = p2[0] && fips ? p2[0][fips] : null;
+    var stCode = zr.st || (cr && cr.st) || '';
+    var sr = p2[1] && stCode ? p2[1][stCode] : null;
+    var data = { zip: zip, fips: fips || null, zipG: mktDecode(zr), countyG: cr ? mktDecode(cr) : null, stateG: sr ? mktDecode(sr) : null };
+    cache[zip] = { t: Date.now(), data: data };
+    mktCacheWrite(cache);
+    return data;
+  } catch (e) {
+    if (hit) return hit.data;                    // stale data beats none (offline, host down)
+    throw e;
+  }
+}
+function mktZipFrom(text) {
+  var m = String(text || '').match(/\b(\d{5})(?:-\d{4})?\b/g);
+  return m ? m[m.length - 1].slice(0, 5) : '';
+}
 
-    renderValuationResult(json, { address, city, state_, beds, baths, sqft, year, lot, ask, condition, features, notes, type: state.selectedType });
+// ═══════════════════════════════════════
+// VALUATION UI — ZIP handling, calculation flow, AI analysis, rendering
+// ═══════════════════════════════════════
+function valEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function valMoney(n) { return (n == null || isNaN(n)) ? '—' : '$' + Math.round(n).toLocaleString(); }
+function valParseJSON(raw) {
+  var t = String(raw || '').replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```json|```/g, '');
+  var a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a < 0 || b <= a) throw new Error('no JSON in reply');
+  return JSON.parse(t.slice(a, b + 1));
+}
+function valStrList(x, n) { return (Array.isArray(x) ? x : []).filter(function (s) { return typeof s === 'string' && s.trim(); }).slice(0, n); }
 
-  } catch (err) {
-    area.innerHTML = `<div class="ai-box"><div class="ai-box-content">❌ Error: ${err.message}</div></div>`;
+// ---------- ZIP field ----------
+var _zipTimer = null;
+function onZipInput(el) {
+  el.value = el.value.replace(/\D/g, '').slice(0, 5);
+  var st = document.getElementById('zipStatus');
+  clearTimeout(_zipTimer);
+  if (el.value.length < 5) { st.textContent = ''; return; }
+  st.textContent = 'Loading market data…';
+  _zipTimer = setTimeout(function () { zipPreload(el.value); }, 150);
+}
+function syncZipFromAddress() {
+  var z = document.getElementById('propZip');
+  var found = mktZipFrom(document.getElementById('propAddress').value);
+  if (found && z && !z.value) { z.value = found; onZipInput(z); }
+}
+async function zipPreload(zip) {
+  var st = document.getElementById('zipStatus');
+  try {
+    var D = await mktLoad(zip);
+    if (document.getElementById('propZip').value !== zip) return;
+    var S = mktStats(D);
+    var m = /^(.+), ([A-Z]{2})$/.exec(D.zipG.n || '');
+    var stCode = D.zipG.st || (D.countyG && D.countyG.st) || (m ? m[2] : '');
+    var cityEl = document.getElementById('propCity');
+    if (m && (!cityEl.value || cityEl.dataset.auto === '1')) { cityEl.value = m[1]; cityEl.dataset.auto = '1'; }
+    var stEl = document.getElementById('propState');
+    if (stCode) for (var i = 0; i < stEl.options.length; i++) if (stEl.options[i].value === stCode) { stEl.selectedIndex = i; break; }
+    var z = S.zip;
+    st.innerHTML = valEsc(D.zipG.n) + (z && z.psf != null ? ' · $' + Math.round(z.psf) + '/sq ft listing median' : '') + (z && z.al != null ? ' · ' + Math.round(z.al) + ' active' : '') +
+      ' · through ' + mktLabel(mktYM(D.zipG.lastIdx)) + (z && z.al != null && z.al < 10 ? ' <span style="color:var(--warn);">· thin market, county blended in</span>' : '');
+  } catch (e) {
+    if (document.getElementById('propZip').value === zip) st.innerHTML = '<span style="color:var(--warn);">' + valEsc(e.message) + '</span>';
   }
 }
 
+// ---------- property description (extra fields feed AI context only) ----------
+function valPropDesc(pd) {
+  function v(id) { var e = document.getElementById(id); return e ? e.value : ''; }
+  var t = pd.type;
+  return [
+    'Property Type: ' + t,
+    pd.address ? 'Address: ' + pd.address : '',
+    'Location: ' + (pd.city || '') + (pd.state_ ? ', ' + pd.state_ : '') + (pd.zip ? ' ' + pd.zip : ''),
+    pd.beds ? 'Bedrooms: ' + pd.beds : '',
+    pd.baths ? 'Bathrooms: ' + pd.baths : '',
+    pd.sqft ? 'Living Area: ' + pd.sqft + ' sq ft' : '',
+    pd.year ? 'Year Built: ' + pd.year : '',
+    pd.lot ? 'Lot Size: ' + pd.lot : '',
+    'Condition: ' + pd.condition,
+    pd.features ? 'Features: ' + pd.features : '',
+    pd.notes ? 'Notes: ' + pd.notes : '',
+    t === 'Multi-Family' && v('propUnits') ? 'Number of Units: ' + v('propUnits') : '',
+    t === 'Multi-Family' && v('propGrossRent') ? 'Gross Monthly Rent: $' + Number(v('propGrossRent')).toLocaleString() : '',
+    t === 'Commercial' && v('propLeasable') ? 'Leasable SqFt: ' + v('propLeasable') : '',
+    t === 'Commercial' && v('propAnnualRent') ? 'Current Annual Rent: $' + Number(v('propAnnualRent')).toLocaleString() : '',
+    t === 'Commercial' && v('propLeaseType') ? 'Lease Type: ' + v('propLeaseType') : '',
+    t === 'Condo / Townhome' && v('propHOA') ? 'HOA Monthly: $' + v('propHOA') : '',
+    (t === 'Vacant Land' || t === 'Farm / Ranch') && v('propZoning') ? (t === 'Farm / Ranch' ? 'Land Classification: ' : 'Zoning: ') + v('propZoning') : ''
+  ].filter(Boolean).join('\n');
+}
+
+// ---------- main flow ----------
+async function runValuation() {
+  function val(id) { var e = document.getElementById(id); return e ? e.value : ''; }
+  var city = val('propCity').trim(), state_ = val('propState'), address = val('propAddress').trim();
+  var beds = val('propBeds'), baths = val('propBaths'), sqft = val('propSqft'), year = val('propYear');
+  var lot = val('propLot') || val('propLotLand'), ask = val('propAsk'), condition = val('propCondition');
+  var features = val('propFeatures'), notes = val('propNotes');
+  var zip = val('propZip').trim() || mktZipFrom(address);
+  var type = state.selectedType, calcType = (type === 'Single Family' || type === 'Condo / Townhome');
+
+  if (!/^\d{5}$/.test(zip)) { toast('Enter a 5-digit ZIP code. It drives the market data.', 'error'); var ze = document.getElementById('propZip'); if (ze) ze.focus(); return; }
+  if (calcType && !(+sqft > 0)) { toast('Living area (sq ft) is needed to calculate the value.', 'error'); var se = document.getElementById('propSqft'); if (se) se.focus(); return; }
+  document.getElementById('propZip').value = zip;
+
+  var area = document.getElementById('valResultArea');
+  area.innerHTML = '<div class="ai-box"><div class="thinking"><div class="spinner"></div> Loading market data for ' + valEsc(zip) + '…</div></div>';
+  if (window.innerWidth <= 800) area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  var pd = { address: address, city: city, state_: state_, zip: zip, beds: beds, baths: baths, sqft: sqft, year: year, lot: lot, ask: ask, condition: condition, features: features, notes: notes, type: type };
+  var myRun = window._valRun = (window._valRun || 0) + 1;
+  var D = null, S = null, loadErr = '';
+  try { D = await mktLoad(zip); S = mktStats(D); } catch (e) { loadErr = e.message; }
+  if (D && D.zipG && /^(.+), ([A-Z]{2})$/.test(D.zipG.n || '')) {
+    var mm = /^(.+), ([A-Z]{2})$/.exec(D.zipG.n);
+    if (!pd.city) { pd.city = mm[1]; }
+    if (!pd.state_) { pd.state_ = mm[2]; }
+  }
+  window._mkt = { D: D, S: S, zip: zip };
+  window._userAdj = 1; state.multiplier = 1; window._calc = null;
+
+  if (calcType && S) {
+    var inp = { sqft: +sqft, condition: condition, ask: ask };
+    var j = valCalc(inp, S, 1);
+    if (j) {
+      window._calc = { inp: inp, S: S };
+      window._analysis = valRuleNotes(j, S);
+      renderValuationResult(j, pd);
+      afterValuation(j, pd);
+      runValuationAnalysis(j, pd, S, myRun);
+      return;
+    }
+    loadErr = 'ZIP ' + zip + ' has no usable price-per-sq-ft data, and neither does its county or state.';
+  }
+  await runAIOnlyEstimate(pd, S, loadErr, calcType, myRun);
+}
+
+// AI-only path: property types the listing data cannot value (land, commercial, multi-family, farm), or no data available.
+async function runAIOnlyEstimate(pd, S, loadErr, calcType, myRun) {
+  var area = document.getElementById('valResultArea');
+  var why = calcType ? (loadErr || 'No market data was available for this ZIP.') : 'The market data covers houses and condos only, so ' + pd.type + ' values cannot be calculated from it.';
+  if (!state.apiKey) {
+    area.innerHTML = '<div class="card"><div style="font-size:0.9rem;color:var(--text2);line-height:1.6;"><strong style="color:var(--gold2);">No calculated value for this one.</strong><br>' + valEsc(why) +
+      '<br><br>Add a Groq API key in Settings and run again to get an AI-only estimate, clearly labelled as not market-calculated.</div></div>';
+    if (S) { window._analysis = {}; renderMarketFromStats(S, window._mkt.D, pd); }
+    var mb = document.getElementById('multBar'); if (mb) mb.style.display = 'none';
+    return;
+  }
+  area.innerHTML = '<div class="ai-box"><div class="thinking"><div class="spinner"></div> ' + valEsc(why) + ' Asking AI for a labelled estimate…</div></div>';
+  var typePrompts = {
+    'Single Family': 'You are EstatePro, a residential valuation analyst.',
+    'Condo / Townhome': 'You are EstatePro, a condo and townhome valuation analyst. Consider HOA fees and building health.',
+    'Multi-Family': 'You are EstatePro, a valuation analyst for multi-family investment properties. Use the INCOME APPROACH as primary: gross rent, vacancy, NOI, cap rate for this market. Report GRM and per-unit value.',
+    'Vacant Land': 'You are EstatePro, a valuation analyst for vacant land. Consider zoning, utilities, access, flood or wetland risk, and nearby development. Value per acre.',
+    'Commercial': 'You are EstatePro, a commercial valuation analyst. Use the INCOME APPROACH: market rent, NOI, cap rate for the property type and submarket. Consider lease structure.',
+    'Farm / Ranch': 'You are EstatePro, a valuation analyst for agricultural property. Consider soil, water, tillable acreage, ag exemption and timber. Value per acre.'
+  };
+  var ref = S ? ((S.zip && S.zip.al >= 10) ? S.zip : (S.county || S.zip || S.state)) : null;
+  var ctx = ref ? '\nLOCAL RESIDENTIAL LISTING CONTEXT (real data, houses and condos only; context, not a comp for this property type): median listing $/sq ft ' + Math.round(ref.psf || 0) + ', 12-month change ' + valPct(ref.psfYoY) + ', median days on market ' + Math.round(ref.dom || 0) + '.' : '';
+  var userMsg = 'TASK: Give a rough value estimate for this property from the details provided. You have no live comparable sales, so do NOT invent comps, addresses, sale prices or statistics. Say plainly what you assumed and keep confidence low.\n\nPROPERTY:\n' + valPropDesc(pd) + ctx +
+    '\n\nRespond with ONLY valid JSON:\n{"estimatedValue":number,"valueLow":number,"valueHigh":number,"confidence":number (0-55),"pricePerSqft":number or null,' +
+    '"marketSummary":string,"strengths":[string,string,string],"concerns":[string,string],"recommendation":string,"capRateEst":number or null,"noi":number or null,"grm":number or null,"pricePerUnit":number or null,"valuationMethod":string}';
+  try {
+    var raw = await groqCall([{ role: 'user', content: userMsg }], typePrompts[pd.type] || typePrompts['Single Family'], 1000);
+    if (myRun !== window._valRun) return;
+    var ai = valParseJSON(raw);
+    if (!(+ai.estimatedValue > 0)) throw new Error('AI returned no value');
+    var j = {
+      estimatedValue: Math.round(+ai.estimatedValue), valueLow: Math.round(+ai.valueLow || ai.estimatedValue * 0.85), valueHigh: Math.round(+ai.valueHigh || ai.estimatedValue * 1.15),
+      confidence: Math.min(55, Math.max(10, +ai.confidence || 40)), confidenceWhy: ['AI estimate from your inputs; no market-data model for this case'],
+      pricePerSqft: ai.pricePerSqft || null, localMedianPricePerSqft: ref && ref.psf ? Math.round(ref.psf) : null,
+      appreciationOutlook: ref ? mktTrendLabel(ref.psfYoY) : '', trendYoY: ref ? ref.psfYoY : null,
+      timeToSell: ref && ref.dom != null ? Math.round(ref.dom) + ' days (residential median)' : '', inventory: ref ? mktInventoryLabel(ref) : '',
+      capRateEst: ai.capRateEst != null ? ai.capRateEst : null, noi: ai.noi || null, grm: ai.grm || null, pricePerUnit: ai.pricePerUnit || null,
+      comps: [], steps: [], basis: null, userAdj: 1, marketRead: ref ? mktRead(ref, S.state) : null,
+      comparableRange: 'AI estimate, not market-calculated', valuationMethod: ai.valuationMethod || 'AI estimate from your inputs (not calculated from market data)', _aiOnly: true
+    };
+    valVerdict(j, pd.ask);
+    window._analysis = { marketSummary: ai.marketSummary || '', strengths: valStrList(ai.strengths, 3), concerns: valStrList(ai.concerns, 3), recommendation: ai.recommendation || '', verify: [], crossCheck: null, _ai: true };
+    renderValuationResult(j, pd);
+    afterValuation(j, pd);
+  } catch (err) {
+    area.innerHTML = '<div class="ai-box"><div class="ai-box-content">❌ ' + valEsc(err.message) + '</div></div>';
+  }
+}
+
+// ---------- AI analysis: interprets the real numbers, never produces them ----------
+function valFacts(j, pd, S) {
+  function g(x) {
+    if (!x) return null;
+    return { name: x.name, listing_psf: x.psf && Math.round(x.psf), psf_yoy_pct: x.psfYoY != null ? +(x.psfYoY * 100).toFixed(1) : null, median_list_price: x.price && Math.round(x.price), median_sqft: x.sqft && Math.round(x.sqft),
+      active_listings: x.al != null ? Math.round(x.al) : null, active_yoy_pct: x.alYoY != null ? +(x.alYoY * 100).toFixed(0) : null, days_on_market: x.dom != null ? Math.round(x.dom) : null,
+      price_cut_share_pct: x.prs != null ? Math.round(x.prs * 100) : null, pending_ratio_pct: x.pr != null ? Math.round(x.pr * 100) : null };
+  }
+  return JSON.stringify({
+    property: { type: pd.type, address: pd.address, zip: pd.zip, sqft: +pd.sqft || null, condition: pd.condition, asking_price: +pd.ask || null, beds: pd.beds || null, baths: pd.baths || null, year_built: pd.year || null, lot: pd.lot || null, features: pd.features || null, notes: pd.notes || null },
+    calculation: { value: j.estimatedValue, low: j.valueLow, high: j.valueHigh, value_per_sqft: j.pricePerSqft, confidence: j.confidence, confidence_issues: j.confidenceWhy, verdict: j.verdict, ask_vs_value_pct: j.askVsValue != null ? +(j.askVsValue * 100).toFixed(1) : null,
+      steps: (j.steps || []).map(function (s) { return s.label + ': ' + (s.val != null ? '$' + Math.round(s.val) + '/sqft' : '×' + s.factor.toFixed(3)); }) },
+    market: { zip: g(S.zip), county: g(S.county), state: g(S.state), read: j.marketRead ? { label: j.marketRead.label, score: j.marketRead.score } : null }
+  });
+}
+async function runValuationAnalysis(j, pd, S, myRun) {
+  var box = document.getElementById('valAnalysisBox');
+  if (!box) return;
+  if (!state.apiKey) { box.insertAdjacentHTML('beforeend', '<div class="est-note" style="margin-top:4px;">The value and every number above need no AI. Add a Groq key in Settings for AI commentary on them.</div>'); return; }
+  box.insertAdjacentHTML('afterbegin', '<div class="thinking" id="valAIBusy"><div class="spinner"></div> AI is reading the numbers…</div>');
+  var pasted = ((document.getElementById('zillowPaste') || {}).value || '').trim().slice(0, 6000);
+  var sys = 'You are the analyst inside EstatePro. A calculation engine has already produced the valuation from real market data. Do not change, re-estimate or contradict its numbers. Interpret them for a real estate investor. ' +
+    'Use ONLY the facts provided. Never invent comparable sales, addresses, prices, rents, school ratings, crime or any statistic. If something is not in the facts, say it is not available. ' +
+    'You may comment on the qualitative inputs (features, notes, condition) but do not put a dollar value on them unless pasted text states one. Be concrete and brief. Reply with JSON only.';
+  var user = 'FACTS (all real, computed by the app):\n' + valFacts(j, pd, S) +
+    (pasted ? '\n\nPASTED LISTING TEXT (user-provided; quote only numbers that literally appear in it):\n' + pasted : '') +
+    '\n\nReturn ONLY this JSON:\n{"marketSummary": string (3 sentences max, about the local market using the facts),' +
+    '"strengths": [string, string, string], "concerns": [string, string, string],' +
+    '"recommendation": string (2-3 sentences: negotiation stance and next step given asking vs calculated value),' +
+    '"verify": [string, string, string] (specific things to check that the data cannot see, e.g. lot, flood zone, HOA, roof age),' +
+    '"crossCheck": string or null (' + (pasted ? 'compare any Zestimate, list price or sold comps found in the pasted text with the calculated value' : 'null, no pasted text') + ')}';
+  try {
+    var raw = await groqCall([{ role: 'user', content: user }], sys, 900);
+    if (myRun !== window._valRun) return;
+    var ai = valParseJSON(raw);
+    window._analysis = {
+      marketSummary: typeof ai.marketSummary === 'string' && ai.marketSummary ? ai.marketSummary : window._analysis.marketSummary,
+      strengths: valStrList(ai.strengths, 3).length ? valStrList(ai.strengths, 3) : window._analysis.strengths,
+      concerns: valStrList(ai.concerns, 3).length ? valStrList(ai.concerns, 3) : window._analysis.concerns,
+      recommendation: typeof ai.recommendation === 'string' && ai.recommendation ? ai.recommendation : window._analysis.recommendation,
+      verify: valStrList(ai.verify, 3), crossCheck: typeof ai.crossCheck === 'string' && ai.crossCheck ? ai.crossCheck : null, _ai: true
+    };
+    window._lastJ = Object.assign({}, window._lastJ, window._analysis);
+    var liveBox = document.getElementById('valAnalysisBox');
+    if (liveBox) liveBox.innerHTML = valAnalysisHTML(window._analysis);
+    var h = (state.history || []).filter(function (x) { return x.id === window._histId; })[0];
+    if (h) { h.marketSummary = window._analysis.marketSummary; h.strengths = window._analysis.strengths; h.concerns = window._analysis.concerns; h.recommendation = window._analysis.recommendation; save(); }
+  } catch (err) {
+    var busy = document.getElementById('valAIBusy'); if (busy) busy.remove();
+    var errBox = document.getElementById('valAnalysisBox');
+    if (errBox) errBox.insertAdjacentHTML('beforeend', '<div class="est-note">AI commentary unavailable (' + valEsc(err.message) + '). The notes above come from the data.</div>');
+  }
+}
+
+// ---------- rendering ----------
+function valAnalysisHTML(an) {
+  an = an || {};
+  var strengths = (an.strengths || []).map(function (s) { return '<div style="font-size:0.8rem; color:var(--text2); margin-bottom:5px;">• ' + valEsc(s) + '</div>'; }).join('');
+  var concerns = (an.concerns || []).map(function (c) { return '<div style="font-size:0.8rem; color:var(--text2); margin-bottom:5px;">• ' + valEsc(c) + '</div>'; }).join('');
+  return '<div class="grid-2 mb-16"><div class="card"><div style="font-size:0.78rem; font-weight:600; color:var(--success); margin-bottom:8px;">✅ Strengths</div>' + strengths + '</div>' +
+    '<div class="card"><div style="font-size:0.78rem; font-weight:600; color:var(--crimson); margin-bottom:8px;">⚠ Concerns</div>' + concerns + '</div></div>' +
+    (an.marketSummary ? '<div class="card mb-16"><div style="font-size:0.82rem; font-weight:600; color:var(--text3); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.07em;">Market Summary' + (an._ai ? ' · AI' : '') + '</div><div style="font-size:0.85rem; color:var(--text2); line-height:1.6;">' + valEsc(an.marketSummary) + '</div></div>' : '') +
+    (an.crossCheck ? '<div class="card mb-16"><div style="font-size:0.82rem; font-weight:600; color:var(--teal); margin-bottom:6px;">🔎 Cross-check with your pasted listing</div><div style="font-size:0.85rem; color:var(--text2); line-height:1.6;">' + valEsc(an.crossCheck) + '</div></div>' : '') +
+    (an.recommendation ? '<div class="card mb-16"><div style="font-size:0.82rem; font-weight:600; color:var(--gold2); margin-bottom:8px;">🎯 Recommendation' + (an._ai ? ' · AI' : '') + '</div><div style="font-size:0.85rem; color:var(--text2); line-height:1.6;">' + valEsc(an.recommendation) + '</div>' +
+      ((an.verify && an.verify.length) ? '<div class="divider"></div><div style="font-size:0.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Verify before acting</div>' + an.verify.map(function (v) { return '<div style="font-size:0.8rem; color:var(--text2); margin-bottom:4px;">☐ ' + valEsc(v) + '</div>'; }).join('') : '') + '</div>' : '');
+}
+
+function valChartSVG(D) {
+  if (!D) return '';
+  var W = 320, H = 122, pl = 40, pr = 6, pt = 8, pb = 20;
+  var series = [{ g: D.zipG, c: 'var(--gold2)', n: 'ZIP' }, { g: D.countyG, c: 'var(--teal)', n: 'County' }, { g: D.stateG, c: 'var(--text3)', n: 'State' }].filter(function (x) { return x.g && x.g.s.f; });
+  var vals = []; series.forEach(function (s) { s.g.s.f.forEach(function (v) { if (v != null) vals.push(v); }); });
+  var n = D.zipG.s.f.length;
+  if (!vals.length || n < 2) return '';
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals); if (mx === mn) { mx += 1; mn -= 1; }
+  var pad = (mx - mn) * 0.08; mn -= pad; mx += pad;
+  function X(i) { return pl + (W - pl - pr) * i / (n - 1); }
+  function Y(v) { return pt + (H - pt - pb) * (1 - (v - mn) / (mx - mn)); }
+  var paths = series.map(function (s) {
+    var d = '', pen = false;
+    s.g.s.f.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1) + ' '; pen = true; });
+    return '<path d="' + d + '" fill="none" style="stroke:' + s.c + ';" stroke-width="' + (s.n === 'ZIP' ? 2 : 1.4) + '" stroke-linejoin="round"/>';
+  }).join('');
+  var first = mktLabel(mktYM(D.zipG.lastIdx - (n - 1))), last = mktLabel(mktYM(D.zipG.lastIdx));
+  var legend = series.map(function (s, i) { return '<text x="' + (pl + i * 62) + '" y="' + (H - 4) + '" font-size="8" style="fill:' + s.c + ';">● ' + s.n + '</text>'; }).join('');
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Listing price per square foot, last 36 months" style="display:block;max-width:520px;">' +
+    '<line x1="' + pl + '" y1="' + Y(mx - pad) + '" x2="' + (W - pr) + '" y2="' + Y(mx - pad) + '" style="stroke:var(--border);" stroke-width="0.5"/>' +
+    '<line x1="' + pl + '" y1="' + Y(mn + pad) + '" x2="' + (W - pr) + '" y2="' + Y(mn + pad) + '" style="stroke:var(--border);" stroke-width="0.5"/>' +
+    '<text x="2" y="' + (Y(mx - pad) + 3) + '" font-size="8" style="fill:var(--text3);">$' + Math.round(mx - pad) + '</text>' +
+    '<text x="2" y="' + (Y(mn + pad) + 3) + '" font-size="8" style="fill:var(--text3);">$' + Math.round(mn + pad) + '</text>' +
+    paths + '<text x="' + pl + '" y="' + (H - 14) + '" font-size="8" style="fill:var(--text3);">' + first + '</text>' +
+    '<text x="' + (W - pr) + '" y="' + (H - 14) + '" font-size="8" text-anchor="end" style="fill:var(--text3);">' + last + '</text>' + legend + '</svg>';
+}
+
+function valEvidenceTable(S) {
+  function cell(x, f) { return x == null ? '—' : f(x); }
+  var cols = [['ZIP', S.zip], ['County', S.county], ['State', S.state]].filter(function (c) { return c[1]; });
+  var rows = [
+    ['Listing $/sq ft', function (g) { return cell(g.psf, function (v) { return '$' + Math.round(v); }); }],
+    ['$/sq ft vs year ago', function (g) { return valPct(g.psfYoY); }],
+    ['Median list price', function (g) { return cell(g.price, function (v) { return valMoney(v); }); }],
+    ['Median size (sq ft)', function (g) { return cell(g.sqft, function (v) { return Math.round(v).toLocaleString(); }); }],
+    ['Days on market', function (g) { return cell(g.dom, function (v) { return Math.round(v); }); }],
+    ['Price-cut share', function (g) { return cell(g.prs, function (v) { return Math.round(v * 100) + '%'; }); }],
+    ['Pending ratio', function (g) { return cell(g.pr, function (v) { return Math.round(v * 100) + '%'; }); }],
+    ['Active listings', function (g) { return cell(g.al, function (v) { return Math.round(v).toLocaleString(); }) + (g.alYoY != null ? ' (' + valPct(g.alYoY, 0) + ')' : ''); }]
+  ];
+  return '<div style="overflow-x:auto;"><table class="comp-table"><thead><tr><th>3-month avg</th>' + cols.map(function (c) { return '<th>' + c[0] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    rows.map(function (r) { return '<tr><td style="color:var(--text3);">' + r[0] + '</td>' + cols.map(function (c) { return '<td class="comp-psf" style="font-size:0.8rem;">' + r[1](c[1]) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+}
+
 function renderValuationResult(j, propData) {
-  const area = document.getElementById('valResultArea');
+  var area = document.getElementById('valResultArea');
+  var an = window._analysis || {}, M = window._mkt || {}, S = M.S, D = M.D, aiOnly = !!j._aiOnly;
+  var verdictColor = { 'undervalued': 'var(--success)', 'fairly priced': 'var(--gold2)', 'overvalued': 'var(--crimson)' }[j.verdict] || 'var(--text2)';
+  var gradeColor = { 'A': 'var(--success)', 'B': 'var(--teal)', 'C': 'var(--warn)', 'D': 'var(--crimson)' }[j.investmentGrade] || 'var(--text2)';
+  var appColor = { 'strong': 'var(--success)', 'moderate': 'var(--teal)', 'flat': 'var(--text3)', 'declining': 'var(--crimson)' }[j.appreciationOutlook] || 'var(--text2)';
+  var B = j.basis;
+  var basisLine = (!aiOnly && B && S) ? 'Basis: ' + (B.geo === 'zip' ? 'ZIP ' + valEsc(propData.zip) + ' · ' + valEsc(S.zip.name) : B.geo === 'county' ? 'County ' + valEsc(S.county.name) : 'State ' + valEsc(S.state.name)) +
+    (D ? ' · data through ' + mktLabel(mktYM(D.zipG.lastIdx)) : '') : '';
+  var h = '';
 
-  const verdictColor = {
-    'undervalued': 'var(--success)',
-    'fairly priced': 'var(--gold2)',
-    'overvalued': 'var(--crimson)',
-    'no asking price given': 'var(--text2)'
-  }[j.verdict] || 'var(--text2)';
+  h += '<div class="card card-gold mb-16">' +
+    '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
+    '<div><div class="field-label">' + (aiOnly ? 'AI ESTIMATE · NOT MARKET-CALCULATED' : 'CALCULATED VALUE') + '</div>' +
+    '<div class="ai-valuation">' + valMoney(j.estimatedValue) + '</div>' +
+    '<div style="font-size:0.8rem; color:var(--text3);">Range: ' + valMoney(j.valueLow) + ' — ' + valMoney(j.valueHigh) + '</div></div>' +
+    '<div style="text-align:right;"><div class="badge badge-gold" style="margin-bottom:6px;" title="Asking price vs calculated value">Deal grade: ' + valEsc(j.investmentGrade) + '</div><br>' +
+    '<div style="font-size:0.85rem; font-weight:700; color:' + verdictColor + '; text-transform:uppercase;">' + valEsc(j.verdict) + '</div></div></div>' +
+    (j.pricePerSqft ? '<div style="font-size:0.8rem; color:var(--text3); margin-bottom:4px;">This property: <strong style="color:var(--gold);">$' + Math.round(j.pricePerSqft).toLocaleString() + '/sqft</strong>' + (j.localMedianPricePerSqft ? ' · Local listing median: <strong style="color:var(--sky);">$' + Math.round(j.localMedianPricePerSqft).toLocaleString() + '/sqft</strong>' : '') + '</div>' : '') +
+    (basisLine ? '<div style="font-size:0.72rem; color:var(--text3); margin-bottom:8px;">' + basisLine + '</div>' : '') +
+    '<div class="conf-row"><div class="conf-label">Confidence</div><div class="conf-track"><div class="conf-fill" style="width:' + j.confidence + '%; background:linear-gradient(90deg, var(--gold-dim), var(--gold2));"></div></div><div class="conf-pct">' + j.confidence + '%</div></div>' +
+    '<div class="conf-row"><div class="conf-label" title="Change in listing $/sq ft over the last 12 months. Backward-looking, not a forecast.">12-mo trend</div><div class="conf-track"><div class="conf-fill" style="width:' + ({ 'strong': 90, 'moderate': 65, 'flat': 40, 'declining': 15 }[j.appreciationOutlook] || 50) + '%; background:' + appColor + ';"></div></div><div class="conf-pct" style="color:' + appColor + '; font-size:0.7rem;">' + (j.trendYoY != null ? valPct(j.trendYoY) : valEsc(j.appreciationOutlook || '—')) + '</div></div>' +
+    ((j.confidenceWhy && j.confidenceWhy.length && j.confidence < 80) ? '<div class="conf-callout">⚠ ' + j.confidenceWhy.map(valEsc).join('. ') + '.</div>' : '') + '</div>';
 
-  const gradeColor = { 'A': 'var(--success)', 'B': 'var(--teal)', 'C': 'var(--warn)', 'D': 'var(--crimson)' }[j.investmentGrade] || 'var(--text2)';
-
-  const appColor = { 'strong': 'var(--success)', 'moderate': 'var(--teal)', 'flat': 'var(--text3)', 'declining': 'var(--crimson)' }[j.appreciationOutlook] || 'var(--text2)';
-
-  area.innerHTML = `
-    <div class="card card-gold mb-16">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-        <div>
-          <div class="field-label">AI ESTIMATED VALUE</div>
-          <div class="ai-valuation">$${Number(j.estimatedValue).toLocaleString()}</div>
-          <div style="font-size:0.8rem; color:var(--text3);">Range: $${Number(j.valueLow).toLocaleString()} — $${Number(j.valueHigh).toLocaleString()}</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="badge badge-gold" style="margin-bottom:6px;">Inv Grade: ${j.investmentGrade}</div><br>
-          <div style="font-size:0.85rem; font-weight:700; color:${verdictColor}; text-transform:uppercase;">${j.verdict}</div>
-        </div>
-      </div>
-
-      ${j.pricePerSqft ? `<div style="font-size:0.8rem; color:var(--text3); margin-bottom:4px;">This property: <strong style="color:var(--gold);">$${Math.round(j.pricePerSqft).toLocaleString()}/sqft</strong>${j.localMedianPricePerSqft ? ` · Local median: <strong style="color:var(--sky);">$${Math.round(j.localMedianPricePerSqft).toLocaleString()}/sqft</strong>` : ''}</div>` : ''}
-
-      <div class="conf-row">
-        <div class="conf-label">Confidence</div>
-        <div class="conf-track"><div class="conf-fill" style="width:${j.confidence}%; background:linear-gradient(90deg, var(--gold-dim), var(--gold2));"></div></div>
-        <div class="conf-pct">${j.confidence}%</div>
-      </div>
-      <div class="conf-row">
-        <div class="conf-label">Appreciation</div>
-        <div class="conf-track"><div class="conf-fill" style="width:${{'strong':90,'moderate':65,'flat':40,'declining':15}[j.appreciationOutlook]||50}%; background:${appColor};"></div></div>
-        <div class="conf-pct" style="color:${appColor}; font-size:0.7rem;">${j.appreciationOutlook}</div>
-      </div>
-    </div>
-
-    <div class="card mb-16">
-      <div style="font-size:0.82rem; font-weight:600; color:var(--gold2); margin-bottom:6px;">📊 Verdict</div>
-      <div style="font-size:0.85rem; color:var(--text2); margin-bottom:10px;">${j.verdictDetail}</div>
-      <div style="font-size:0.8rem; color:var(--text3);">${j.comparableRange}</div>
-      ${(j.comps && j.comps.length) ? `
-      <div class="divider"></div>
-      <div style="font-size:0.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-        Comparable Sales <span style="font-size:0.68rem;color:var(--text3);text-transform:none;letter-spacing:0;">${j.comps.length} comps found</span>
-      </div>
-      <div style="overflow-x:auto;">
-        <table class="comp-table">
-          <thead><tr>
-            <th>Address</th><th>Price</th><th>$/SqFt</th><th>Beds</th><th>SqFt</th><th>Date</th><th>vs. Est.</th>
-          </tr></thead>
-          <tbody>
-            ${j.comps.map(function(c){
-              var diff = j.estimatedValue && c.price ? Math.round((c.price - j.estimatedValue) / j.estimatedValue * 100) : null;
-              var diffCls = diff === null ? '' : diff > 5 ? 'comp-above' : diff < -5 ? 'comp-below' : 'comp-match';
-              var diffStr = diff === null ? '' : (diff > 0 ? '+' : '') + diff + '%';
-              return '<tr>' +
-                '<td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+c.address+'">' + (c.address||'—') + '</td>' +
-                '<td class="comp-price">$' + Number(c.price||0).toLocaleString() + '</td>' +
-                '<td class="comp-psf">' + (c.pricePerSqft ? '$'+Math.round(c.pricePerSqft) : (c.price && c.sqft ? '$'+Math.round(c.price/c.sqft) : '—')) + '</td>' +
-                '<td style="color:var(--text3);">' + (c.beds||'—') + '</td>' +
-                '<td style="color:var(--text3);">' + (c.sqft ? Number(c.sqft).toLocaleString() : '—') + '</td>' +
-                '<td style="color:var(--text3);font-size:0.75rem;">' + (c.date||'—') + '</td>' +
-                '<td>' + (diffStr ? '<span class="comp-badge '+diffCls+'">'+diffStr+'</span>' : '—') + '</td>' +
-              '</tr>';
-            }).join('')}
-          </tbody>
-        </table>
-      </div>` : (j.recentComps ? `<div class="divider"></div><div style="font-size:0.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Comparable Sales</div><div style="font-size:0.82rem;color:var(--text2);line-height:1.6;">${j.recentComps}</div>` : '')}
-      ${j.confidenceNote && j.confidence < 70 ? `<div class="conf-callout">⚠ ${j.confidenceNote}</div>` : ''}
-      ${j.valuationMethod ? `<div class="divider"></div><div style="font-size:0.72rem; color:var(--text3);"><strong style="color:var(--text3);">Method:</strong> ${j.valuationMethod}</div>` : ''}
-      ${(j.noi || j.grm || j.pricePerUnit) ? `<div class="divider"></div><div style="font-size:0.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Investment Metrics</div><div style="display:flex;gap:12px;flex-wrap:wrap;">${j.noi?'<span style="font-size:0.8rem;color:var(--text2);">NOI: <strong style=\"color:var(--teal)\">$'+Number(j.noi).toLocaleString()+'/yr</strong></span>':''}${j.grm?'<span style="font-size:0.8rem;color:var(--text2);">GRM: <strong style=\"color:var(--teal)\">'+j.grm+'×</strong></span>':''}${j.pricePerUnit?'<span style="font-size:0.8rem;color:var(--text2);">Per Unit: <strong style=\"color:var(--teal)\">$'+Number(j.pricePerUnit).toLocaleString()+'</strong></span>':''}</div>` : ''}
-    </div>
-
-    <div class="grid-2 mb-16">
-      <div class="card">
-        <div style="font-size:0.78rem; font-weight:600; color:var(--success); margin-bottom:8px;">✅ Strengths</div>
-        ${(j.strengths||[]).map(s => `<div style="font-size:0.8rem; color:var(--text2); margin-bottom:5px;">• ${s}</div>`).join('')}
-      </div>
-      <div class="card">
-        <div style="font-size:0.78rem; font-weight:600; color:var(--crimson); margin-bottom:8px;">⚠ Concerns</div>
-        ${(j.concerns||[]).map(c => `<div style="font-size:0.8rem; color:var(--text2); margin-bottom:5px;">• ${c}</div>`).join('')}
-      </div>
-    </div>
-
-    <div class="card mb-16">
-      <div class="grid-4" style="gap:10px; margin-bottom:12px;">
-        <div class="roi-tile">
-          <div class="roi-tile-label">Days on Market</div>
-          <div class="roi-tile-val" style="font-size:0.95rem;">${j.timeToSell || '—'}</div>
-        </div>
-        <div class="roi-tile">
-          <div class="roi-tile-label">Cap Rate Est.</div>
-          <div class="roi-tile-val" style="font-size:0.95rem;">${j.capRateEst != null ? j.capRateEst + '%' : 'N/A'}</div>
-        </div>
-        <div class="roi-tile">
-          <div class="roi-tile-label">Invest. Grade</div>
-          <div class="roi-tile-val" style="font-size:0.95rem; color:${gradeColor};">${j.investmentGrade}</div>
-        </div>
-        <div class="roi-tile">
-          <div class="roi-tile-label">Market Trend</div>
-          <div class="roi-tile-val" style="font-size:0.9rem; color:${appColor};">${j.appreciationOutlook}</div>
-        </div>
-      </div>
-      <div style="font-size:0.82rem; font-weight:600; color:var(--text3); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.07em;">Market Summary</div>
-      <div style="font-size:0.85rem; color:var(--text2); line-height:1.6;">${j.marketSummary}</div>
-    </div>
-
-    <div class="card mb-16">
-      <div style="font-size:0.82rem; font-weight:600; color:var(--gold2); margin-bottom:8px;">🎯 Recommendation</div>
-      <div style="font-size:0.85rem; color:var(--text2); line-height:1.6;">${j.recommendation}</div>
-    </div>
-
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" onclick="saveToPortfolio(${JSON.stringify(j).replace(/"/g,'&quot;')}, ${JSON.stringify(propData).replace(/"/g,'&quot;')})">📋 Save to Portfolio</button>
-      <button class="btn btn-secondary btn-sm" onclick="saveToHistory(${JSON.stringify(j).replace(/"/g,'&quot;')}, ${JSON.stringify(propData).replace(/"/g,'&quot;')})">🕐 Save to History</button>
-      <button class="btn btn-teal btn-sm" onclick="sendToAnalyze(${propData.ask || j.estimatedValue})">📊 Analyze Returns</button>
-      <button class="btn btn-secondary btn-sm" onclick="printLastReport()">🖨 PDF Report</button>
-    </div>
-  `;
-
-  // Store base (unmodified) result for multiplier calculations
-  if (!j._adjusted) {
-    window._lastJ = j;
-    window._lastJ._base = JSON.parse(JSON.stringify(j));
+  if (aiOnly) {
+    h += '<div class="card mb-16"><div class="data-notice" style="display:flex;">⚠ ' + valEsc(j.valuationMethod) + '. Treat it as a rough starting point and verify with a broker or appraiser.</div>' +
+      ((j.noi || j.grm || j.pricePerUnit || j.capRateEst != null) ? '<div class="divider"></div><div style="display:flex;gap:12px;flex-wrap:wrap;">' +
+        (j.capRateEst != null ? '<span style="font-size:0.8rem;color:var(--text2);">Cap rate: <strong style="color:var(--teal)">' + valEsc(j.capRateEst) + '%</strong></span>' : '') +
+        (j.noi ? '<span style="font-size:0.8rem;color:var(--text2);">NOI: <strong style="color:var(--teal)">' + valMoney(j.noi) + '/yr</strong></span>' : '') +
+        (j.grm ? '<span style="font-size:0.8rem;color:var(--text2);">GRM: <strong style="color:var(--teal)">' + valEsc(j.grm) + '×</strong></span>' : '') +
+        (j.pricePerUnit ? '<span style="font-size:0.8rem;color:var(--text2);">Per unit: <strong style="color:var(--teal)">' + valMoney(j.pricePerUnit) + '</strong></span>' : '') + '</div>' : '') + '</div>';
+  } else {
+    var steps = (j.steps || []).map(function (s) {
+      var tag = { data: ['data', 'var(--teal)'], assumption: ['assumption', 'var(--warn)'], estimate: ['estimate', 'var(--warn)'], you: ['you', 'var(--gold2)'] }[s.src] || ['', 'var(--text3)'];
+      var v = s.val != null ? '$' + Math.round(s.val) + '/sq ft' : '×' + s.factor.toFixed(3);
+      return '<tr><td style="color:var(--text2);">' + valEsc(s.label) + '<div style="font-size:0.68rem;color:var(--text3);">' + valEsc(s.note) + '</div></td><td class="comp-psf" style="white-space:nowrap;">' + v + '</td><td><span class="comp-badge" style="color:' + tag[1] + ';border:1px solid ' + tag[1] + ';background:none;">' + tag[0] + '</span></td></tr>';
+    }).join('');
+    h += '<div class="card mb-16"><div style="font-size:0.82rem; font-weight:600; color:var(--gold2); margin-bottom:6px;">🧮 How this was calculated</div>' +
+      '<div style="overflow-x:auto;"><table class="comp-table"><tbody>' + steps +
+      '<tr><td style="color:var(--gold2);font-weight:600;">Result</td><td class="comp-price" colspan="2" style="white-space:nowrap;">$' + Math.round(j.pricePerSqft).toLocaleString() + '/sq ft × ' + Number(propData.sqft).toLocaleString() + ' sq ft = ' + valMoney(j.estimatedValue) + '</td></tr></tbody></table></div>' +
+      '<div style="font-size:0.72rem;color:var(--text3);margin-top:8px;line-height:1.5;"><strong>data</strong> comes straight from realtor.com listings. <strong>assumption</strong> and <strong>estimate</strong> are the model\'s judgment calls, shown so you can disagree with them. Use the slider above for anything the data cannot see.</div></div>';
   }
+
+  h += '<div class="card mb-16"><div style="font-size:0.82rem; font-weight:600; color:var(--gold2); margin-bottom:6px;">📊 Verdict and market evidence</div>' +
+    '<div style="font-size:0.85rem; color:var(--text2); margin-bottom:10px;">' + valEsc(j.verdictDetail) + '</div>' +
+    (j.marketRead ? '<div style="font-size:0.8rem;color:var(--text2);margin-bottom:10px;">Market read: <strong style="color:var(--gold2);">' + valEsc(j.marketRead.label) + '</strong> <span style="color:var(--text3);">(score ' + (j.marketRead.score > 0 ? '+' : '') + j.marketRead.score + ' from ' + j.marketRead.signals.length + ' signals)</span></div>' : '') +
+    (S ? valEvidenceTable(S) : '') + (D ? '<div style="margin-top:12px;font-size:0.72rem;color:var(--text3);margin-bottom:4px;">Median listing $/sq ft, last 36 months</div>' + valChartSVG(D) : '') + '</div>';
+
+  h += '<div id="valAnalysisBox">' + valAnalysisHTML(an) + '</div>';
+
+  h += '<div class="card mb-16" style="background:none;"><div style="font-size:0.72rem;color:var(--text3);line-height:1.6;">Data: realtor.com Inventory Core Metrics through Zip Market Explorer. These are <strong>listing</strong> metrics (asking prices, active inventory), not closed sales, 3-month averages. ZIP medians mix houses and condos and cannot see lot, view, waterfront, or upgrades. This is an estimate, not an appraisal. Verify with closed sales, MLS or your county property appraiser.</div></div>';
+
+  h += '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+    '<button class="btn btn-primary btn-sm" onclick="saveToPortfolio(window._lastJ, window._lastPropData)">📋 Save to Portfolio</button>' +
+    '<button class="btn btn-secondary btn-sm" onclick="saveToHistory(window._lastJ, window._lastPropData)">🕐 Save to History</button>' +
+    '<button class="btn btn-teal btn-sm" onclick="sendToAnalyze(window._lastPropData.ask || window._lastJ.estimatedValue)">📊 Analyze Returns</button>' +
+    '<button class="btn btn-secondary btn-sm" onclick="printLastReport()">🖨 PDF Report</button></div>';
+
+  area.innerHTML = h;
+  window._lastJ = Object.assign({}, j, an);
   window._lastPropData = propData;
-  showMultiplierBar();
+  if (aiOnly) { var mb = document.getElementById('multBar'); if (mb) mb.style.display = 'none'; } else showMultiplierBar();
+}
 
-  // Comp alert — check if any portfolio property in same city may need revaluation
-  setTimeout(function() {
-    var city = (propData.city || '').toLowerCase();
-    if (!city || !j.estimatedValue) return;
-    var alerts = [];
-    (state.portfolio || []).forEach(function(p) {
-      if (!p.estimatedValue || !p.city) return;
-      if (p.city.toLowerCase().indexOf(city) < 0) return;
-      var diff = Math.abs(j.estimatedValue - p.estimatedValue) / p.estimatedValue;
-      if (diff > 0.10) {
-        alerts.push(p.address || p.city);
-      }
-    });
-    if (alerts.length) {
-      var msg = 'Market check: new comp suggests ' + alerts[0] + ' may be worth re-evaluating (+/-10% from current estimate).';
-      toast('💡 ' + msg, 'success');
-    }
-  }, 2000);
-  // Auto-save to history
-  saveToHistoryAuto(j, propData);
+// Runs once per valuation: history, other tabs. No extra AI calls.
+function afterValuation(j, pd) {
+  saveToHistoryAuto(Object.assign({}, j, window._analysis || {}), pd);
+  window._histId = state.history[0] && state.history[0].id;
+  var price = Number(pd.ask || j.estimatedValue || 0);
+  var mortEl = document.getElementById('mortPrice');
+  if (price && mortEl) { mortEl.value = Math.round(price); calcMortgage(); }
+  var mc = document.getElementById('marketCity'); if (mc) mc.value = pd.zip;
+  var nh = document.getElementById('nhInput'); if (nh && !nh.value) nh.value = pd.zip;
+  if (window._mkt && window._mkt.S) renderMarketFromStats(window._mkt.S, window._mkt.D, pd);
+  var si = document.getElementById('siteSearchInput');
+  var addr2 = pd.address || (pd.city ? pd.city + (pd.state_ ? ', ' + pd.state_ : '') : '');
+  if (si && addr2) si.value = addr2;
+}
 
-  // ── ONE BUTTON: auto-populate all other tabs ──
-  // Analyze tab: mortgage price
-  const _price = Number(propData.ask || j.estimatedValue || 0);
-  if (_price) {
-    const _mortEl = document.getElementById('mortPrice');
-    if (_mortEl) { _mortEl.value = Math.round(_price); calcMortgage(); }
-  }
-  // Market tab: location + segment
-  const _mCity = document.getElementById('marketCity');
-  if (_mCity && propData.city) _mCity.value = propData.city + (propData.state_ ? ', ' + propData.state_ : '');
-  const _mSeg = document.getElementById('marketSegment');
-  if (_mSeg && propData.type) {
-    const _sm = {'Single Family':'Single Family','Condo / Townhome':'Condos & Townhomes','Multi-Family':'Multi-Family','Vacant Land':'Land & Lots','Commercial':'Commercial','Farm / Ranch':'Land & Lots'};
-    const _st = _sm[propData.type]; if (_st) for (let _i=0;_i<_mSeg.options.length;_i++) { if(_mSeg.options[_i].text===_st){_mSeg.selectedIndex=_i;break;} }
-  }
-  // Key indicators from valuation JSON
-  // Key indicators — DOM
-  if (j.timeToSell) {
-    const _el=document.getElementById('indDOM');
-    if(_el){ _el.textContent=j.timeToSell; _el.className='pulse-trend'; }
-  }
-  // Key indicators — appreciation / median price trend
-  if (j.appreciationOutlook) {
-    const _el=document.getElementById('indMHP');
-    if(_el){ _el.textContent=j.appreciationOutlook; _el.className='pulse-trend '+({'strong':'trend-up','moderate':'trend-up','flat':'trend-flat','declining':'trend-dn'}[j.appreciationOutlook]||''); }
-  }
-  // Key indicators — inventory (read from JSON fields, not just summary text)
-  (function() {
-    const _el=document.getElementById('indInv'); if(!_el) return;
-    // Try explicit inventory field first
-    const inv = j.inventory || j.marketInventory || '';
-    const mkt = (j.marketSummary||'').toLowerCase();
-    if (inv) {
-      _el.textContent = inv;
-      _el.className = 'pulse-trend ' + ({'low':'trend-up','moderate':'trend-flat','high':'trend-dn'}[inv.toLowerCase()]||'');
-    } else if (mkt.includes('low inventory') || mkt.includes('seller') || mkt.includes('scarce')) {
-      _el.textContent = 'Low'; _el.className = 'pulse-trend trend-up';
-    } else if (mkt.includes('high inventory') || mkt.includes('buyer') || mkt.includes('surplus')) {
-      _el.textContent = 'High'; _el.className = 'pulse-trend trend-dn';
-    } else if (mkt.includes('balanced') || mkt.includes('moderate inventory')) {
-      _el.textContent = 'Moderate'; _el.className = 'pulse-trend trend-flat';
-    } else {
-      _el.textContent = '—';
-    }
-  })();
-  // Set neighborhood default from search
-  (function() {
-    const nhEl = document.getElementById('nhInput');
-    if (nhEl && !nhEl.value) {
-      // Use ZIP if in address, else city+state
-      const addr = propData.address || '';
-      const zipMatch = addr.match(/\d{5}/);
-      nhEl.value = zipMatch ? zipMatch[0] : (propData.city ? propData.city + (propData.state_ ? ', ' + propData.state_ : '') : '');
-    }
-  })();
-  // Pre-fill site search
-  (function() {
-    var si = document.getElementById('siteSearchInput');
-    if (si) {
-      var addr2 = propData.address || (propData.city ? propData.city+(propData.state_?', '+propData.state_:'') : '');
-      if (addr2) si.value = addr2;
-    }
-  })();
-  // Run market briefing + neighborhood + heat map + site silently
-  setTimeout(function() {
-    if (!state.apiKey) return;
-    try { runMarketBriefing(); } catch(e){}
-    setTimeout(function() {
-      try { runNeighborhoodAnalysis(); } catch(e){}
-      setTimeout(function() {
-        try { runHeatMap(); } catch(e){}
-        setTimeout(function() {
-          try {
-            var si = document.getElementById('siteSearchInput');
-            if (si && si.value && !_siteMap) { initSiteMap(); setTimeout(function(){ geocodeAndCenter(si.value); }, 900); }
-            else if (si && si.value && _siteMap) { geocodeAndCenter(si.value); }
-          } catch(e) {}
-        }, 600);
-      }, 1200);
-    }, 800);
-  }, 500);
+// ═══════════════════════════════════════
+// MARKET TAB — real listing data by ZIP
+// ═══════════════════════════════════════
+function mktRefOf(S) { return (S.zip && S.zip.al != null && S.zip.al >= 10) ? S.zip : (S.county || S.zip || S.state); }
+function trendCls(x, upGood) { return x == null ? 'trend-flat' : (Math.abs(x) < 0.02 ? 'trend-flat' : ((x > 0) === upGood ? 'trend-up' : 'trend-dn')); }
+
+function renderMarketIndicators(S, D) {
+  var g = mktRefOf(S);
+  function set(id, txt, cls) { var e = document.getElementById(id); if (e) { e.textContent = txt; if (cls) e.className = 'pulse-trend ' + cls; } }
+  set('indMHPVal', (g.price != null ? valMoney(g.price) + ' median list price' : 'No data') + ' · ' + g.name);
+  set('indMHP', valPct(g.priceYoY), trendCls(g.priceYoY, true));
+  set('indInvVal', (g.al != null ? Math.round(g.al).toLocaleString() + ' active listings' : 'No data') + ' (3-mo avg)');
+  set('indInv', valPct(g.alYoY, 0), g.alYoY == null ? 'trend-flat' : (g.alYoY <= -0.10 ? 'trend-up' : g.alYoY >= 0.10 ? 'trend-dn' : 'trend-flat'));
+  set('indDOMVal', 'Median days on market' + (g.domYago != null ? ' (' + Math.round(g.domYago) + ' a year ago)' : ''));
+  set('indDOM', g.dom != null ? Math.round(g.dom) + ' d' : '—', g.domYoY == null ? 'trend-flat' : (g.domYoY <= -0.10 ? 'trend-up' : g.domYoY >= 0.10 ? 'trend-dn' : 'trend-flat'));
+}
+function renderHeatGrid(S) {
+  var grid = document.getElementById('heatGrid'); if (!grid) return;
+  var g = mktRefOf(S), par = g === S.zip ? (S.state || S.county) : (g === S.county ? S.state : null);
+  var read = mktRead(g, par);
+  var colorMap = { hot: 'var(--crimson)', warm: 'var(--warn)', cool: 'var(--sky)', cold: 'var(--teal)' };
+  var tiles = [
+    ['Market Read', read.label + ' (' + (read.score > 0 ? '+' : '') + read.score + ')', read.score >= 2 ? 'hot' : read.score <= -2 ? 'cool' : 'warm'],
+    ['Price Trend', g.psfYoY != null ? valPct(g.psfYoY) + ' $/sq ft YoY' : '—', g.psfYoY == null ? 'warm' : g.psfYoY >= 0.03 ? 'hot' : g.psfYoY >= 0 ? 'warm' : g.psfYoY >= -0.03 ? 'cool' : 'cold'],
+    ['Inventory', g.alYoY != null ? valPct(g.alYoY, 0) + ' vs last year' : '—', g.alYoY == null ? 'warm' : g.alYoY <= -0.10 ? 'hot' : g.alYoY >= 0.10 ? 'cold' : 'warm'],
+    ['Days on Market', g.dom != null ? Math.round(g.dom) + ' days' : '—', g.dom == null ? 'warm' : g.dom <= 35 ? 'hot' : g.dom <= 70 ? 'warm' : g.dom <= 100 ? 'cool' : 'cold'],
+    ['Price Cuts', g.prs != null ? Math.round(g.prs * 100) + '% of listings' : '—', g.prs == null ? 'warm' : g.prs <= 0.12 ? 'hot' : g.prs <= 0.22 ? 'warm' : g.prs <= 0.30 ? 'cool' : 'cold'],
+    ['Pending Ratio', g.pr != null ? Math.round(g.pr * 100) + '%' : '—', g.pr == null ? 'warm' : g.pr >= 0.45 ? 'hot' : g.pr >= 0.30 ? 'warm' : g.pr >= 0.18 ? 'cool' : 'cold']
+  ];
+  grid.innerHTML = tiles.map(function (t) {
+    return '<div class="neighborhood-tile" style="border-left:3px solid ' + colorMap[t[2]] + ';"><div style="font-size:0.65rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">' + t[0] + '</div><div style="font-size:0.95rem; font-weight:600; color:' + colorMap[t[2]] + ';">' + valEsc(t[1]) + '</div></div>';
+  }).join('');
+}
+function renderNeighborhoodTile(S, D, area) {
+  var z = S.zip || mktRefOf(S), rk = (S.zip && D && D.zipG && D.zipG.rk) || null;
+  function bar(label, v, color) { return '<div class="nh-score-bar"><div style="font-size:0.65rem; color:var(--text3); margin-bottom:3px;">' + label + ' ' + (v != null ? v + '%' : '—') + '</div><div class="nh-score-track"><div class="nh-score-fill" style="width:' + (v || 0) + '%;' + (color ? ' background:' + color + ';' : '') + '"></div></div></div>'; }
+  area.innerHTML = '<div class="neighborhood-tile"><div class="nh-name">' + valEsc(z.name) + '</div><div class="nh-price">' + (z.price != null ? valMoney(z.price) : '—') + '</div>' +
+    '<div class="nh-meta">' + valPct(z.psfYoY) + ' $/sq ft YoY · ' + (z.dom != null ? Math.round(z.dom) : '—') + ' days on market · ' + (z.al != null ? Math.round(z.al) : '—') + ' active</div>' +
+    (rk ? '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:10px;">' + bar('$/SQ FT RANK', rk.f) + bar('SLOWNESS RANK', rk.dom, 'var(--gold)') + bar('DEMAND RANK', rk.pr) + '</div>' +
+      '<div style="font-size:0.68rem;color:var(--text3);margin-top:6px;">Percentile among ZIPs in the state for the latest month. 100 = highest, not necessarily best.</div>' : '') +
+    '<div style="font-size:0.7rem;color:var(--text3);margin-top:8px;">Data through ' + mktLabel(mktYM(D.zipG.lastIdx)) + ' · realtor.com listing metrics</div></div>';
+}
+function renderMarketFromStats(S, D, pd) {
+  try { renderMarketIndicators(S, D); renderHeatGrid(S); } catch (e) {}
+  var nhEl = document.getElementById('nhInput'), nhArea = document.getElementById('nhArea');
+  if (nhEl && nhArea && (!nhEl.value || nhEl.value === (pd && pd.zip))) { try { renderNeighborhoodTile(S, D, nhArea); } catch (e) {} }
+  var b = document.getElementById('marketBriefingArea');
+  if (b && !b.dataset.hasAI) b.innerHTML = marketSignalsHTML(S, D);
+}
+function marketSignalsHTML(S, D) {
+  var g = mktRefOf(S), par = g === S.zip ? (S.state || S.county) : (g === S.county ? S.state : null), read = mktRead(g, par);
+  return '<div style="font-size:0.85rem;color:var(--text2);margin-bottom:8px;"><strong style="color:var(--gold2);">' + valEsc(read.label) + '</strong> · ' + valEsc(g.name) + ' · data through ' + mktLabel(mktYM(D.zipG.lastIdx)) + '</div>' +
+    read.signals.map(function (s) { return '<div style="font-size:0.8rem;color:var(--text2);margin-bottom:3px;">' + (s.tag > 0 ? '🟢' : s.tag < 0 ? '🔴' : '⚪') + ' ' + valEsc(s.name) + ': ' + (s.val != null ? valPct(s.val, 0) : '—') + '</div>'; }).join('') +
+    '<div style="font-size:0.7rem;color:var(--text3);margin-top:8px;">🟢 favors sellers, 🔴 favors buyers. Listing metrics, not closed sales.</div>';
+}
+async function marketZipFromInput(id) {
+  var z = mktZipFrom(document.getElementById(id).value) || (document.getElementById(id).value.trim().match(/^\d{5}$/) || [''])[0];
+  if (!z) { toast('Enter a 5-digit ZIP code.', 'error'); return null; }
+  try { var D = await mktLoad(z); return { D: D, S: mktStats(D), zip: z }; }
+  catch (e) { toast(e.message, 'error'); return null; }
+}
+async function runMarketBriefing() {
+  var area = document.getElementById('marketBriefingArea'); delete area.dataset.hasAI;
+  area.innerHTML = '<div class="thinking"><div class="spinner"></div> Loading listing data…</div>';
+  var r = await marketZipFromInput('marketCity');
+  if (!r) { area.innerHTML = '<div style="font-size:0.82rem;color:var(--text3);">Enter a ZIP code and press Load data.</div>'; return; }
+  renderMarketIndicators(r.S, r.D); renderHeatGrid(r.S);
+  area.innerHTML = marketSignalsHTML(r.S, r.D);
+  if (!state.apiKey) return;
+  area.insertAdjacentHTML('beforeend', '<div class="thinking" id="briefBusy" style="margin-top:10px;"><div class="spinner"></div> AI is reading the numbers…</div>');
+  var g = mktRefOf(r.S), par = g === r.S.zip ? (r.S.state || r.S.county) : (g === r.S.county ? r.S.state : null), read = mktRead(g, par);
+  var facts = valFacts({ estimatedValue: 0, valueLow: 0, valueHigh: 0, pricePerSqft: 0, confidence: 0, confidenceWhy: [], verdict: '', marketRead: read, steps: [] }, { type: 'Residential', zip: r.zip }, r.S);
+  try {
+    var resp = await groqCall([{ role: 'user', content: 'FACTS (real data):\n' + facts + '\n\nWrite a 4-sentence briefing for an investor: who has leverage right now, what the price and inventory trends say, and one risk. Use only these facts, no invented numbers. Plain text, **bold** allowed.' }],
+      'You are EstatePro Market Intelligence. Interpret the supplied real data. Never invent statistics. Be brief.', 400);
+    var bb = document.getElementById('briefBusy'); if (bb) bb.remove();
+    area.dataset.hasAI = '1';
+    area.insertAdjacentHTML('beforeend', '<div class="divider"></div><div class="ai-box-content" style="font-size:0.85rem; line-height:1.7; color:var(--text2);">' + valEsc(resp).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') + '</div>');
+  } catch (err) { var b2 = document.getElementById('briefBusy'); if (b2) b2.remove(); }
+}
+async function runNeighborhoodAnalysis(silent) {
+  var area = document.getElementById('nhArea');
+  var r = await marketZipFromInput('nhInput');
+  if (!r) return;
+  renderNeighborhoodTile(r.S, r.D, area);
+}
+async function runHeatMap() {
+  var r = await marketZipFromInput('marketCity');
+  if (!r) return;
+  renderMarketIndicators(r.S, r.D); renderHeatGrid(r.S);
 }
 
 // ═══════════════════════════════════════
@@ -3048,127 +3386,6 @@ function removeHistory(idx) {
 // ═══════════════════════════════════════
 // MARKET
 // ═══════════════════════════════════════
-async function runMarketBriefing() {
-  if (!state.apiKey) { toast('Groq API key required.', 'error'); return; }
-  const city    = document.getElementById('marketCity').value || 'Orlando, FL';
-  const segment = document.getElementById('marketSegment').value;
-  const area    = document.getElementById('marketBriefingArea');
-
-  area.innerHTML = `<div class="thinking"><div class="spinner"></div> Generating market briefing for ${city}...</div>`;
-
-  const sysPrompt = `You are EstatePro Market Intelligence, a senior real estate market analyst. Provide concise, data-driven market briefings based on your knowledge of US real estate trends.`;
-
-  const userMsg = `Generate a real estate market briefing for: ${city}, focusing on the ${segment} segment.
-
-Include:
-- Current market temperature (buyer's / seller's / balanced)
-- Price trend (median price direction, YoY % if known)
-- Inventory levels
-- Days on market trends
-- Key investment opportunities or risks
-- 30-second outlook for buyers and sellers
-
-Keep it concise, factual, and actionable. Use your most recent knowledge.`;
-
-  try {
-    const resp = await groqCall([{ role: 'user', content: userMsg }], sysPrompt, 600);
-    area.innerHTML = `<div class="ai-box-content" style="font-size:0.85rem; line-height:1.7; color:var(--text2); margin-top:4px;">${resp.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>`;
-  } catch(err) {
-    area.innerHTML = `<div style="color:var(--crimson); font-size:0.82rem;">Error: ${err.message}</div>`;
-  }
-}
-
-async function runNeighborhoodAnalysis(silent) {
-  if (!state.apiKey) { if(!silent) toast('Groq API key required.', 'error'); return; }
-  const nh   = document.getElementById('nhInput').value.trim();
-  const area = document.getElementById('nhArea');
-  if (!nh) { if(!silent) toast('Enter a neighborhood or ZIP.', 'error'); return; }
-
-  area.innerHTML = `<div class="thinking"><div class="spinner"></div> Analyzing ${nh}...</div>`;
-
-  const sysPrompt = `You are a real estate neighborhood expert. Respond ONLY with valid JSON, no markdown.`;
-
-  const userMsg = `Analyze this neighborhood/area for a real estate investor: "${nh}"
-
-Respond ONLY with JSON:
-{
-  "name": string,
-  "medianPrice": string,
-  "priceGrowth1yr": string,
-  "avgDaysOnMarket": string,
-  "inventory": "low"|"moderate"|"high",
-  "buyerDemand": number (0-100),
-  "walkability": number (0-100),
-  "schoolRating": number (0-10),
-  "investmentScore": number (0-100),
-  "summary": string (2 sentences),
-  "topStrength": string,
-  "topRisk": string
-}`;
-
-  try {
-    const raw = await groqCall([{ role: 'user', content: userMsg }], sysPrompt, 500);
-    const n = JSON.parse(raw.replace(/```json|```/g,'').trim());
-
-    area.innerHTML = `
-      <div class="neighborhood-tile">
-        <div class="nh-name">${n.name}</div>
-        <div class="nh-price">${n.medianPrice}</div>
-        <div class="nh-meta">${n.priceGrowth1yr} YoY · ${n.avgDaysOnMarket} avg DOM · Inventory: ${n.inventory}</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px;">
-          <div>
-            <div class="nh-score-bar">
-              <div style="font-size:0.65rem; color:var(--text3); margin-bottom:3px;">BUYER DEMAND ${n.buyerDemand}%</div>
-              <div class="nh-score-track"><div class="nh-score-fill" style="width:${n.buyerDemand}%;"></div></div>
-            </div>
-          </div>
-          <div>
-            <div class="nh-score-bar">
-              <div style="font-size:0.65rem; color:var(--text3); margin-bottom:3px;">INVEST SCORE ${n.investmentScore}</div>
-              <div class="nh-score-track"><div class="nh-score-fill" style="width:${n.investmentScore}%; background:var(--gold);"></div></div>
-            </div>
-          </div>
-        </div>
-        <div style="font-size:0.8rem; color:var(--text2); margin-top:10px; line-height:1.5;">${n.summary}</div>
-        <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-          <span style="font-size:0.75rem; color:var(--success);">✅ ${n.topStrength}</span>
-          <span style="font-size:0.75rem; color:var(--crimson);">⚠ ${n.topRisk}</span>
-        </div>
-      </div>`;
-  } catch(err) {
-    area.innerHTML = `<div style="color:var(--crimson); font-size:0.82rem;">Error: ${err.message}</div>`;
-  }
-}
-
-async function runHeatMap() {
-  if (!state.apiKey) { toast('Groq API key required.', 'error'); return; }
-  const city = document.getElementById('marketCity').value || 'Orlando, FL';
-  const grid = document.getElementById('heatGrid');
-  grid.innerHTML = `<div class="thinking" style="grid-column:1/-1;"><div class="spinner"></div> Generating heat snapshot...</div>`;
-
-  const sysPrompt = `You are a real estate market data analyst. Respond ONLY with valid JSON arrays, no markdown.`;
-  const userMsg = `List 6 key property market metrics for ${city} right now as a JSON array:
-[
-  {"label": "Market Temp", "value": string, "color": "hot"|"warm"|"cool"|"cold"},
-  {"label": "Price Trend", "value": string, "color": ...},
-  ... (6 total)
-]
-Include: Market Temp, Price Trend, Inventory Level, Days on Market, Buyer Demand, Investment Appeal.`;
-
-  try {
-    const raw = await groqCall([{ role: 'user', content: userMsg }], sysPrompt, 400);
-    const data = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    const colorMap = { hot:'var(--crimson)', warm:'var(--warn)', cool:'var(--sky)', cold:'var(--teal)' };
-    grid.innerHTML = data.map(d => `
-      <div class="neighborhood-tile" style="border-left:3px solid ${colorMap[d.color]||'var(--gold)'};">
-        <div style="font-size:0.65rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">${d.label}</div>
-        <div style="font-size:0.95rem; font-weight:600; color:${colorMap[d.color]||'var(--gold2)'};">${d.value}</div>
-      </div>`).join('');
-  } catch(err) {
-    grid.innerHTML = `<div style="color:var(--crimson); font-size:0.82rem; grid-column:1/-1;">Error: ${err.message}</div>`;
-  }
-}
-
 // ═══════════════════════════════════════
 // MORTGAGE / ROI
 // ═══════════════════════════════════════
@@ -3571,8 +3788,12 @@ function clearForm() {
   document.getElementById('propFeatures').value = '';
   document.getElementById('propNotes').value    = '';
   var zp = document.getElementById('zillowPaste'); if(zp) zp.value = '';
+  ['propZip','propLotLand'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  var zs = document.getElementById('zipStatus'); if (zs) zs.textContent = '';
+  var mb = document.getElementById('multBar'); if (mb) mb.style.display = 'none';
+  window._calc = null; window._analysis = null;
   updateZillowPasteCount();
-  document.getElementById('valResultArea').innerHTML = `<div class="card" style="text-align:center; padding:40px 20px; color:var(--text3);"><div style="font-size:3rem; margin-bottom:12px;">🏡</div><div style="font-size:0.9rem;">Fill in property details and run an AI valuation.</div></div>`;
+  document.getElementById('valResultArea').innerHTML = `<div class="card" style="text-align:center; padding:40px 20px; color:var(--text3);"><div style="font-size:3rem; margin-bottom:12px;">🏡</div><div style="font-size:0.9rem;">Enter a ZIP code and living area to calculate a value.</div></div>`;
 }
 
 function toast(msg, type = '') {
@@ -3605,7 +3826,9 @@ function updateStatusLights() {
 async function lookupAddress() {
   const addr = document.getElementById('propAddress').value.trim();
   if (!addr) { toast('Enter an address first.', 'error'); return; }
-  if (!state.apiKey) { toast('Groq API key required for lookup.', 'error'); return; }
+  var _zf = mktZipFrom(addr), _ze = document.getElementById('propZip');
+  if (_zf && _ze && !_ze.value) { _ze.value = _zf; onZipInput(_ze); }
+  if (!state.apiKey) { toast(_zf ? 'ZIP found, loading market data. Add a Groq key to also auto-fill specs.' : 'Add the ZIP code to load market data. Auto-filling specs needs a Groq key.', ''); return; }
 
   const btn = document.getElementById('lookupBtn');
   btn.disabled = true;
@@ -3674,6 +3897,7 @@ Be as specific and accurate as possible. Use your best knowledge of this exact p
     if (d.normalizedAddress) document.getElementById('propAddress').value = d.normalizedAddress;
 
     if (d.city) { document.getElementById('propCity').value = d.city; filled.push('City'); }
+    if (d.zip && _ze && !_ze.value && /^\d{5}$/.test(String(d.zip))) { _ze.value = String(d.zip); onZipInput(_ze); filled.push('ZIP'); }
     if (d.state) {
       const stSel = document.getElementById('propState');
       for (let i = 0; i < stSel.options.length; i++) {
@@ -3702,7 +3926,8 @@ Be as specific and accurate as possible. Use your best knowledge of this exact p
     }
     if (d.livingAreaSqft) {
       document.getElementById('propSqft').value = d.livingAreaSqft;
-      filled.push(`${d.livingAreaSqft.toLocaleString()} sqft`);
+      (function () { var sq = document.getElementById('propSqft'); sq.style.borderColor = 'var(--warn)'; sq.title = 'Recalled by AI, verify before relying on it'; sq.addEventListener('input', function () { sq.style.borderColor = ''; sq.title = ''; }, { once: true }); })();
+      filled.push(`${d.livingAreaSqft.toLocaleString()} sqft (verify)`);
     }
     if (d.yearBuilt) {
       document.getElementById('propYear').value = d.yearBuilt;
@@ -3712,13 +3937,6 @@ Be as specific and accurate as possible. Use your best knowledge of this exact p
       const lotStr = d.lotSizeAcres ? `${d.lotSizeAcres} acres` : `${d.lotSizeSqft.toLocaleString()} sqft`;
       document.getElementById('propLot').value = lotStr;
       filled.push(`Lot: ${lotStr}`);
-    }
-    if (d.estimatedCurrentValue) {
-      document.getElementById('propAsk').value = d.estimatedCurrentValue;
-      filled.push(`Est. $${Number(d.estimatedCurrentValue).toLocaleString()}`);
-    } else if (d.lastSalePrice) {
-      document.getElementById('propAsk').value = d.lastSalePrice;
-      filled.push(`Last Sale: $${Number(d.lastSalePrice).toLocaleString()}`);
     }
     if (d.condition) {
       const condEl = document.getElementById('propCondition');
@@ -3736,7 +3954,7 @@ Be as specific and accurate as possible. Use your best knowledge of this exact p
     const bar = document.getElementById('lookupBar');
     bar.className = 'lookup-result-bar visible';
     document.getElementById('lookupMsg').textContent =
-      `Found — ${d.confidence} confidence · Source: ${d.dataSource || 'AI training data'}`;
+      `AI-recalled specs, may be wrong. Check living area against your county property appraiser.`;
     document.getElementById('lookupChips').innerHTML =
       filled.map(f => `<span class="lookup-chip">${f}</span>`).join('');
     document.getElementById('dataCaveat').style.display = 'flex';
@@ -4203,7 +4421,7 @@ function printReport(j, propData, opts) {
       '<div>'+
         '<div class="dr"><span class="dl">Investment Grade</span><span class="dv" style="color:'+gc+';">'+grade+'</span></div>'+
         (j.capRateEst!=null?'<div class="dr"><span class="dl">Cap Rate Est.</span><span class="dv">'+j.capRateEst+'%</span></div>':'')+
-        (j.appreciationOutlook?'<div class="dr"><span class="dl">Appreciation</span><span class="dv" style="color:'+(appColors[j.appreciationOutlook]||'#333')+';">'+j.appreciationOutlook+'</span></div>':'')+
+        (j.appreciationOutlook?'<div class="dr"><span class="dl">12-mo Trend</span><span class="dv" style="color:'+(appColors[j.appreciationOutlook]||'#333')+';">'+j.appreciationOutlook+'</span></div>':'')+
         (j.timeToSell?'<div class="dr"><span class="dl">Days on Market</span><span class="dv">'+j.timeToSell+'</span></div>':'')+
       '</div>'+
       '<div>'+
@@ -4256,7 +4474,7 @@ function printReport(j, propData, opts) {
     '<title>EstatePro Report -- '+addr+'</title>' +
     '<style>'+css+'</style></head><body><div class="page">'+
     '<div class="rh">'+
-      '<div><div class="rb">EstatePro v4.0 - AI Property Intelligence</div>'+
+      '<div><div class="rb">EstatePro - Market-Calculated Valuation</div>'+
         '<div class="rt">'+addr+'</div>'+
         '<div class="rs">'+(propData.type||'Residential')+(propData.city?' - '+propData.city+(propData.state_?', '+propData.state_:''):'')+'</div></div>'+
       '<div style="text-align:right;margin-left:16px;">'+
@@ -4265,13 +4483,13 @@ function printReport(j, propData, opts) {
       '</div>'+
     '</div>'+
     '<div class="ks">'+
-      '<div class="kc"><div class="kl">AI Market Value</div><div class="kv">'+estVal+'</div><div class="ksb">'+low+' -- '+high+'</div></div>'+
+      '<div class="kc"><div class="kl">Calculated Value</div><div class="kv">'+estVal+'</div><div class="ksb">'+low+' -- '+high+'</div></div>'+
       '<div class="kc"><div class="kl">Asking Price</div><div class="kv">'+ask+'</div><div class="ksb">'+verdict+'</div></div>'+
       '<div class="kc"><div class="kl">Confidence</div><div class="kv">'+j.confidence+'%</div><div class="cb"><div class="cf" style="width:'+j.confidence+'%"></div></div></div>'+
       '<div class="kc"><div class="kl">Grade</div><div class="kv" style="color:'+gc+'">'+grade+'</div><div class="ksb">'+(j.appreciationOutlook||'')+'</div></div>'+
     '</div>'+
     '<div class="bd">'+sections+'</div>'+
-    '<div class="ft"><span>EstatePro v4.0 - Confidential</span><span>AI analysis for informational use only</span></div>'+
+    '<div class="ft"><span>EstatePro - Confidential</span><span>Estimate from listing data, not an appraisal</span></div>'+
     '<div class="pb" onclick="window.print()">Print / Save as PDF</div>'+
   '</div><!-- © LAZLAB Creations -->'+
 '</body></html>';
@@ -4644,7 +4862,7 @@ function calcMaxOffer() {
         '<div class="roi-tile"><div class="roi-tile-label">Est. Mortgage</div><div class="roi-tile-val" style="font-size:0.9rem;">$' + Math.round(mortgage).toLocaleString() + '/mo</div></div>' +
         '<div class="roi-tile"><div class="roi-tile-label">Annual NCF</div><div class="roi-tile-val" style="font-size:0.9rem;color:' + (ncf>0?'var(--success)':'var(--crimson)') + ';">$' + Math.round(ncf).toLocaleString() + '</div></div>' +
       '</div>' +
-      (window._lastJ && window._lastJ.estimatedValue ? '<div style="font-size:0.75rem;color:var(--text3);margin-top:8px;">AI estimate: <strong style="color:var(--gold2);">$' + Number(window._lastJ.estimatedValue).toLocaleString() + '</strong> · ' + (maxPrice >= window._lastJ.estimatedValue ? '✅ Max offer exceeds AI estimate' : '⚠ Max offer is $' + Math.round(window._lastJ.estimatedValue - maxPrice).toLocaleString() + ' below AI estimate') + '</div>' : '') +
+      (window._lastJ && window._lastJ.estimatedValue ? '<div style="font-size:0.75rem;color:var(--text3);margin-top:8px;">Calculated value: <strong style="color:var(--gold2);">$' + Number(window._lastJ.estimatedValue).toLocaleString() + '</strong> · ' + (maxPrice >= window._lastJ.estimatedValue ? '✅ Max offer exceeds AI estimate' : '⚠ Max offer is $' + Math.round(window._lastJ.estimatedValue - maxPrice).toLocaleString() + ' below AI estimate') + '</div>' : '') +
     '</div>';
 }
 
@@ -4810,33 +5028,24 @@ function initSiteMap() {
 // ═══════════════════════════════════════════════════════
 // VALUATION MULTIPLIER
 // ═══════════════════════════════════════════════════════
-var _multUpdating = false;
+function multBadgeSet(val) {
+  var badge = document.getElementById('multBadge');
+  if (!badge) return;
+  if (val < 0.97)      { badge.textContent = 'Discount applied'; badge.className = 'mult-badge mult-under'; }
+  else if (val > 1.03) { badge.textContent = 'Premium applied';  badge.className = 'mult-badge mult-over'; }
+  else                 { badge.textContent = 'No adjustment';    badge.className = 'mult-badge mult-flat'; }
+}
 
 function updateMultiplier(val) {
-  if (_multUpdating) return;
   val = parseFloat(val);
+  window._userAdj = val;
   state.multiplier = val;
-  save();
   var valEl = document.getElementById('multVal');
   if (valEl) valEl.textContent = val.toFixed(2) + 'x';
-  var badge = document.getElementById('multBadge');
-  if (badge) {
-    if (val < 0.97)      { badge.textContent='Below Market'; badge.className='mult-badge mult-under'; }
-    else if (val > 1.03) { badge.textContent='Above Market';  badge.className='mult-badge mult-over'; }
-    else                 { badge.textContent='Market Rate';   badge.className='mult-badge mult-flat'; }
-  }
-  if (window._lastJ && window._lastPropData) {
-    _multUpdating = true;
-    var _base = window._lastJ._base || window._lastJ;
-    var adj = JSON.parse(JSON.stringify(_base));
-    adj.estimatedValue = Math.round(_base.estimatedValue * val);
-    adj.valueLow       = Math.round((_base.valueLow  || _base.estimatedValue) * val);
-    adj.valueHigh      = Math.round((_base.valueHigh || _base.estimatedValue) * val);
-    adj._adjusted = true;
-    adj._base = _base;
-    renderValuationResult(adj, window._lastPropData);
-    window._lastJ = adj;
-    _multUpdating = false;
+  multBadgeSet(val);
+  if (window._calc && window._lastPropData) {
+    var j = valCalc(window._calc.inp, window._calc.S, val);
+    if (j) renderValuationResult(j, window._lastPropData);
   }
 }
 
@@ -4847,22 +5056,15 @@ function resetMultiplier() {
 }
 
 function showMultiplierBar() {
-  if (_multUpdating) return;
   var bar = document.getElementById('multBar');
-  if (bar) {
-    bar.style.display = 'flex';
-    var slider = document.getElementById('multSlider');
-    var val = state.multiplier || 1.0;
-    if (slider) slider.value = val;
-    var valEl = document.getElementById('multVal');
-    if (valEl) valEl.textContent = parseFloat(val).toFixed(2) + 'x';
-    var badge = document.getElementById('multBadge');
-    if (badge) {
-      if (val < 0.97)      { badge.textContent='Below Market'; badge.className='mult-badge mult-under'; }
-      else if (val > 1.03) { badge.textContent='Above Market';  badge.className='mult-badge mult-over'; }
-      else                 { badge.textContent='Market Rate';   badge.className='mult-badge mult-flat'; }
-    }
-  }
+  if (!bar) return;
+  bar.style.display = 'flex';
+  var val = state.multiplier || 1.0;
+  var slider = document.getElementById('multSlider');
+  if (slider) slider.value = val;
+  var valEl = document.getElementById('multVal');
+  if (valEl) valEl.textContent = parseFloat(val).toFixed(2) + 'x';
+  multBadgeSet(val);
 }
 
 
@@ -5400,7 +5602,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.0.0';
+var APP_VERSION = '4.1.0';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 
