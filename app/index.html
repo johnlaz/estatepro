@@ -1727,7 +1727,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
 <div class="panel" id="panel-market">
   <div class="section-header">
     <div class="section-title">Market Intelligence</div>
-    <div class="section-sub">Real listing data by ZIP</div>
+    <div class="section-sub">Real listing data by ZIP · <a href="https://petelazzaro.github.io/zip-market-explorer/" target="_blank" rel="noopener" style="color:var(--gold2);">GeniusPete Project</a></div>
   </div>
 
   <div class="api-banner" id="marketApiBanner" style="display:none;">
@@ -3071,7 +3071,7 @@ function renderValuationResult(j, propData) {
 
   h += '<div id="valAnalysisBox">' + valAnalysisHTML(an) + '</div>';
 
-  h += '<div class="card mb-16" style="background:none;"><div style="font-size:0.72rem;color:var(--text3);line-height:1.6;">Data: realtor.com Inventory Core Metrics through Zip Market Explorer. These are <strong>listing</strong> metrics (asking prices, active inventory), not closed sales, 3-month averages. ZIP medians mix houses and condos and cannot see lot, view, waterfront, or upgrades. This is an estimate, not an appraisal. Verify with closed sales, MLS or your county property appraiser.</div></div>';
+  h += '<div class="card mb-16" style="background:none;"><div style="font-size:0.72rem;color:var(--text3);line-height:1.6;">Data: realtor.com Inventory Core Metrics, delivered by <a href="https://petelazzaro.github.io/zip-market-explorer/" target="_blank" rel="noopener" style="color:var(--gold2);">Zip Market Explorer</a>, a GeniusPete Project. These are <strong>listing</strong> metrics (asking prices, active inventory), not closed sales, 3-month averages. ZIP medians mix houses and condos and cannot see lot, view, waterfront, or upgrades. This is an estimate, not an appraisal. Verify with closed sales, MLS or your county property appraiser.</div></div>';
 
   h += '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
     '<button class="btn btn-primary btn-sm" onclick="saveToPortfolio(window._lastJ, window._lastPropData)">📋 Save to Portfolio</button>' +
@@ -5627,7 +5627,7 @@ function openSheet(kind) {
   d.items.forEach(function(it) {
     h += '<button type="button" class="sheet-item" onclick="sheetGo(\'' + it[0] + '\')"><span class="si-ico">' + it[1] + '</span><span><div class="si-t">' + it[2] + '</div><div class="si-d">' + it[3] + '</div></span></button>';
   });
-  if (kind === 'more') h += '<div class="sheet-foot"><span class="version-stamp"><span class="ver-num">EstatePro v' + APP_VERSION + '</span></span></div>';
+  if (kind === 'more') h += '<div class="sheet-foot"><span class="version-stamp"><span class="ver-num">EstatePro v' + APP_VERSION + '</span></span><div style="font-size:0.72rem;color:var(--text3);margin-top:8px;line-height:1.6;">A LAZLAB Creations × GeniusPete Project collaboration<br>Market data and method: <a href="https://petelazzaro.github.io/zip-market-explorer/" target="_blank" rel="noopener" style="color:var(--gold2);">Zip Market Explorer</a></div></div>';
   document.getElementById('sheetBody').innerHTML = h;
   document.getElementById('sheetOverlay').classList.add('open');
 }
@@ -5886,6 +5886,6 @@ window.addEventListener('load', function() { labelFields(); renderModelOptions()
   </div>
 </div>
 
-<!-- © LAZLAB Creations -->'+
-'</body>
+<!-- © LAZLAB Creations -->
+</body>
 </html>

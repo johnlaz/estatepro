@@ -49,7 +49,7 @@ Your saved model and the three built-in choices are never replaced. If Groq reti
 ## Data and privacy
 
 - Portfolio, deals, notes, history and your API key live in your browser's local storage (key `lazestate_v1`, kept from earlier versions so nothing is lost).
-- Market data is fetched as static files from [Zip Market Explorer](https://petelazzaro.github.io/zip-market-explorer/) (realtor.com Inventory Core Metrics). Whole regional files are downloaded, so the app never sends your property or exact ZIP anywhere. They are cached in your browser for three days.
+- Market data is fetched as static files from [Zip Market Explorer](https://petelazzaro.github.io/zip-market-explorer/) by the GeniusPete Project (realtor.com Inventory Core Metrics). Whole regional files are downloaded, so the app never sends your property or exact ZIP anywhere. They are cached in your browser for three days.
 - The only data that leaves your device is the property description you submit for AI commentary (sent to Groq with your key, only if you added one), plus map lookups to OpenStreetMap.
 - Use **Settings → Export** to back up or move your data. Clearing site data erases it.
 
@@ -72,6 +72,7 @@ Static files only, served by GitHub Pages from the repo root.
 - Market tab shows real data: median list price, inventory, days on market, price cuts, pending ratio, state percentile ranks and a data-driven market read. Removed invented scores (walkability, schools, investment score) and the hard-coded mortgage rate.
 - Lookup no longer writes an AI-recalled price into the asking field, and flags AI-recalled living area for verification.
 - The adjustment slider now recalculates the verdict and range, no longer carries over between properties and no longer floods history.
+- Credit added for the GeniusPete Project (Zip Market Explorer) across the landing page, README, app and results. Removed a stray `'+` that rendered at the bottom of the page.
 
 ### 4.0.0
 - Fixed a script error that stopped every button in the previous build.
@@ -83,5 +84,7 @@ Static files only, served by GitHub Pages from the repo root.
 - Version stamp, accessibility labels, larger tap targets, honest estimate notice.
 
 ---
+
+A LAZLAB Creations × GeniusPete Project collaboration. Market data and method: [Zip Market Explorer](https://petelazzaro.github.io/zip-market-explorer/) by the GeniusPete Project.
 
 © 2026 LAZLAB Creations. All Rights Reserved. · lazlab.io@gmail.com
