@@ -3055,6 +3055,17 @@ function valEvidenceTable(S) {
     rows.map(function (r) { return '<tr><td style="color:var(--text3);">' + r[0] + '</td>' + cols.map(function (c) { return '<td class="comp-psf" style="font-size:0.8rem;">' + r[1](c[1]) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
 }
 
+function openListing(site) {
+  var p = window._lastPropData || {}, street = (p.address || '').split(',')[0].trim();
+  var full = [street, p.city, [p.state_, p.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  if (!street) full = [p.city, p.state_, p.zip].filter(Boolean).join(', ');
+  var url;
+  if (site === 'zillow') url = 'https://www.zillow.com/homes/' + encodeURIComponent(full.replace(/,/g, '').replace(/\s+/g, '-')) + '_rb/';
+  else if (site === 'realtor') url = 'https://www.google.com/search?q=' + encodeURIComponent(full + ' site:realtor.com');
+  else if (site === 'redfin') url = 'https://www.google.com/search?q=' + encodeURIComponent(full + ' site:redfin.com');
+  else url = 'https://www.google.com/search?q=' + encodeURIComponent(full + ' home value sold price');
+  window.open(url, '_blank', 'noopener');
+}
 function renderValuationResult(j, propData) {
   var area = document.getElementById('valResultArea');
   var an = window._analysis || {}, M = window._mkt || {}, S = M.S, D = M.D, aiOnly = !!j._aiOnly;
@@ -3120,7 +3131,13 @@ function renderValuationResult(j, propData) {
     '<button class="btn btn-primary btn-sm" onclick="saveToPortfolio(window._lastJ, window._lastPropData)">📋 Save to Portfolio</button>' +
     '<button class="btn btn-secondary btn-sm" onclick="saveToHistory(window._lastJ, window._lastPropData)">🕐 Save to History</button>' +
     '<button class="btn btn-teal btn-sm" onclick="sendToAnalyze(window._lastPropData.ask || window._lastJ.estimatedValue)">📊 Analyze Returns</button>' +
-    '<button class="btn btn-secondary btn-sm" onclick="printLastReport()">🖨 PDF Report</button></div>';
+    '<button class="btn btn-secondary btn-sm" onclick="printLastReport()">🖨 PDF Report</button></div>' +
+    '<div style="margin-top:12px;"><div style="font-size:0.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Check this address on</div>' +
+    '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+    '<button class="btn btn-secondary btn-sm" onclick="openListing(\'zillow\')">Zillow</button>' +
+    '<button class="btn btn-secondary btn-sm" onclick="openListing(\'realtor\')">Realtor.com</button>' +
+    '<button class="btn btn-secondary btn-sm" onclick="openListing(\'redfin\')">Redfin</button>' +
+    '<button class="btn btn-secondary btn-sm" onclick="openListing(\'web\')">Web search</button></div></div>';
 
   area.innerHTML = h;
   window._lastJ = Object.assign({}, j, an);
@@ -5322,7 +5339,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.11';
+var APP_VERSION = '4.3.12';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════

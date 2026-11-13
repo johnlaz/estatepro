@@ -69,3 +69,6 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 ## 4.3.11
 - Map It only accepts US results and uses the ZIP, city and state from the Value form, so a street name alone no longer lands overseas.
 - History: each entry now has Reopen (refills the form), Map, + Portfolio, Compare, Note and delete buttons. New entries also store ZIP, lot, condition and features.
+
+## 4.3.12
+- Valuation result: "Check this address on" buttons for Zillow, Realtor.com, Redfin and a web search.
