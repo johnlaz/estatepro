@@ -5519,18 +5519,6 @@ function loadPOIs() {
     toast(_poiLayers.length+' nearby points loaded','success');
   }).catch(function(e){toast('POI error: '+e.message,'error');});
 }
-function runSiteAnalysis() {
-  var addr=((document.getElementById('siteSearchInput')||{}).value||'').trim();
-  if(!addr){toast('Enter an address first.','error');return;}
-  if(!state.apiKey){toast('Groq API key required.','error');return;}
-  var area=document.getElementById('siteAnalysisArea');
-  area.innerHTML='<div class="thinking"><div class="spinner"></div> Generating site analysis...</div>';
-  var prompt='Site analysis for Florida property: "'+addr+'"\n\nAnalyze: highway proximity, flood risk, school district quality, development trends, environmental factors, neighborhood trajectory, value drivers, value detractors.\n\nGive a practical 6-8 sentence analysis specific to this location.';
-  groqCall([{role:'user',content:prompt}],'You are a Florida real estate site analyst. Be specific and location-aware.',700)
-  .then(function(res){area.innerHTML='<div class="site-analysis-box"><div style="font-size:0.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">AI Site Analysis</div>'+res.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')+'</div>';})
-  .catch(function(e){area.innerHTML='<div style="color:var(--crimson);font-size:0.82rem;">Error: '+e.message+'</div>';});
-}
-
 // ═══════════════════════════════════════
 // KEYBOARD SHORTCUT: ESC closes modals
 // ═══════════════════════════════════════
@@ -5543,7 +5531,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.6';
+var APP_VERSION = '4.3.7';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
@@ -5911,7 +5899,6 @@ window.addEventListener('load', function() { labelFields(); renderModelOptions()
     <button class="btn btn-teal btn-sm" onclick="searchSiteAddress()">🔍 Map It</button>
     <button class="btn btn-secondary btn-sm" onclick="toggleFloodLayer()">💧 FEMA Flood Map</button>
     <button class="btn btn-secondary btn-sm" onclick="loadPOIs()">📍 Nearby POIs</button>
-    <button class="btn btn-secondary btn-sm" onclick="runSiteAnalysis()">🤖 AI Analysis</button>
   </div>
 
   <div class="map-legend">

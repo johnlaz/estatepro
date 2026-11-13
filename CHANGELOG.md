@@ -53,3 +53,6 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 ## 4.3.6
 - Typing a ZIP always fills City and State from the market data.
 - Removed the address Lookup button and status dot (it only asked the AI to recall facts from the address text). A ZIP in the address still fills the ZIP field.
+
+## 4.3.7
+- Removed the Site Analysis "AI Analysis" button. It asked the AI about flood risk and schools from the address text alone, with no data behind it. The map, nearby places and FEMA flood link remain.
