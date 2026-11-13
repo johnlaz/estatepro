@@ -2439,6 +2439,7 @@ function selectType(btn) {
 // ═══════════════════════════════════════
 var MKT = {
   base: 'https://petelazzaro.github.io/zip-market-explorer/d/',   // GeniusPete Project, live and freshest
+  local: 'd/',                                // EstatePro's own trimmed copy (app/d/), used if the live host fails
   keep: 24,                                   // months of history kept per geography
   series: ['p','f','s','al','pl','dom','prs','pis','pr','q'],
   scale: { prs: 10000, pis: 10000, pr: 10000 },
@@ -2482,7 +2483,7 @@ function mktDecode(rec) {
   var n = Math.min(L, MKT.keep);
   MKT.series.forEach(function (k) { if (!out.s[k]) out.s[k] = new Array(n).fill(null); });
   out.len = n;
-  out.lastIdx = L ? L - 1 : 0;
+  out.lastIdx = rec.e != null ? rec.e : (L ? L - 1 : 0);   // local copy is trimmed and carries the true last index in e
   return out;
 }
 // Mean of non-null values in the last n months, ending `shift` months before the newest month.
@@ -2713,9 +2714,15 @@ function valRuleNotes(j, S) {
 var _mktP = {};
 function mktJSON(path) {
   if (!_mktP[path]) {
-    _mktP[path] = fetch(MKT.base + path).then(function (r) {
-      if (!r.ok) { var err = new Error('Market data HTTP ' + r.status); err.status = r.status; err.path = path; throw err; }
-      return r.json();
+    var get = function (base) {
+      return fetch(base + path).then(function (r) {
+        if (!r.ok) { var err = new Error('Market data HTTP ' + r.status); err.status = r.status; err.path = path; throw err; }
+        return r.json();
+      });
+    };
+    _mktP[path] = get(MKT.base).catch(function (e) {
+      // live host down, blocked, or gone (a removed Pages site also answers 404): use our own copy
+      return get(MKT.local).catch(function (e2) { throw (e2 && e2.status === 404) ? e2 : e; });
     }).catch(function (e) { delete _mktP[path]; throw e; });
   }
   return _mktP[path];
@@ -5656,7 +5663,7 @@ async function xSearch(v) {
 function xShowHits() {
   var box = document.getElementById('xres');
   box.innerHTML = X.hits.length ? X.hits.map(function (r, i) {
-    return '<button type="button" class="btn btn-secondary btn-sm" style="margin:0 6px 6px 0;" onclick="xPick(' + i + ')">' + xEsc(r[2]) + ' <span style="opacity:.6;font-size:.7rem;">' + X_TYPE[r[0]] + '</span></button>';
+    return '<button type="button" class="btn btn-secondary btn-sm" style="margin:0 6px 6px 0;" onclick="xPick(' + i + ')">' + xEsc(r[0] === 'zip' && !/^Zip /.test(r[2]) ? r[1] + ' ' + r[2] : r[2]) + ' <span style="opacity:.6;font-size:.7rem;">' + X_TYPE[r[0]] + '</span></button>';
   }).join('') : '<div style="font-size:.8rem;color:var(--text3);">No match. Try a town, county name, or a 5-digit ZIP.</div>';
 }
 function xPick(i) { var r = X.hits[i]; if (r) { document.getElementById('xres').innerHTML = ''; xOpen(r[0], r[1]); } }

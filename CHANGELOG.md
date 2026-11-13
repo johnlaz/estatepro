@@ -3,7 +3,9 @@
 | File | Change |
 |---|---|
 | app/index.html | New Explorer tab (search, market read, charts, rankings, CSV copy); Notes panel gets an email link |
-| app/sw.js | VERSION 4.2.0 |
+| app/d/ | Trimmed snapshot of the market data (GeniusPete Project), 24 months; used if the live host fails |
+| docs/refresh-market-data.py | Rebuilds app/d/ from the explorer's gh-pages data |
+| app/sw.js | VERSION 4.2.0; /app/d/ excluded from the service-worker cache |
 
 # EstatePro 4.1.0 — change log
 

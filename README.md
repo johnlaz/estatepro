@@ -49,7 +49,7 @@ Your saved model and the three built-in choices are never replaced. If Groq reti
 ## Data and privacy
 
 - Portfolio, deals, notes, history and your API key live in your browser's local storage (key `lazestate_v1`, kept from earlier versions so nothing is lost).
-- Market data is fetched as static files from [Zip Market Explorer](https://petelazzaro.github.io/zip-market-explorer/) by the GeniusPete Project (realtor.com Inventory Core Metrics). Whole regional files are downloaded, so the app never sends your property or exact ZIP anywhere. They are cached in your browser for three days.
+- Market data is fetched as static files from [Zip Market Explorer](https://petelazzaro.github.io/zip-market-explorer/) by the GeniusPete Project (realtor.com Inventory Core Metrics). Whole regional files are downloaded, so the app never sends your property or exact ZIP anywhere. They are cached in your browser for three days. EstatePro also keeps its own trimmed copy in `app/d/` (last 24 months, about 34 MB) and falls back to it if the live host is unreachable, so everything keeps working if the original site moves. Refresh it monthly with `docs/refresh-market-data.py` (instructions inside).
 - The only data that leaves your device is the property description you submit for AI commentary (sent to Groq with your key, only if you added one), plus map lookups to OpenStreetMap.
 - Use **Settings → Export** to back up or move your data. Clearing site data erases it.
 
