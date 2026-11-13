@@ -80,3 +80,6 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 
 ## 4.3.15
 - Realtor.com and Redfin buttons jump to the top search result (I am feeling lucky) instead of a results page. "Open in a new tab" checkbox under the listing buttons (default on).
+
+## 4.3.16
+- New-tab toggle is now a labelled button (the checkbox rendered as a wide empty box).

@@ -2963,7 +2963,11 @@ function openListing(site) {
   if (!newTab) { location.href = url; return; }
   var a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
 }
-function setNewTab(on) { try { localStorage.setItem('ep_newtab', on ? '1' : '0'); } catch (e) {} }
+function newTabLabel() { var on = true; try { on = localStorage.getItem('ep_newtab') !== '0'; } catch (e) {} return on ? '↗ Opens in a new tab · tap to change' : '↪ Opens in this window · tap to change'; }
+function toggleNewTab() {
+  var on = true; try { on = localStorage.getItem('ep_newtab') !== '0'; localStorage.setItem('ep_newtab', on ? '0' : '1'); } catch (e) {}
+  var b = document.getElementById('newTabBtn'); if (b) b.textContent = newTabLabel();
+}
 function renderValuationResult(j, propData) {
   var area = document.getElementById('valResultArea');
   var an = window._analysis || {}, M = window._mkt || {}, S = M.S, D = M.D, aiOnly = !!j._aiOnly;
@@ -3036,7 +3040,7 @@ function renderValuationResult(j, propData) {
     '<button class="btn btn-secondary btn-sm" onclick="openListing(\'realtor\')">Realtor.com</button>' +
     '<button class="btn btn-secondary btn-sm" onclick="openListing(\'redfin\')">Redfin</button>' +
     '<button class="btn btn-secondary btn-sm" onclick="openListing(\'web\')">Web search</button></div>' +
-    '<label style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--text3);margin-top:8px;"><input type="checkbox" ' + ((function(){try{return localStorage.getItem('ep_newtab')!=='0';}catch(e){return true;}})() ? 'checked' : '') + ' onchange="setNewTab(this.checked)"> Open in a new tab</label></div>';
+    '<div style="margin-top:8px;"><button class="btn btn-secondary btn-sm" id="newTabBtn" style="font-size:0.72rem;" onclick="toggleNewTab()">' + newTabLabel() + '</button></div></div>';
 
   area.innerHTML = h;
   window._lastJ = Object.assign({}, j, an);
@@ -5066,7 +5070,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.15';
+var APP_VERSION = '4.3.16';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
