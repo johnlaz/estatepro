@@ -1,6 +1,6 @@
 // EstatePro service worker
 // Keep VERSION in sync with APP_VERSION in index.html (the visible version stamp).
-const VERSION = '4.3.7';
+const VERSION = '4.3.8';
 const CACHE = 'estatepro-app-v' + VERSION;
 const SCOPE = self.registration.scope;
 const PRECACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png']

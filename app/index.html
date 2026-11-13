@@ -1328,7 +1328,6 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
     <!-- Status dots — compact, hidden labels -->
     <div class="status-dots" style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
       <div class="light-dot off" id="lightGroq" title="Groq API" style="width:7px;height:7px;border-radius:50%;cursor:default;"></div>
-      <div id="serverDot" class="server-dot" title="Local server" style="width:7px;height:7px;border-radius:50%;background:var(--border2);cursor:pointer;" onclick="checkServer()"></div>
     </div>
     <span class="version-stamp" id="verStamp" title="EstatePro"></span>
     <button class="install-btn" id="installBtn" onclick="triggerInstall()" title="Install App">⬇ Install</button>
@@ -2123,16 +2122,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
 
     <div class="divider" style="margin:12px 0;"></div>
 
-    <details class="fold adv"><summary>Advanced: local server <span class="fold-hint">Windows, optional</span></summary><div class="fold-body">
-    <!-- Local Server -->
-    <div style="font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Local Server <span style="font-size:0.65rem;text-transform:none;letter-spacing:0;">(map overlays)</span></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-      <button class="btn btn-secondary btn-sm" onclick="downloadServerPy()">⬇ server.py</button>
-      <button class="btn btn-secondary btn-sm" onclick="downloadStartBat()">⬇ start.bat</button>
-      <button class="btn btn-secondary btn-sm" style="font-size:0.68rem;" onclick="checkServer()">⟳ Check</button>
-    </div>
-    <div id="serverStatusText" style="font-size:0.72rem;color:var(--text3);margin-bottom:12px;">Checking server...</div>
-    </div></details>
+    
 
     <!-- Save / Cancel -->
     <div style="display:flex;gap:8px;position:sticky;bottom:0;margin:0;padding:12px 0 4px;background:var(--bg2);border-top:1px solid var(--border);z-index:2;">
@@ -4407,224 +4397,6 @@ function printReport(j, propData, opts) {
 }
 
 // SETUP FILE DOWNLOADS
-function downloadServerPy() {
-  var code = `#!/usr/bin/env python3
-# EstatePro - Local Proxy Server - localhost:7844
-
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.request import urlopen, Request
-from urllib.parse import urlparse, parse_qs, urlencode, quote
-import urllib.error, json, threading, os, time
-
-PORT = 7844
-_start_time = time.time()
-
-
-class EstateProHandler(BaseHTTPRequestHandler):
-
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self._cors()
-        self.end_headers()
-
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        path   = parsed.path
-        params = parse_qs(parsed.query)
-
-        # ── Health check ──────────────────────────────────────────────
-        if path == '/ping':
-            self._j({'ok': True, 'server': 'EstatePro', 'port': PORT,
-                     'uptime': round(time.time() - _start_time)})
-
-        # ── Generic proxy — fetch any URL server-side ─────────────────
-        elif path == '/proxy':
-            target = params.get('url', [None])[0]
-            if not target:
-                self._j({'error': 'Missing url param'}, 400); return
-            try:
-                req = Request(target, headers={
-                    'User-Agent': 'EstatePro/2.5 (local proxy)',
-                    'Accept': 'application/json, */*'
-                })
-                with urlopen(req, timeout=20) as r:
-                    data   = r.read()
-                    ctype  = r.headers.get('Content-Type', 'application/json')
-                self.send_response(200)
-                self._cors()
-                self.send_header('Content-Type', ctype)
-                self.send_header('Content-Length', len(data))
-                self.end_headers()
-                self.wfile.write(data)
-            except urllib.error.HTTPError as e:
-                self._j({'error': f'HTTP {e.code}: {e.reason}'}, 502)
-            except urllib.error.URLError as e:
-                self._j({'error': str(e.reason)}, 502)
-            except Exception as e:
-                self._j({'error': str(e)}, 500)
-
-        # ── Geocoding — Nominatim ─────────────────────────────────────
-        elif path == '/geocode':
-            q = params.get('q', [None])[0]
-            if not q:
-                self._j({'error': 'Missing q param'}, 400); return
-            try:
-                url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + quote(q)
-                req = Request(url, headers={
-                    'User-Agent': 'EstatePro/4.0 (estatepro-local)',
-                    'Accept-Language': 'en'
-                })
-                with urlopen(req, timeout=15) as r:
-                    data = json.loads(r.read().decode('utf-8'))
-                self._j(data)
-            except Exception as e:
-                self._j({'error': str(e)}, 500)
-
-        # ── POI lookup — Overpass API ─────────────────────────────────
-        elif path == '/pois':
-            lat    = params.get('lat', [None])[0]
-            lng    = params.get('lng', [None])[0]
-            radius = params.get('radius', ['2000'])[0]
-            if not lat or not lng:
-                self._j({'error': 'Missing lat/lng'}, 400); return
-            try:
-                q = (
-                    '[out:json][timeout:30];('
-                    f'node["amenity"="school"](around:{radius},{lat},{lng});'
-                    f'way["amenity"="school"](around:{radius},{lat},{lng});'
-                    f'node["amenity"~"college|university|kindergarten"](around:{radius},{lat},{lng});'
-                    f'node["amenity"~"hospital|clinic|doctors|pharmacy|urgent_care"](around:{radius},{lat},{lng});'
-                    f'way["amenity"~"hospital|clinic"](around:{radius},{lat},{lng});'
-                    f'node["shop"~"supermarket|mall|department_store|convenience"](around:{radius},{lat},{lng});'
-                    f'node["leisure"~"park|recreation_ground|sports_centre"](around:{radius},{lat},{lng});'
-                    f'way["leisure"="park"](around:{radius},{lat},{lng});'
-                    f'node["highway"~"motorway_junction"](around:1500,{lat},{lng});'
-                    f'way["highway"~"motorway|trunk"](around:1000,{lat},{lng});'
-                    ');out center;'
-                )
-                url  = 'https://overpass-api.de/api/interpreter'
-                data = ('data=' + quote(q)).encode()
-                req  = Request(url, data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
-                with urlopen(req, timeout=35) as r:
-                    result = r.read()
-                self.send_response(200)
-                self._cors()
-                self.send_header('Content-Type', 'application/json')
-                self.send_header('Content-Length', len(result))
-                self.end_headers()
-                self.wfile.write(result)
-            except Exception as e:
-                self._j({'error': str(e)}, 500)
-
-        # ── FEMA flood tile proxy ─────────────────────────────────────
-        elif path.startswith('/flood/'):
-            # /flood/{z}/{y}/{x}
-            parts = path.strip('/').split('/')
-            if len(parts) != 4:
-                self.send_response(404); self.end_headers(); return
-            _, z, y, x = parts
-            try:
-                url = f'https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/tile/{z}/{y}/{x}'
-                req = Request(url, headers={'User-Agent': 'EstatePro/2.5'})
-                with urlopen(req, timeout=10) as r:
-                    tile  = r.read()
-                    ctype = r.headers.get('Content-Type', 'image/png')
-                self.send_response(200)
-                self._cors()
-                self.send_header('Content-Type', ctype)
-                self.send_header('Content-Length', len(tile))
-                self.send_header('Cache-Control', 'public, max-age=3600')
-                self.end_headers()
-                self.wfile.write(tile)
-            except Exception:
-                # Return transparent 1x1 PNG on error
-                transparent = bytes([
-                    0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a,0x00,0x00,0x00,0x0d,0x49,0x48,0x44,0x52,
-                    0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,0x08,0x06,0x00,0x00,0x00,0x1f,0x15,0xc4,
-                    0x89,0x00,0x00,0x00,0x0a,0x49,0x44,0x41,0x54,0x78,0x9c,0x62,0x00,0x01,0x00,0x00,
-                    0x05,0x00,0x01,0x0d,0x0a,0x2d,0xb4,0x00,0x00,0x00,0x00,0x49,0x45,0x4e,0x44,0xae,
-                    0x42,0x60,0x82
-                ])
-                self.send_response(200)
-                self._cors()
-                self.send_header('Content-Type', 'image/png')
-                self.send_header('Content-Length', len(transparent))
-                self.end_headers()
-                self.wfile.write(transparent)
-
-        else:
-            self._j({'error': 'Unknown endpoint'}, 404)
-
-    def _j(self, obj, status=200):
-        b = json.dumps(obj).encode()
-        self.send_response(status)
-        self._cors()
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Content-Length', len(b))
-        self.end_headers()
-        self.wfile.write(b)
-
-    def _cors(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-
-    def log_message(self, fmt, *args):
-        pass  # Silent — no console spam
-
-
-if __name__ == '__main__':
-    print(f'EstatePro server running at http://localhost:{PORT}')
-    print('Close this window to stop.')
-    HTTPServer(('localhost', PORT), EstateProHandler).serve_forever()
-`;
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([code], {type:'text/plain'}));
-  a.download = 'estatepro_server.py'; a.click();
-  toast('Downloaded estatepro_server.py', 'success');
-}
-
-function downloadStartBat() {
-  var code = `@echo off
-:: EstatePro - Start Local Server
-:: Double-click to launch. Starts proxy server then opens app in Chrome.
-
-pushd "%~dp0"
-
-:: ── Python check ──────────────────────────────────────────────────────────────
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo Python not found. Install from https://python.org then retry.
-    pause
-    exit /b 1
-)
-
-:: ── Stop any existing instance on port 7844 ───────────────────────────────────
-powershell -WindowStyle Hidden -Command "Stop-Process -Id (Get-NetTCPConnection -LocalPort 7844 -ErrorAction SilentlyContinue).OwningProcess -ErrorAction SilentlyContinue" >nul 2>&1
-timeout /t 1 /nobreak >nul
-
-:: ── Start EstatePro proxy server (hidden) ────────────────────────────────────
-powershell -WindowStyle Hidden -Command "Start-Process pythonw -ArgumentList 'estatepro_server.py' -WorkingDirectory '%~dp0' -WindowStyle Hidden -ErrorAction SilentlyContinue"
-if errorlevel 1 (
-    powershell -WindowStyle Hidden -Command "Start-Process python -ArgumentList 'estatepro_server.py' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
-)
-
-:: ── Wait for server to start ──────────────────────────────────────────────────
-timeout /t 2 /nobreak >nul
-
-:: ── Open EstatePro in Chrome ──────────────────────────────────────────────────
-set "FILE_URL=file:///%~dp0estatepro.html"
-set "FILE_URL=%FILE_URL:\\=/%"
-start "" "chrome.exe" --disable-web-security --user-data-dir="%TEMP%\\estatepro_chrome" "%FILE_URL%" 2>nul
-if errorlevel 1 ( start "" "estatepro.html" )
-
-exit /b 0
-`;
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([code], {type:'text/plain'}));
-  a.download = 'start_estatepro.bat'; a.click();
-  toast('Downloaded start_estatepro.bat', 'success');
-}
 
 
 // ═══════════════════════════════════════
@@ -5156,30 +4928,6 @@ function renderMortgageScenarios() {
   }).join('');
 }
 
-// ═══════════════════════════════════════════════════════
-// SERVER CHECK
-// ═══════════════════════════════════════════════════════
-var _serverAvail = false;   // was never declared when the optional local server was not checked, which broke Map It and Nearby POIs
-function checkServer() {
-  try { localStorage.setItem('estatepro_server', '1'); } catch(e) {}
-  fetch('http://localhost:7844/ping', {signal: AbortSignal.timeout(1500)})
-    .then(function(r){ return r.json(); })
-    .then(function() {
-      _serverAvail = true;
-      var dot = document.getElementById('serverDot');
-      if (dot) { dot.style.background='var(--success)'; dot.title='Local server running'; }
-      var st = document.getElementById('serverStatusText');
-      if (st) { st.style.color='var(--success)'; st.textContent='Server running on port 7844'; }
-    })
-    .catch(function() {
-      _serverAvail = false;
-      var dot = document.getElementById('serverDot');
-      if (dot) { dot.style.background='var(--warn)'; dot.title='Server not running'; }
-      var st = document.getElementById('serverStatusText');
-      if (st) { st.style.color='var(--warn)'; st.textContent='Server not running — download files in Settings'; }
-    });
-}
-try { if (localStorage.getItem('estatepro_server') === '1') setTimeout(checkServer, 2000); } catch(e) {}
 
 // ═══════════════════════════════════════════════════════
 // ACTIVITY LOG
@@ -5402,10 +5150,10 @@ function searchSiteAddress() {
 }
 function geocodeAndCenter(addr) {
   if(!addr) return;
-  var url=_serverAvail?'http://localhost:7844/geocode?q='+encodeURIComponent(addr):'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr);
+  var url='https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr);
   return fetch(url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
-    if((!data||!data.length)&&!_serverAvail&&state.defaultLocation&&addr.toLowerCase().indexOf(state.defaultLocation.split(',')[0].toLowerCase())===-1){
+    if((!data||!data.length)&&state.defaultLocation&&addr.toLowerCase().indexOf(state.defaultLocation.split(',')[0].toLowerCase())===-1){
       return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr+', '+state.defaultLocation)).then(function(r3){return r3.json();}).then(function(d3){return d3;});   // street only: try again near your default location
     }
     return data;
@@ -5503,7 +5251,7 @@ function loadPOIs() {
   toast('Loading nearby places. This can take up to 40 seconds.','');
   var radius=2000;
   var q='[out:json][timeout:30];(node["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');way["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');node["amenity"~"hospital|clinic|doctors|pharmacy"](around:'+radius+','+_currentLat+','+_currentLng+');node["shop"~"supermarket|mall"](around:'+radius+','+_currentLat+','+_currentLng+');node["leisure"~"park|recreation_ground"](around:'+radius+','+_currentLat+','+_currentLng+');way["leisure"="park"](around:'+radius+','+_currentLat+','+_currentLng+');node["highway"~"motorway_junction"](around:1500,'+_currentLat+','+_currentLng+');way["highway"~"motorway|trunk"](around:1000,'+_currentLat+','+_currentLng+'););out center;';
-  var poiFetch=_serverAvail?fetch('http://localhost:7844/pois?lat='+_currentLat+'&lng='+_currentLng+'&radius='+radius).then(function(r){return r.json();}):nominatimPois(_currentLat,_currentLng).then(function(d){return d.elements.length?d:overpassRace(q);});
+  var poiFetch=nominatimPois(_currentLat,_currentLng).then(function(d){return d.elements.length?d:overpassRace(q);});
   poiFetch.then(function(data){
     if(!data.elements||!data.elements.length){toast('No POIs found.','');return;}
     function classify(t){if(!t)return null;var a=t.amenity,s=t.shop,l=t.leisure,h=t.highway;if(a==='school'||a==='college'||a==='university')return{color:'#e53935',emoji:'🏫',label:'School'};if(a==='hospital')return{color:'#1565c0',emoji:'🏥',label:'Hospital'};if(a==='clinic'||a==='doctors'||a==='pharmacy')return{color:'#1565c0',emoji:'🏥',label:'Medical'};if(s==='supermarket'||s==='mall')return{color:'#2e7d32',emoji:'🛒',label:'Shopping'};if(l==='park'||l==='recreation_ground')return{color:'#fb8c00',emoji:'🌳',label:'Park'};if(h==='motorway_junction'||h==='motorway'||h==='trunk')return{color:'#5d4037',emoji:'🛣',label:'Highway'};return null;}
@@ -5531,7 +5279,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.7';
+var APP_VERSION = '4.3.8';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════

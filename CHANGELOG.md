@@ -56,3 +56,6 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 
 ## 4.3.7
 - Removed the Site Analysis "AI Analysis" button. It asked the AI about flood risk and schools from the address text alone, with no data behind it. The map, nearby places and FEMA flood link remain.
+
+## 4.3.8
+- Removed the optional local server (header dot, Settings downloads, localhost calls). Map It and nearby places already used OpenStreetMap directly.
