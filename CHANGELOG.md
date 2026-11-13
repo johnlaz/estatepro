@@ -72,3 +72,8 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 
 ## 4.3.12
 - Valuation result: "Check this address on" buttons for Zillow, Realtor.com, Redfin and a web search.
+
+## 4.3.13 / 4.3.14
+- Market and Explorer merged into one Market tab (the Explorer). The old Market tab is gone; its AI briefing is now a button on any ZIP in the Market tab.
+- Compare is now a plain side-by-side of real numbers (price, $/sq ft, saved EstatePro value, value vs list). The AI scores and "AI fair value" it used to make up are gone.
+- Deal Tools: removed Cash-on-Cash Interpreter (the Analyze tab covers it) and Rent Roll Summary; Negotiation Coach now prefills the ask price and valuation; added a review-before-sending note.

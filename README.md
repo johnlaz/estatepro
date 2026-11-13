@@ -95,7 +95,7 @@ Static files only, served by GitHub Pages from the repo root.
 - Verdict and deal grade are computed from the asking price against the calculated range. The AI no longer produces any number.
 - One AI call per valuation (was five), optional, and it only interprets the numbers. The value works with no Groq key.
 - Removed fields that changed nothing: Parse URL (never worked), Floor/Unit, Utilities, Property Segment. Beds, baths, year built, lot and features moved to optional detail. Added ZIP, which fills city and state.
-- Market tab shows real data: median list price, inventory, days on market, price cuts, pending ratio, state percentile ranks and a data-driven market read. Removed invented scores (walkability, schools, investment score) and the hard-coded mortgage rate.
+- (Merged into the Market tab in 4.3.13.) Market data shows: median list price, inventory, days on market, price cuts, pending ratio, state percentile ranks and a data-driven market read. Removed invented scores (walkability, schools, investment score) and the hard-coded mortgage rate.
 - Lookup no longer writes an AI-recalled price into the asking field, and flags AI-recalled living area for verification.
 - The adjustment slider now recalculates the verdict and range, no longer carries over between properties and no longer floods history.
 - Credit added for the GeniusPete Project (Zip Market Explorer) across the landing page, README, app and results. Removed a stray `'+` that rendered at the bottom of the page.

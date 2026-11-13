@@ -1317,8 +1317,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
     <button class="nav-tab active" onclick="showPanel('valuate')">Valuate</button>
     <button class="nav-tab" onclick="showPanel('portfolio')">Portfolio</button>
     <button class="nav-tab" onclick="showPanel('deals')">Deals</button>
-    <button class="nav-tab" onclick="showPanel('market')">Market</button>
-    <button class="nav-tab" onclick="showPanel('explorer')">Explorer</button>
+    <button class="nav-tab" onclick="showPanel('explorer')">Market</button>
     <button class="nav-tab" onclick="showPanel('analyze')">Analyze</button>
     <button class="nav-tab" onclick="showPanel('compare')">Compare</button>
     <button class="nav-tab" onclick="showPanel('history')">History</button>
@@ -1644,7 +1643,8 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
   <div id="activeDealBar" style="display:none;background:rgba(226,176,74,0.07);border:1px solid rgba(226,176,74,0.2);border-radius:var(--radius);padding:8px 14px;margin-bottom:12px;font-size:0.8rem;color:var(--teal);align-items:center;gap:10px;"><span id="activeDealLabel"></span><button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:0.68rem;" onclick="window._activeDealIdx=null;renderDeals();">Clear</button></div>  <div class="pipeline-board" id="pipelineBoard"></div>
 
   <!-- AI Tools -->
-  <div class="section-title" style="font-size:1rem;margin-bottom:12px;">🤖 AI Deal Tools</div>
+  <div class="section-title" style="font-size:1rem;margin-bottom:4px;">✍️ Deal Tools</div>
+  <div style="font-size:0.72rem;color:var(--text3);margin-bottom:12px;">AI drafts from the details you enter. Review everything before sending, and have a lawyer review any lease.</div>
   <div class="tools-grid">
     <div class="tool-card" onclick="openTool('offer')">
       <div class="tool-icon">✍️</div>
@@ -1665,16 +1665,6 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
       <div class="tool-icon">🤝</div>
       <div class="tool-title">Negotiation Coach</div>
       <div class="tool-desc">Get a tailored strategy — what to offer, what to ask for, how to counter.</div>
-    </div>
-    <div class="tool-card" onclick="openTool('cashoncash')">
-      <div class="tool-icon">💰</div>
-      <div class="tool-title">Cash-on-Cash Interpreter</div>
-      <div class="tool-desc">Plain-English analysis of your return vs market benchmarks with actionable advice.</div>
-    </div>
-    <div class="tool-card" onclick="openTool('rentroll')">
-      <div class="tool-icon">📊</div>
-      <div class="tool-title">Rent Roll Summary</div>
-      <div class="tool-desc">Full rent roll across all rental properties — income, expenses, net, lease status.</div>
     </div>
   </div>
   <div id="toolResultArea"></div>
@@ -1724,96 +1714,6 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
 <!-- ══════════════════════════════════════════
      PANEL: MARKET
 ═══════════════════════════════════════════ -->
-<div class="panel" id="panel-market">
-  <div class="section-header">
-    <div class="section-title">Market Intelligence</div>
-    <div class="section-sub">Real listing data by ZIP · <a href="https://petelazzaro.github.io/zip-market-explorer/" target="_blank" rel="noopener" style="color:var(--gold2);">GeniusPete Project</a></div>
-  </div>
-
-  <div class="api-banner" id="marketApiBanner" style="display:none;">
-    <span>🔑</span>
-    <div class="api-banner-text">The numbers load without a key. Add a Groq key in Settings for AI commentary on them.</div>
-    <button class="btn btn-sm btn-primary" onclick="openSettings()">Add Key</button>
-  </div>
-
-  <div class="market-grid">
-    <div>
-      <div class="card mb-16">
-        <div class="flex-between mb-16">
-          <div class="section-title" style="font-size:1rem;">Market Briefing</div>
-          <button class="btn btn-teal btn-sm" onclick="runMarketBriefing()">🔄 Load data</button>
-        </div>
-
-        <div class="field-group mb-16">
-          <div class="field-label">ZIP code</div>
-          <input type="text" id="marketCity" inputmode="numeric" maxlength="5" placeholder="32801" onkeydown="if(event.key==='Enter') runMarketBriefing()">
-        </div>
-
-        <div id="marketBriefingArea">
-          <div class="thinking">
-            <div style="font-size:0.82rem;color:var(--text3);">Enter a ZIP and press "Load data". Every number comes from realtor.com listing data. AI only comments on them.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Key Indicators -->
-      <div class="card">
-        <div class="section-title" style="font-size:1rem; margin-bottom:14px;">Key Indicators</div>
-        <div class="market-pulse">
-          <div class="pulse-icon">📈</div>
-          <div class="pulse-info">
-            <div class="pulse-name">Median List Price</div>
-            <div class="pulse-val" id="indMHPVal">Load a ZIP to see it</div>
-          </div>
-          <div class="pulse-trend trend-up" id="indMHP">—</div>
-        </div>
-        <div class="market-pulse">
-          <div class="pulse-icon">📦</div>
-          <div class="pulse-info">
-            <div class="pulse-name">Active Inventory</div>
-            <div class="pulse-val" id="indInvVal">Active listings vs a year ago</div>
-          </div>
-          <div class="pulse-trend" id="indInv">—</div>
-        </div>
-        <div class="market-pulse">
-          <div class="pulse-icon">⚡</div>
-          <div class="pulse-info">
-            <div class="pulse-name">Days on Market</div>
-            <div class="pulse-val" id="indDOMVal">Median days on market</div>
-          </div>
-          <div class="pulse-trend" id="indDOM">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <!-- Neighborhood Spotlight -->
-      <div class="card mb-16">
-        <div class="flex-between mb-16">
-          <div class="section-title" style="font-size:1rem;">Neighborhood Spotlight</div>
-          <button class="btn btn-secondary btn-sm" onclick="runNeighborhoodAnalysis()">Look up</button>
-        </div>
-        <div class="field-group">
-          <div class="field-label">ZIP code</div>
-          <input type="text" id="nhInput" inputmode="numeric" maxlength="5" placeholder="e.g. 32801" onkeydown="if(event.key==='Enter') runNeighborhoodAnalysis()">
-        </div>
-        <div id="nhArea">
-          <div style="color:var(--text3); font-size:0.82rem; padding:10px 0;">Enter a ZIP code and press Look up.</div>
-        </div>
-      </div>
-
-      <!-- Market Heat -->
-      <div class="card">
-        <div class="section-title" style="font-size:1rem; margin-bottom:14px;">Market Heat Snapshot <span style="font-size:0.65rem;color:var(--text3);font-weight:400;">from data</span></div>
-        <div id="heatGrid" class="grid-2" style="gap:10px;"></div>
-        <div style="margin-top:14px;">
-          <button class="btn btn-secondary btn-sm btn-full" onclick="runHeatMap()">🔄 Refresh snapshot</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ══════════════════════════════════════════
      PANEL: ANALYZE (Investment/ROI)
 ═══════════════════════════════════════════ -->
@@ -2026,7 +1926,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
   </div>
 
   <div class="flex-between mb-16">
-    <button class="btn btn-primary" onclick="runComparison()">🤖 AI Compare</button>
+    <button class="btn btn-primary" onclick="runComparison()">⚖️ Compare</button>
     <button class="btn btn-secondary btn-sm" onclick="clearComparison()">Clear All</button>
   </div>
 
@@ -2344,13 +2244,12 @@ function showPanel(id) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   const tabs = document.querySelectorAll('.nav-tab');
-  const labels = ['valuate','portfolio','deals','market','explorer','analyze','compare','history','site'];
+  const labels = ['valuate','portfolio','deals','explorer','analyze','compare','history','site'];
   const idx = labels.indexOf(id);
   if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
 
   if (id === 'portfolio') renderPortfolio();
   if (id === 'history')   renderHistory();
-  if (id === 'market')    checkMarketBanner();
   if (id === 'compare')   setTimeout(function(){ if(typeof renderComparePicker==='function') renderComparePicker(); }, 50);
   if (id === 'deals')     setTimeout(function(){ renderDeals(); }, 50);
   if (id === 'site')      setTimeout(function(){ initSiteMap(); }, 150);
@@ -2369,10 +2268,6 @@ function updateApiBanner() {
   }
 }
 
-function checkMarketBanner() {
-  const b = document.getElementById('marketApiBanner');
-  b.style.display = state.apiKey ? 'none' : 'flex';
-}
 
 // ═══════════════════════════════════════
 // GROQ API CALL
@@ -2902,7 +2797,7 @@ async function runAIOnlyEstimate(pd, S, loadErr, calcType, myRun) {
   if (!state.apiKey) {
     area.innerHTML = '<div class="card"><div style="font-size:0.9rem;color:var(--text2);line-height:1.6;"><strong style="color:var(--gold2);">No calculated value for this one.</strong><br>' + valEsc(why) +
       '<br><br>Add a Groq API key in Settings and run again to get an AI-only estimate, clearly labelled as not market-calculated.</div></div>';
-    if (S) { window._analysis = {}; renderMarketFromStats(S, window._mkt.D, pd); }
+    window._analysis = {};
     var mb = document.getElementById('multBar'); if (mb) mb.style.display = 'none';
     return;
   }
@@ -3152,9 +3047,6 @@ function afterValuation(j, pd) {
   var price = Number(pd.ask || j.estimatedValue || 0);
   var mortEl = document.getElementById('mortPrice');
   if (price && mortEl) { mortEl.value = Math.round(price); calcMortgage(); }
-  var mc = document.getElementById('marketCity'); if (mc) mc.value = pd.zip;
-  var nh = document.getElementById('nhInput'); if (nh && !nh.value) nh.value = pd.zip;
-  if (window._mkt && window._mkt.S) renderMarketFromStats(window._mkt.S, window._mkt.D, pd);
   var si = document.getElementById('siteSearchInput');
   var addr2 = pd.address || (pd.city ? pd.city + (pd.state_ ? ', ' + pd.state_ : '') : '');
   if (si && addr2) si.value = addr2;
@@ -3166,90 +3058,23 @@ function afterValuation(j, pd) {
 function mktRefOf(S) { return (S.zip && S.zip.al != null && S.zip.al >= 10) ? S.zip : (S.county || S.zip || S.state); }
 function trendCls(x, upGood) { return x == null ? 'trend-flat' : (Math.abs(x) < 0.02 ? 'trend-flat' : ((x > 0) === upGood ? 'trend-up' : 'trend-dn')); }
 
-function renderMarketIndicators(S, D) {
-  var g = mktRefOf(S);
-  function set(id, txt, cls) { var e = document.getElementById(id); if (e) { e.textContent = txt; if (cls) e.className = 'pulse-trend ' + cls; } }
-  set('indMHPVal', (g.price != null ? valMoney(g.price) + ' median list price' : 'No data') + ' · ' + g.name);
-  set('indMHP', valPct(g.priceYoY), trendCls(g.priceYoY, true));
-  set('indInvVal', (g.al != null ? Math.round(g.al).toLocaleString() + ' active listings' : 'No data') + ' (3-mo avg)');
-  set('indInv', valPct(g.alYoY, 0), g.alYoY == null ? 'trend-flat' : (g.alYoY <= -0.10 ? 'trend-up' : g.alYoY >= 0.10 ? 'trend-dn' : 'trend-flat'));
-  set('indDOMVal', 'Median days on market' + (g.domYago != null ? ' (' + Math.round(g.domYago) + ' a year ago)' : ''));
-  set('indDOM', g.dom != null ? Math.round(g.dom) + ' d' : '—', g.domYoY == null ? 'trend-flat' : (g.domYoY <= -0.10 ? 'trend-up' : g.domYoY >= 0.10 ? 'trend-dn' : 'trend-flat'));
-}
-function renderHeatGrid(S) {
-  var grid = document.getElementById('heatGrid'); if (!grid) return;
-  var g = mktRefOf(S), par = g === S.zip ? (S.state || S.county) : (g === S.county ? S.state : null);
-  var read = mktRead(g, par);
-  var colorMap = { hot: 'var(--crimson)', warm: 'var(--warn)', cool: 'var(--sky)', cold: 'var(--teal)' };
-  var tiles = [
-    ['Market Read', read.label + ' (' + (read.score > 0 ? '+' : '') + read.score + ')', read.score >= 2 ? 'hot' : read.score <= -2 ? 'cool' : 'warm'],
-    ['Price Trend', g.psfYoY != null ? valPct(g.psfYoY) + ' $/sq ft YoY' : '—', g.psfYoY == null ? 'warm' : g.psfYoY >= 0.03 ? 'hot' : g.psfYoY >= 0 ? 'warm' : g.psfYoY >= -0.03 ? 'cool' : 'cold'],
-    ['Inventory', g.alYoY != null ? valPct(g.alYoY, 0) + ' vs last year' : '—', g.alYoY == null ? 'warm' : g.alYoY <= -0.10 ? 'hot' : g.alYoY >= 0.10 ? 'cold' : 'warm'],
-    ['Days on Market', g.dom != null ? Math.round(g.dom) + ' days' : '—', g.dom == null ? 'warm' : g.dom <= 35 ? 'hot' : g.dom <= 70 ? 'warm' : g.dom <= 100 ? 'cool' : 'cold'],
-    ['Price Cuts', g.prs != null ? Math.round(g.prs * 100) + '% of listings' : '—', g.prs == null ? 'warm' : g.prs <= 0.12 ? 'hot' : g.prs <= 0.22 ? 'warm' : g.prs <= 0.30 ? 'cool' : 'cold'],
-    ['Pending Ratio', g.pr != null ? Math.round(g.pr * 100) + '%' : '—', g.pr == null ? 'warm' : g.pr >= 0.45 ? 'hot' : g.pr >= 0.30 ? 'warm' : g.pr >= 0.18 ? 'cool' : 'cold']
-  ];
-  grid.innerHTML = tiles.map(function (t) {
-    return '<div class="neighborhood-tile" style="border-left:3px solid ' + colorMap[t[2]] + ';"><div style="font-size:0.65rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">' + t[0] + '</div><div style="font-size:0.95rem; font-weight:600; color:' + colorMap[t[2]] + ';">' + valEsc(t[1]) + '</div></div>';
-  }).join('');
-}
-function renderNeighborhoodTile(S, D, area) {
-  var z = S.zip || mktRefOf(S), rk = (S.zip && D && D.zipG && D.zipG.rk) || null;
-  function bar(label, v, color) { return '<div class="nh-score-bar"><div style="font-size:0.65rem; color:var(--text3); margin-bottom:3px;">' + label + ' ' + (v != null ? v + '%' : '—') + '</div><div class="nh-score-track"><div class="nh-score-fill" style="width:' + (v || 0) + '%;' + (color ? ' background:' + color + ';' : '') + '"></div></div></div>'; }
-  area.innerHTML = '<div class="neighborhood-tile"><div class="nh-name">' + valEsc(z.name) + '</div><div class="nh-price">' + (z.price != null ? valMoney(z.price) : '—') + '</div>' +
-    '<div class="nh-meta">' + valPct(z.psfYoY) + ' $/sq ft YoY · ' + (z.dom != null ? Math.round(z.dom) : '—') + ' days on market · ' + (z.al != null ? Math.round(z.al) : '—') + ' active</div>' +
-    (rk ? '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:10px;">' + bar('$/SQ FT RANK', rk.f) + bar('SLOWNESS RANK', rk.dom, 'var(--gold)') + bar('DEMAND RANK', rk.pr) + '</div>' +
-      '<div style="font-size:0.68rem;color:var(--text3);margin-top:6px;">Percentile among ZIPs in the state for the latest month. 100 = highest, not necessarily best.</div>' : '') +
-    '<div style="font-size:0.7rem;color:var(--text3);margin-top:8px;">Data through ' + mktLabel(mktYM(D.zipG.lastIdx)) + ' · realtor.com listing metrics</div></div>';
-}
-function renderMarketFromStats(S, D, pd) {
-  try { renderMarketIndicators(S, D); renderHeatGrid(S); } catch (e) {}
-  var nhEl = document.getElementById('nhInput'), nhArea = document.getElementById('nhArea');
-  if (nhEl && nhArea && (!nhEl.value || nhEl.value === (pd && pd.zip))) { try { renderNeighborhoodTile(S, D, nhArea); } catch (e) {} }
-  var b = document.getElementById('marketBriefingArea');
-  if (b && !b.dataset.hasAI) b.innerHTML = marketSignalsHTML(S, D);
-}
 function marketSignalsHTML(S, D) {
   var g = mktRefOf(S), par = g === S.zip ? (S.state || S.county) : (g === S.county ? S.state : null), read = mktRead(g, par);
   return '<div style="font-size:0.85rem;color:var(--text2);margin-bottom:8px;"><strong style="color:var(--gold2);">' + valEsc(read.label) + '</strong> · ' + valEsc(g.name) + ' · data through ' + mktLabel(mktYM(D.zipG.lastIdx)) + '</div>' +
     read.signals.map(function (s) { return '<div style="font-size:0.8rem;color:var(--text2);margin-bottom:3px;">' + (s.tag > 0 ? '🟢' : s.tag < 0 ? '🔴' : '⚪') + ' ' + valEsc(s.name) + ': ' + (s.val != null ? valPct(s.val, 0) : '—') + '</div>'; }).join('') +
     '<div style="font-size:0.7rem;color:var(--text3);margin-top:8px;">🟢 favors sellers, 🔴 favors buyers. Listing metrics, not closed sales.</div>';
 }
-async function marketZipFromInput(id) {
-  var z = mktZipFrom(document.getElementById(id).value) || (document.getElementById(id).value.trim().match(/^\d{5}$/) || [''])[0];
-  if (!z) { toast('Enter a 5-digit ZIP code.', 'error'); return null; }
-  try { var D = await mktLoad(z); return { D: D, S: mktStats(D), zip: z }; }
-  catch (e) { toast(e.message, 'error'); return null; }
-}
-async function runMarketBriefing() {
-  var area = document.getElementById('marketBriefingArea'); delete area.dataset.hasAI;
-  area.innerHTML = '<div class="thinking"><div class="spinner"></div> Loading listing data…</div>';
-  var r = await marketZipFromInput('marketCity');
-  if (!r) { area.innerHTML = '<div style="font-size:0.82rem;color:var(--text3);">Enter a ZIP code and press Load data.</div>'; return; }
-  renderMarketIndicators(r.S, r.D); renderHeatGrid(r.S);
-  area.innerHTML = marketSignalsHTML(r.S, r.D);
-  if (!state.apiKey) return;
-  area.insertAdjacentHTML('beforeend', '<div class="thinking" id="briefBusy" style="margin-top:10px;"><div class="spinner"></div> AI is reading the numbers…</div>');
-  var g = mktRefOf(r.S), par = g === r.S.zip ? (r.S.state || r.S.county) : (g === r.S.county ? r.S.state : null), read = mktRead(g, par);
-  var facts = valFacts({ estimatedValue: 0, valueLow: 0, valueHigh: 0, pricePerSqft: 0, confidence: 0, confidenceWhy: [], verdict: '', marketRead: read, steps: [] }, { type: 'Residential', zip: r.zip }, r.S);
+async function xBrief() {
+  var c = X.cur, area = document.getElementById('xbrief'); if (!c || c.type !== 'zip' || !area) return;
+  if (!state.apiKey) { toast('Add a Groq key in Settings for the AI briefing.', 'error'); return; }
+  area.innerHTML = '<div class="thinking"><div class="spinner"></div> AI is reading the numbers…</div>';
   try {
-    var resp = await groqCall([{ role: 'user', content: 'FACTS (real data):\n' + facts + '\n\nWrite a 4-sentence briefing for an investor: who has leverage right now, what the price and inventory trends say, and one risk. Use only these facts, no invented numbers. Plain text, **bold** allowed.' }],
+    var D = await mktLoad(c.id), S = mktStats(D), g = mktRefOf(S), par = g === S.zip ? (S.state || S.county) : (g === S.county ? S.state : null), read = mktRead(g, par);
+    var facts = valFacts({ estimatedValue: 0, valueLow: 0, valueHigh: 0, pricePerSqft: 0, confidence: 0, confidenceWhy: [], verdict: '', marketRead: read, steps: [] }, { type: 'Residential', zip: c.id }, S);
+    var resp = await groqCall([{ role: 'user', content: 'FACTS (real data):\n' + facts + '\n\nWrite a 4-sentence briefing for an investor: who has leverage right now, what the price and inventory trends say, and one risk. Use only these facts, no invented numbers.' }],
       'You are EstatePro Market Intelligence. Interpret the supplied real data. Never invent statistics. Be brief.', 400);
-    var bb = document.getElementById('briefBusy'); if (bb) bb.remove();
-    area.dataset.hasAI = '1';
-    area.insertAdjacentHTML('beforeend', '<div class="divider"></div><div class="ai-box-content" style="font-size:0.85rem; line-height:1.7; color:var(--text2);">' + valEsc(resp).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') + '</div>');
-  } catch (err) { var b2 = document.getElementById('briefBusy'); if (b2) b2.remove(); }
-}
-async function runNeighborhoodAnalysis(silent) {
-  var area = document.getElementById('nhArea');
-  var r = await marketZipFromInput('nhInput');
-  if (!r) return;
-  renderNeighborhoodTile(r.S, r.D, area);
-}
-async function runHeatMap() {
-  var r = await marketZipFromInput('marketCity');
-  if (!r) return;
-  renderMarketIndicators(r.S, r.D); renderHeatGrid(r.S);
+    area.innerHTML = '<div style="font-size:0.85rem; line-height:1.7; color:var(--text2);">' + valEsc(resp).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') + '</div><div style="font-size:.7rem;color:var(--text3);margin-top:6px;">AI commentary on the numbers above. It adds no data of its own.</div>';
+  } catch (e) { area.innerHTML = '<span style="color:var(--warn);font-size:.8rem;">' + valEsc(e.message) + '</span>'; }
 }
 
 // ═══════════════════════════════════════
@@ -3687,110 +3512,34 @@ function clearComparison() {
   document.getElementById('compResultArea').innerHTML = '';
 }
 
-async function runComparison() {
-  const filled = state.compareSlots.filter(Boolean);
+function runComparison() {   // plain side-by-side of real numbers: no AI scores, no guessed values
+  var filled = state.compareSlots.filter(Boolean), area = document.getElementById('compResultArea');
   if (filled.length < 2) { toast('Add at least 2 properties to compare.', 'error'); return; }
-  if (!state.apiKey) { toast('Groq API key required.', 'error'); return; }
-
-  const area = document.getElementById('compResultArea');
-  area.innerHTML = `<div class="ai-box"><div class="thinking"><div class="spinner"></div> Comparing properties...</div></div>`;
-
-  const sysPrompt = `You are a real estate expert. Compare properties and give clear recommendations. Respond ONLY with JSON.`;
-
-  const propsDesc = filled.map((p, i) => `
-Property ${String.fromCharCode(65+i)}:
-  Type: ${p.type}
-  Address: ${p.address}
-  ${p.beds ? `Beds/Baths: ${p.beds}/${p.baths}` : ''}
-  ${p.sqft ? `Sqft: ${p.sqft}` : ''}
-  ${p.year ? `Year Built: ${p.year}` : ''}
-  ${p.price ? `List Price: $${Number(p.price).toLocaleString()}` : ''}
-  Condition: ${p.condition}
-  ${p.features ? `Features: ${p.features}` : ''}`).join('\n');
-
-  const userMsg = `Compare these ${filled.length} properties and provide analysis:
-
-${propsDesc}
-
-Respond ONLY with JSON:
-{
-  "winner": "A"|"B"|"C",
-  "winnerReason": string,
-  "properties": [
-    {
-      "label": "A",
-      "valueScore": number (0-100),
-      "locationScore": number (0-100),
-      "conditionScore": number (0-100),
-      "investmentScore": number (0-100),
-      "estimatedFairValue": number,
-      "verdict": "Best Value"|"Good"|"Overpriced"|"Avoid",
-      "oneLineSummary": string
-    }
-  ],
-  "overallAnalysis": string (3-4 sentences comparing all properties),
-  "recommendation": string (clear buy recommendation)
-}`;
-
-  try {
-    const raw = await groqCall([{ role: 'user', content: userMsg }], sysPrompt, 800);
-    const cmp = JSON.parse(raw.replace(/```json|```/g,'').trim());
-
-    const labels = ['A','B','C'];
-    const scoreRow = (label, key) => `
-      <tr>
-        <td class="row-label">${label}</td>
-        ${cmp.properties.map(p => {
-          const best = Math.max(...cmp.properties.map(x => x[key]));
-          const worst = Math.min(...cmp.properties.map(x => x[key]));
-          const cls = p[key] === best ? 'best' : (p[key] === worst && cmp.properties.length > 1 ? 'worst' : '');
-          return `<td class="${cls}">${p[key]}/100</td>`;
-        }).join('')}
-      </tr>`;
-
-    area.innerHTML = `
-      <div class="card mb-16">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-          <div style="font-size:2rem;">🏆</div>
-          <div>
-            <div style="font-size:0.75rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.1em;">AI Recommends</div>
-            <div style="font-family:'Inter',system-ui,sans-serif; font-size:1.3rem; font-weight:700; color:var(--gold2);">Property ${cmp.winner}</div>
-            <div style="font-size:0.82rem; color:var(--text2);">${cmp.winnerReason}</div>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <table class="cmp-result-table">
-          <thead>
-            <tr>
-              <th>Metric</th>
-              ${cmp.properties.map(p => `<th>Property ${p.label}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${scoreRow('Value Score', 'valueScore')}
-            ${scoreRow('Location Score', 'locationScore')}
-            ${scoreRow('Condition Score', 'conditionScore')}
-            ${scoreRow('Investment Score', 'investmentScore')}
-            <tr>
-              <td class="row-label">Est. Fair Value</td>
-              ${cmp.properties.map(p => `<td class="price-cell">$${Number(p.estimatedFairValue).toLocaleString()}</td>`).join('')}
-            </tr>
-            <tr>
-              <td class="row-label">Verdict</td>
-              ${cmp.properties.map(p => {
-                const vc = {'Best Value':'var(--success)','Good':'var(--teal)','Overpriced':'var(--warn)','Avoid':'var(--crimson)'}[p.verdict]||'var(--text2)';
-                return `<td style="color:${vc}; font-weight:600;">${p.verdict}</td>`;
-              }).join('')}
-            </tr>
-          </tbody>
-        </table>
-        <div class="divider"></div>
-        <div style="font-size:0.82rem; color:var(--text2); line-height:1.6; margin-bottom:10px;">${cmp.overallAnalysis}</div>
-        <div style="font-size:0.82rem; font-weight:600; color:var(--gold2);">💡 ${cmp.recommendation}</div>
-      </div>`;
-  } catch(err) {
-    area.innerHTML = `<div class="ai-box"><div class="ai-box-content" style="color:var(--crimson);">Error: ${err.message}</div></div>`;
+  var money = function (v) { return v == null || !isFinite(v) ? '—' : '$' + Math.round(v).toLocaleString(); };
+  var P = filled.map(function (p) {
+    var price = +p.price || 0, sq = +p.sqft || 0, val = +p.est || 0;
+    return { p: p, price: price, psf: price && sq ? price / sq : null, val: val || null, vsList: price && val ? (val - price) / price : null };
+  });
+  function row(label, get, best, fmt) {
+    var vals = P.map(get), nums = vals.filter(function (v) { return typeof v === 'number' && isFinite(v); });
+    var target = nums.length > 1 ? (best === 'low' ? Math.min.apply(null, nums) : Math.max.apply(null, nums)) : null;
+    return '<tr><td class="row-label">' + label + '</td>' + vals.map(function (v) {
+      var ok = typeof v === 'number' && isFinite(v);
+      return '<td class="' + (ok && target != null && v === target ? 'best' : '') + '">' + (ok ? (fmt ? fmt(v) : v) : (v || '—')) + '</td>';
+    }).join('') + '</tr>';
   }
+  var pct = function (v) { return (v > 0 ? '+' : '') + Math.round(v * 100) + '%'; };
+  area.innerHTML = '<div class="card mb-16"><table class="cmp-result-table"><thead><tr><th>Metric</th>' + P.map(function (x, i) { return '<th>' + String.fromCharCode(65 + i) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    '<tr><td class="row-label">Address</td>' + P.map(function (x) { return '<td style="font-size:.75rem;">' + valEsc(x.p.address || '') + '</td>'; }).join('') + '</tr>' +
+    '<tr><td class="row-label">Type</td>' + P.map(function (x) { return '<td style="font-size:.75rem;">' + valEsc(x.p.type || '—') + '</td>'; }).join('') + '</tr>' +
+    '<tr><td class="row-label">Beds / baths</td>' + P.map(function (x) { return '<td>' + (x.p.beds ? valEsc(x.p.beds) + ' / ' + valEsc(x.p.baths || '—') : '—') + '</td>'; }).join('') + '</tr>' +
+    row('Sq ft', function (x) { return +x.p.sqft || null; }, 'high', function (v) { return v.toLocaleString(); }) +
+    row('Year built', function (x) { return +x.p.year || null; }, 'high', function (v) { return String(v); }) +
+    row('List / ask price', function (x) { return x.price || null; }, 'low', money) +
+    row('List $/sq ft', function (x) { return x.psf; }, 'low', function (v) { return '$' + Math.round(v); }) +
+    row('EstatePro value', function (x) { return x.val; }, 'high', money) +
+    row('Value vs list', function (x) { return x.vsList; }, 'high', pct) +
+    '</tbody></table><div style="font-size:.72rem;color:var(--text3);margin-top:8px;">Green marks the best in each row where it is clear-cut (lowest price and $/sq ft, highest value vs list). Values come from saved valuations; properties added by hand show no EstatePro value. Add them to History by running a valuation first.</div></div>';
 }
 
 // ═══════════════════════════════════════
@@ -4170,7 +3919,7 @@ function loadToCompare(src, idx) {
   state.compareSlots[slot]={
     type:p.type, address:p.address||p.city,
     beds:p.beds||'', baths:p.baths||'', sqft:p.sqft||'',
-    year:p.year||'', price:p.askPrice||p.estimatedValue||0,
+    year:p.year||'', price:p.askPrice||0, est:p.estimatedValue||0,
     condition:'Good', features:p.features||''
   };
   renderSlots();
@@ -4186,7 +3935,7 @@ function loadToCompare(src, idx) {
 
 function printLastReport() {
   if (!window._lastJ) { toast('Run a valuation first.', 'error'); return; }
-  var hasMkt  = !!((document.getElementById('marketBriefingArea')||{}).innerText||'').trim();
+  var hasMkt  = !!(window._mkt && window._mkt.S);
   var hasMort = !!((document.getElementById('mortPrice')||{}).value||'');
   var hasSite = !!((_poiLayers&&_poiLayers.length)||((document.getElementById('siteAnalysisArea')||{}).innerText||'').trim());
   var mkt = document.getElementById('pdf_market');
@@ -4248,8 +3997,8 @@ function printReport(j, propData, opts) {
   var appColors={strong:'#2e7d32',moderate:'#1565c0',flat:'#666',declining:'#b00020'};
 
   // Collect tab data
-  var mktText=''; try{var e=document.getElementById('marketBriefingArea');if(e)mktText=e.innerText.trim().slice(0,800);}catch(e2){}
-  var nhText='';  try{var e=document.getElementById('nhArea');if(e)nhText=e.innerText.trim().slice(0,400);}catch(e2){}
+  var mktText=''; try{if(window._mkt&&window._mkt.S){var e=document.createElement('div');e.innerHTML=marketSignalsHTML(window._mkt.S,window._mkt.D);mktText=e.innerText.trim().slice(0,800);}}catch(e2){}
+  var nhText='';
   var mortPrice=(document.getElementById('mortPrice')||{}).value||'';
   var mortMonthly=((document.getElementById('mortMonthly')||{}).textContent||'').trim();
   var mortDown=(document.getElementById('mortDown')||{}).value||'20';
@@ -4798,7 +4547,7 @@ window.addEventListener('popstate', function(e) {
     var el = document.getElementById('panel-' + prev);
     if (el) el.classList.add('active');
     var tabs = document.querySelectorAll('.nav-tab');
-    var labels = ['valuate','portfolio','deals','market','explorer','analyze','compare','history','site'];
+    var labels = ['valuate','portfolio','deals','explorer','analyze','compare','history','site'];
     tabs.forEach(function(t,i){ if(labels[i]===prev) t.classList.add('active'); else t.classList.remove('active'); });
   }
   history.pushState({ panel: 'app' }, '', '');
@@ -5078,41 +4827,14 @@ var TOOLS = {
   },
   negotiate: {
     title:'Negotiation Coach',
-    fields:[{id:'negAddr',label:'Property Address',type:'text',ph:'123 Oak St'},{id:'negList',label:'List Price ($)',type:'number',ph:'375000'},{id:'negEst',label:'AI Estimate ($)',type:'number',ph:'355000'},{id:'negDays',label:'Days on Market',type:'number',ph:'45'},{id:'negWhy',label:'Your Situation',type:'text',ph:'Cash buyer, flexible close'},{id:'negSeller',label:'Seller Situation',type:'text',ph:'Motivated, relocated'}],
-    prompt:function(v){return 'Act as my real estate negotiation coach:\nProperty: '+v.negAddr+'\nList: $'+Number(v.negList).toLocaleString()+'\nAI Estimate: $'+Number(v.negEst).toLocaleString()+'\nDays on Market: '+v.negDays+'\nMy situation: '+v.negWhy+'\nSeller: '+v.negSeller+'\nGive: (1) recommended offer price, (2) concessions to ask, (3) how to counter, (4) walk-away price. Be specific.';}
-  },
-  cashoncash: {
-    title:'Cash-on-Cash Interpreter',
-    fields:[{id:'cocPrice',label:'Purchase Price ($)',type:'number',ph:'300000'},{id:'cocDown',label:'Down Payment (%)',type:'number',ph:'20'},{id:'cocRent',label:'Monthly Rent ($)',type:'number',ph:'2000'},{id:'cocMort',label:'Monthly Mortgage ($)',type:'number',ph:'1300'},{id:'cocExp',label:'Monthly Expenses ($)',type:'number',ph:'400'},{id:'cocMarket',label:'Market / City',type:'text',ph:'Orlando, FL'}],
-    prompt:function(v){var price=Number(v.cocPrice),down=Number(v.cocDown)/100,rent=Number(v.cocRent),mort=Number(v.cocMort),exp=Number(v.cocExp),ci=price*down,ncf=(rent-mort-exp)*12,coc=ci>0?(ncf/ci*100).toFixed(2):0;return 'Analyze this rental investment:\nPrice: $'+price.toLocaleString()+'\nDown: '+v.cocDown+'% ($'+(price*down).toLocaleString()+')\nRent: $'+rent+'/mo\nMortgage: $'+mort+'/mo\nExpenses: $'+exp+'/mo\nNet monthly: $'+(rent-mort-exp)+'\nCash-on-Cash: '+coc+'%\nMarket: '+v.cocMarket+'\nProvide: (1) plain-English verdict — good/average/poor for this market, (2) FL benchmark comparison, (3) what to change for better return, (4) one-sentence verdict.';}
-  },
-  rentroll: {
-    title:'Rent Roll Summary',
-    fields:[],
-    prompt:function(){
-      var rentals=(state.portfolio||[]).filter(function(p){return p.status==='rental';});
-      if(!rentals.length) return null;
-      return 'Rent roll analysis:\n'+rentals.map(function(p,i){var exp=(p.expenses||[]).reduce(function(s,e){return s+e.amt;},0);return 'Property '+(i+1)+': '+p.address+'\n  Rent: $'+(p.monthlyRent||0)+'/mo | Mortgage: $'+(p.monthlyMortgage||0)+'/mo | Expenses: $'+Math.round(exp)+'\n  Notes: '+(p.mgmtNotes||'none');}).join('\n\n')+'\nProvide: (1) total income/debt/cashflow, (2) best/worst performer, (3) red flags, (4) one recommendation.';
-    }
+    fields:[{id:'negAddr',label:'Property Address',type:'text',ph:'123 Oak St'},{id:'negList',label:'List Price ($)',type:'number',ph:'375000'},{id:'negEst',label:'EstatePro Value ($)',type:'number',ph:'355000'},{id:'negDays',label:'Days on Market',type:'number',ph:'45'},{id:'negWhy',label:'Your Situation',type:'text',ph:'Cash buyer, flexible close'},{id:'negSeller',label:'Seller Situation',type:'text',ph:'Motivated, relocated'}],
+    prompt:function(v){return 'Act as my real estate negotiation coach:\nProperty: '+v.negAddr+'\nList: $'+Number(v.negList).toLocaleString()+'\nMarket-calculated value: $'+Number(v.negEst).toLocaleString()+'\nDays on Market: '+v.negDays+'\nMy situation: '+v.negWhy+'\nSeller: '+v.negSeller+'\nGive: (1) recommended offer price, (2) concessions to ask, (3) how to counter, (4) walk-away price. Be specific.';}
   }
 };
 
 function openTool(toolKey) {
   var tool = TOOLS[toolKey]; if(!tool) return;
   document.getElementById('toolModalTitle').textContent = tool.title;
-  if (toolKey==='rentroll') {
-    var prompt = tool.prompt();
-    if (!prompt) {
-      document.getElementById('toolModalBody').innerHTML='<div style="color:var(--text3);font-size:0.85rem;padding:20px;text-align:center;">No rental properties in portfolio yet.</div>';
-      document.getElementById('toolModal').classList.add('open'); return;
-    }
-    document.getElementById('toolModalBody').innerHTML='<div class="thinking"><div class="spinner"></div> Generating rent roll...</div>';
-    document.getElementById('toolModal').classList.add('open');
-    groqCall([{role:'user',content:prompt}],'You are a real estate investment analyst.',600).then(function(res){
-      document.getElementById('toolModalBody').innerHTML='<div class="tool-result">'+res.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')+'</div>';
-    }).catch(function(e){document.getElementById('toolModalBody').innerHTML='<div style="color:var(--crimson);">Error: '+e.message+'</div>';});
-    return;
-  }
   var formHTML = tool.fields.map(function(f){
     var input = f.type==='date' ? '<input type="date" id="'+f.id+'">' :
                 f.type==='number' ? '<input type="number" id="'+f.id+'" placeholder="'+f.ph+'">' :
@@ -5128,6 +4850,7 @@ function openTool(toolKey) {
     var addr = window._lastPropData.address || (window._lastPropData.city||'');
     ['tAddr','ddAddr','lAddr','negAddr'].forEach(function(id){ var el=document.getElementById(id); if(el&&!el.value) el.value=addr; });
     if (window._lastJ && document.getElementById('negEst')) document.getElementById('negEst').value = window._lastJ.estimatedValue||'';
+    var nl = document.getElementById('negList'); if (nl && !nl.value && window._lastPropData.ask) nl.value = window._lastPropData.ask;
   }
 }
 
@@ -5339,7 +5062,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.12';
+var APP_VERSION = '4.3.14';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
@@ -5442,7 +5165,7 @@ function xRender() {
   var h = '<div class="card mb-16"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">' +
     '<div><div style="font-size:1.15rem;font-weight:700;">' + xEsc(g.n) + '</div><div style="font-size:.75rem;color:var(--text3);">' + X_TYPE[c.type] + ' · data through ' + mktLabel(mktYM(g.lastIdx)) + (S.flagged ? ' · recent months flagged low-quality by the source' : '') + '</div></div>' +
     '<div style="text-align:right;"><div style="font-weight:700;color:' + badge + ';">' + read.label + '</div><div style="font-size:.7rem;color:var(--text3);">market read' + (P ? ' vs ' + xEsc(P.name) : '') + '</div></div></div>' +
-    (c.type === 'zip' ? '<div style="margin-top:12px;"><button class="btn btn-primary btn-sm" onclick="xUseZip()">Value a home in ' + xEsc(c.id) + '</button></div>' : '') + '</div>';
+    (c.type === 'zip' ? '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-primary btn-sm" onclick="xUseZip()">Value a home in ' + xEsc(c.id) + '</button><button class="btn btn-secondary btn-sm" onclick="xBrief()">🤖 AI briefing</button></div><div id="xbrief" style="margin-top:10px;"></div>' : '') + '</div>';
   h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;">' +
     tile('Listing $/sq ft', S.psf == null ? '—' : '$' + Math.round(S.psf), S.psfYoY) +
     tile('Median list price', valMoney(S.price), S.priceYoY) +
@@ -5489,8 +5212,7 @@ function xCopyCSV() {
 
 var SHEETS = {
   tools: { title: 'Tools', items: [
-    ['market', '📊', 'Market', 'Rates, trends and area snapshot'],
-    ['explorer', '🔎', 'Explorer', 'Browse any ZIP, county, metro or state'],
+    ['explorer', '📊', 'Market', 'Search any ZIP, county, metro or state'],
     ['analyze', '🧮', 'Analyze', 'Mortgage, rental ROI and cash flow'],
     ['compare', '⚖️', 'Compare', 'Put up to three properties side by side'],
     ['site', '📍', 'Location', 'Map, nearby places and flood info']
@@ -5523,7 +5245,7 @@ function sheetGo(id) {
   showPanel(id);
 }
 function syncTabbar(id) {
-  var map = { valuate: 'valuate', portfolio: 'portfolio', deals: 'deals', market: 'tools', explorer: 'tools', analyze: 'tools', compare: 'tools', site: 'tools', history: 'more' };
+  var map = { valuate: 'valuate', portfolio: 'portfolio', deals: 'deals', explorer: 'tools', analyze: 'tools', compare: 'tools', site: 'tools', history: 'more' };
   document.querySelectorAll('#tabbar button').forEach(function(b) { b.classList.toggle('active', b.dataset.tb === map[id]); });
   document.querySelectorAll('.nav-tab').forEach(function(t) { t.removeAttribute('aria-current'); if (t.classList.contains('active')) t.setAttribute('aria-current', 'page'); });
   try { history.replaceState(null, '', '#' + id); } catch(e) {}
