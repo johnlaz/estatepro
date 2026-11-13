@@ -64,6 +64,9 @@ Static files only, served by GitHub Pages from the repo root.
 
 ## Changelog
 
+### 4.3.1
+- Phones: pop-up windows (Settings, Notes and the rest) now stop above the bottom tab bar, and the Save button stays pinned at the bottom of Settings.
+
 ### 4.3.0
 - Explorer search now shows a dropdown with ZIP, town and type, matching ZIP prefixes first.
 - Zillow Home Value Index by ZIP (Zillow Research, public CSV) added as a cross-check on the valuation and a tile in the Explorer. It is a modeled typical-home value, not sold prices. Built monthly by `tools/build_zhvi.py` in the same Action; it appears after the Action's first successful run.

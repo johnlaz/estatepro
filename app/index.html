@@ -1275,6 +1275,8 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
   .topbar { height: 52px; }
   .topbar-logo-wrap { border-right: none; flex: 1; padding: 0 14px; }
   .topbar-actions { padding-right: 10px; }
+  .modal-overlay { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); box-sizing: border-box; }
+  .modal-overlay .modal { max-height: calc(100vh - var(--tabbar-h) - env(safe-area-inset-bottom) - 28px); max-height: calc(100dvh - var(--tabbar-h) - env(safe-area-inset-bottom) - 28px); }
   .tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 300; padding-bottom: env(safe-area-inset-bottom); height: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); background: rgba(8,16,30,0.97); border-top: 1px solid var(--border2); backdrop-filter: blur(10px); }
   .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: none; color: var(--text2); font: inherit; font-size: 0.64rem; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; min-height: 48px; }
   .tabbar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -2135,7 +2137,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
     </div></details>
 
     <!-- Save / Cancel -->
-    <div style="display:flex;gap:8px;position:sticky;bottom:-20px;margin:0 -20px -20px;padding:12px 20px 16px;background:var(--bg2);border-top:1px solid var(--border);">
+    <div style="display:flex;gap:8px;position:sticky;bottom:0;margin:0;padding:12px 0 4px;background:var(--bg2);border-top:1px solid var(--border);z-index:2;">
       <button class="btn btn-primary" style="flex:1;" onclick="saveSettings()">Save Settings</button>
       <button class="btn btn-secondary" style="flex:0 0 auto;" onclick="closeModal('settingsModal')">Cancel</button>
     </div>
@@ -5655,7 +5657,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.0';
+var APP_VERSION = '4.3.1';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
