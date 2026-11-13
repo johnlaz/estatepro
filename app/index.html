@@ -3292,7 +3292,8 @@ function saveToHistoryAuto(j, propData) {
     timestamp: new Date().toISOString(),
     type: propData.type || state.selectedType,
     address: propData.address || `${propData.city || ''}, ${propData.state_ || ''}`,
-    city: propData.city, state_: propData.state_,
+    city: propData.city, state_: propData.state_, zip: propData.zip || '',
+    lot: propData.lot || '', condition: propData.condition || '', features: propData.features || '', notes: propData.notes || '',
     beds: propData.beds, baths: propData.baths,
     sqft: propData.sqft, year: propData.year,
     askPrice: propData.ask,
@@ -3391,25 +3392,49 @@ function renderHistory() {
   }
   const typeIcons = { 'Single Family':'🏠','Condo / Townhome':'🏢','Multi-Family':'🏘','Vacant Land':'🌿','Commercial':'🏬','Farm / Ranch':'🌾' };
   list.innerHTML = state.history.map((h, idx) => `
-    <div class="history-item">
+    <div class="history-item" style="flex-wrap:wrap;">
       <div class="hi-icon">${typeIcons[h.type]||'🏡'}</div>
       <div class="hi-info">
-        <div class="hi-address">${h.address}</div>
-        <div class="hi-meta">${h.type} · ${new Date(h.timestamp).toLocaleDateString()} · Confidence: ${h.confidence}%</div>
+        <div class="hi-address">${valEsc(h.address)}</div>
+        <div class="hi-meta">${valEsc(h.type)} · ${new Date(h.timestamp).toLocaleDateString()} · Confidence: ${h.confidence}%</div>
       </div>
       <div class="hi-price">$${Number(h.estimatedValue).toLocaleString()}</div>
-      </div>
-      ${h.note ? '<div class="hist-note-text">📝 '+h.note+'</div>' : ''}
-      <div id="histNoteArea_${idx}" style="display:none;padding:4px 0 8px 0;"><textarea class="hist-note-input" rows="2" placeholder="Add a note about this valuation..." onblur="saveHistNote(${idx},this.value)">${h.note||''}</textarea></div>
-      <div style="display:none">
-      <div class="hi-actions">
-        <span class="badge badge-gold">${h.investmentGrade}</span>
-        <button class="btn btn-teal btn-sm" onclick="loadToCompare('hist',${idx})">⇄</button>
-        <button class="btn btn-secondary btn-sm" onclick="toggleHistNote(${idx})">📝</button>
+      ${h.note ? '<div class="hist-note-text" style="flex:1 1 100%;">📝 '+valEsc(h.note)+'</div>' : ''}
+      <div id="histNoteArea_${idx}" style="display:none;flex:1 1 100%;padding:4px 0 8px 0;"><textarea class="hist-note-input" rows="2" style="width:100%;" placeholder="Add a note about this valuation..." onblur="saveHistNote(${idx},this.value)">${valEsc(h.note||'')}</textarea></div>
+      <div class="hi-actions" style="flex:1 1 100%;flex-wrap:wrap;margin-top:6px;">
+        <button class="btn btn-teal btn-sm" onclick="reopenHistory(${idx})">↻ Reopen</button>
+        <button class="btn btn-secondary btn-sm" onclick="mapHistory(${idx})">📍 Map</button>
+        <button class="btn btn-secondary btn-sm" onclick="historyToPortfolio(${idx})">+ Portfolio</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadToCompare('hist',${idx})">⇄ Compare</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleHistNote(${idx})">📝 Note</button>
         <button class="btn btn-secondary btn-sm" onclick="removeHistory(${idx})">✕</button>
       </div>
     </div>
   `).join('');
+}
+function reopenHistory(idx) {
+  var h = state.history[idx]; if (!h) return;
+  var btn = document.querySelector('.prop-type-btn[data-type="' + h.type + '"]'); if (btn) selectType(btn);
+  function set(id, v) { var e = document.getElementById(id); if (e && v != null) e.value = v; }
+  var zip = h.zip || mktZipFrom(h.address || '') || '';
+  set('propAddress', h.address && h.address !== ', ' ? h.address : ''); set('propCity', h.city || ''); set('propState', h.state_ || '');
+  set('propBeds', h.beds); set('propBaths', h.baths); set('propSqft', h.sqft); set('propYear', h.year); set('propLot', h.lot);
+  set('propAsk', h.askPrice); set('propCondition', h.condition); set('propFeatures', h.features); set('propNotes', h.notes);
+  var ze = document.getElementById('propZip'); if (ze) { ze.value = zip; if (zip) onZipInput(ze); }
+  showPanel('valuate');
+  toast(zip ? 'Loaded. Tap Value to recalculate with current data.' : 'Loaded. Add the ZIP, then tap Value.', 'success');
+}
+function mapHistory(idx) {
+  var h = state.history[idx]; if (!h) return;
+  var a = h.address || '';
+  if (!/\d{5}/.test(a)) a = [a, h.city, h.state_, h.zip].filter(Boolean).join(', ');
+  showPanel('site');
+  var si = document.getElementById('siteSearchInput'); if (si) si.value = a;
+  setTimeout(function () { searchSiteAddress(); }, 300);
+}
+function historyToPortfolio(idx) {
+  var h = state.history[idx]; if (!h) return;
+  saveToPortfolio(h, h);
 }
 
 function clearHistory() {
@@ -5148,24 +5173,26 @@ function searchSiteAddress() {
   if(!_siteMap){initSiteMap();setTimeout(function(){if(_siteMap)geocodeAndCenter(addr);else setTimeout(function(){geocodeAndCenter(addr);},500);},600);return;}
   geocodeAndCenter(addr);
 }
+function nomUS(q){   // US-only results: the public geocoder searches the whole world, so a street with no city can land in another country
+  return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q='+encodeURIComponent(q)).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(function(rows){return (rows||[]).filter(function(r){return !r.address||r.address.country_code==='us';});});
+}
+function siteQueries(addr){
+  var v=function(id){var e=document.getElementById(id);return e?e.value.trim():'';};
+  var qs=[], low=addr.toLowerCase(), zip=(addr.match(/\b\d{5}\b/)||[])[0], street=v('propAddress').split(',')[0].trim().toLowerCase();
+  var ctx=(street&&low.indexOf(street)===0)?{zip:v('propZip'),city:v('propCity'),st:v('propState')}:{zip:'',city:'',st:''};
+  if(!zip&&(ctx.zip||ctx.city)) qs.push(addr+', '+[ctx.city,ctx.st,ctx.zip].filter(Boolean).join(' ').replace(/ (\d{5})$/,' $1'));
+  qs.push(addr);
+  if(state.defaultLocation&&low.indexOf(state.defaultLocation.split(',')[0].toLowerCase())===-1) qs.push(addr+', '+state.defaultLocation);
+  var parts=addr.split(','); if(parts.length>1) qs.push(parts.slice(-2).join(',').trim());
+  if(zip||ctx.zip) qs.push((zip||ctx.zip)+', USA');
+  return qs.filter(function(q,i,a){return a.indexOf(q)===i;});
+}
 function geocodeAndCenter(addr) {
   if(!addr) return;
-  var url='https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr);
-  return fetch(url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(data){
-    if((!data||!data.length)&&state.defaultLocation&&addr.toLowerCase().indexOf(state.defaultLocation.split(',')[0].toLowerCase())===-1){
-      return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr+', '+state.defaultLocation)).then(function(r3){return r3.json();}).then(function(d3){return d3;});   // street only: try again near your default location
-    }
-    return data;
-  })
-  .then(function(data){
-    if(!data||!data.length){
-      var parts=addr.split(',');
-      if(parts.length>1) return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(parts.slice(-2).join(',').trim())).then(function(r2){return r2.json();}).then(function(d2){if(!d2||!d2.length)throw new Error('not_found');return d2;});
-      throw new Error('not_found');
-    }
-    return data;
-  })
+  var qs=siteQueries(addr);
+  return qs.reduce(function(chain,q){return chain.then(function(found){return found&&found.length?found:nomUS(q);});},Promise.resolve([]))
+  .then(function(data){ if(!data||!data.length) throw new Error('not_found'); return data; })
   .then(function(data){
     var lat=parseFloat(data[0].lat),lng=parseFloat(data[0].lon);
     _currentLat=lat;_currentLng=lng;
@@ -5295,7 +5322,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.10';
+var APP_VERSION = '4.3.11';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
