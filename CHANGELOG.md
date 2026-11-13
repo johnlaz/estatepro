@@ -2,10 +2,8 @@
 
 | File | Change |
 |---|---|
-| app/d/ | New: trimmed snapshot of Zip Market Explorer data (GeniusPete Project), 24 months |
-| app/index.html | Loader tries the live explorer first, then app/d/; Notes panel gets an email link |
-| app/sw.js | VERSION 4.2.0; /app/d/ excluded from the service-worker cache |
-| docs/refresh-market-data.py | New: rebuilds app/d/ from the explorer's gh-pages data |
+| app/index.html | New Explorer tab (search, market read, charts, rankings, CSV copy); Notes panel gets an email link |
+| app/sw.js | VERSION 4.2.0 |
 
 # EstatePro 4.1.0 — change log
 

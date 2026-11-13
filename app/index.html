@@ -1316,6 +1316,7 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
     <button class="nav-tab" onclick="showPanel('portfolio')">Portfolio</button>
     <button class="nav-tab" onclick="showPanel('deals')">Deals</button>
     <button class="nav-tab" onclick="showPanel('market')">Market</button>
+    <button class="nav-tab" onclick="showPanel('explorer')">Explorer</button>
     <button class="nav-tab" onclick="showPanel('analyze')">Analyze</button>
     <button class="nav-tab" onclick="showPanel('compare')">Compare</button>
     <button class="nav-tab" onclick="showPanel('history')">History</button>
@@ -1817,6 +1818,21 @@ body { background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74,16
 <!-- ══════════════════════════════════════════
      PANEL: ANALYZE (Investment/ROI)
 ═══════════════════════════════════════════ -->
+<div class="panel" id="panel-explorer">
+  <div class="section-header">
+    <div class="section-title">Market Explorer</div>
+    <div class="section-sub">Any ZIP, county, metro or state · realtor.com listing data · <a href="https://petelazzaro.github.io/zip-market-explorer/" target="_blank" rel="noopener" style="color:var(--gold2);">GeniusPete Project</a></div>
+  </div>
+  <div class="card mb-16">
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <input type="search" id="xq" placeholder="ZIP, town, county, metro or state  (e.g. 34744, Kissimmee, Osceola)" autocomplete="off" spellcheck="false" oninput="xSearchInput(this.value)" onkeydown="if(event.key==='Enter')xSearchEnter()" style="flex:1; min-width:220px;">
+      <button class="btn btn-secondary btn-sm" onclick="xOpen('us','us')">United States</button>
+    </div>
+    <div id="xres" style="margin-top:8px;"></div>
+  </div>
+  <div id="xmain"><div class="card" style="text-align:center; color:var(--text3);">Search a place to see its trends, market read and where it ranks in its state. Every number is a listing metric (asking prices and inventory), not closed sales.</div></div>
+</div>
+
 <div class="panel" id="panel-analyze">
   <div class="section-header">
     <div class="section-title">Investment Analyzer</div>
@@ -2338,7 +2354,7 @@ function showPanel(id) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   const tabs = document.querySelectorAll('.nav-tab');
-  const labels = ['valuate','portfolio','deals','market','analyze','compare','history','site'];
+  const labels = ['valuate','portfolio','deals','market','explorer','analyze','compare','history','site'];
   const idx = labels.indexOf(id);
   if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
 
@@ -2423,7 +2439,6 @@ function selectType(btn) {
 // ═══════════════════════════════════════
 var MKT = {
   base: 'https://petelazzaro.github.io/zip-market-explorer/d/',   // GeniusPete Project, live and freshest
-  local: 'd/',                                // EstatePro's own trimmed copy (app/d/), used if the live host fails
   keep: 24,                                   // months of history kept per geography
   series: ['p','f','s','al','pl','dom','prs','pis','pr','q'],
   scale: { prs: 10000, pis: 10000, pr: 10000 },
@@ -2467,7 +2482,7 @@ function mktDecode(rec) {
   var n = Math.min(L, MKT.keep);
   MKT.series.forEach(function (k) { if (!out.s[k]) out.s[k] = new Array(n).fill(null); });
   out.len = n;
-  out.lastIdx = rec.e != null ? rec.e : (L ? L - 1 : 0);   // local copy is trimmed and carries the true last index in e
+  out.lastIdx = L ? L - 1 : 0;
   return out;
 }
 // Mean of non-null values in the last n months, ending `shift` months before the newest month.
@@ -2698,15 +2713,9 @@ function valRuleNotes(j, S) {
 var _mktP = {};
 function mktJSON(path) {
   if (!_mktP[path]) {
-    var get = function (base) {
-      return fetch(base + path).then(function (r) {
-        if (!r.ok) { var err = new Error('Market data HTTP ' + r.status); err.status = r.status; err.path = path; throw err; }
-        return r.json();
-      });
-    };
-    _mktP[path] = get(MKT.base).catch(function (e) {
-      // live host down, blocked, or gone (a removed Pages site also answers 404): use our own copy
-      return get(MKT.local).catch(function (e2) { throw (e2 && e2.status === 404) ? e2 : e; });
+    _mktP[path] = fetch(MKT.base + path).then(function (r) {
+      if (!r.ok) { var err = new Error('Market data HTTP ' + r.status); err.status = r.status; err.path = path; throw err; }
+      return r.json();
     }).catch(function (e) { delete _mktP[path]; throw e; });
   }
   return _mktP[path];
@@ -5093,7 +5102,7 @@ window.addEventListener('popstate', function(e) {
     var el = document.getElementById('panel-' + prev);
     if (el) el.classList.add('active');
     var tabs = document.querySelectorAll('.nav-tab');
-    var labels = ['valuate','portfolio','deals','market','analyze','compare','history','site'];
+    var labels = ['valuate','portfolio','deals','market','explorer','analyze','compare','history','site'];
     tabs.forEach(function(t,i){ if(labels[i]===prev) t.classList.add('active'); else t.classList.remove('active'); });
   }
   history.pushState({ panel: 'app' }, '', '');
@@ -5615,10 +5624,143 @@ document.addEventListener('keydown', e => {
 var APP_VERSION = '4.2.0';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
+// ═══════════════════════════════════════
+// MARKET EXPLORER — browse any ZIP, county, metro, state or the US (data: Zip Market Explorer, GeniusPete Project)
+// ═══════════════════════════════════════
+var X = { idx: null, cur: null, timer: null, hits: [] };
+function xEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+var X_TYPE = { zip: 'ZIP', county: 'County', metro: 'Metro', state: 'State', us: 'US' };
+async function xLoadIdx() {
+  if (!X.idx) X.idx = (await mktJSON('meta.json')).idx || [];
+  return X.idx;
+}
+function xSearchInput(v) {
+  clearTimeout(X.timer);
+  X.timer = setTimeout(function () { xSearch(v); }, 180);
+}
+async function xSearch(v) {
+  var box = document.getElementById('xres'); v = (v || '').trim().toLowerCase();
+  if (!v) { box.innerHTML = ''; X.hits = []; return; }
+  if (/^\d{5}$/.test(v)) { X.hits = [['zip', v, 'ZIP ' + v, '']]; return xShowHits(); }
+  if (v.length < 2) { box.innerHTML = ''; return; }
+  box.innerHTML = '<div style="font-size:.8rem;color:var(--text3);">Searching…</div>';
+  var idx; try { idx = await xLoadIdx(); } catch (e) { box.innerHTML = '<div style="font-size:.8rem;color:var(--red,#e57373);">Search list unavailable (' + xEsc(e.message) + '). A 5-digit ZIP still works.</div>'; return; }
+  var rank = { state: 0, metro: 1, county: 2, zip: 3, us: 0 }, out = [];
+  for (var i = 0; i < idx.length && out.length < 60; i++) {
+    var r = idx[i], hay = (r[2] + ' ' + r[3] + ' ' + (r[0] === 'zip' ? r[1] : '')).toLowerCase();
+    if (hay.indexOf(v) !== -1) out.push(r);
+  }
+  out.sort(function (a, b) { var as = a[2].toLowerCase().indexOf(v) === 0 ? 0 : 1, bs = b[2].toLowerCase().indexOf(v) === 0 ? 0 : 1; return as - bs || rank[a[0]] - rank[b[0]]; });
+  X.hits = out.slice(0, 8); xShowHits();
+}
+function xShowHits() {
+  var box = document.getElementById('xres');
+  box.innerHTML = X.hits.length ? X.hits.map(function (r, i) {
+    return '<button type="button" class="btn btn-secondary btn-sm" style="margin:0 6px 6px 0;" onclick="xPick(' + i + ')">' + xEsc(r[2]) + ' <span style="opacity:.6;font-size:.7rem;">' + X_TYPE[r[0]] + '</span></button>';
+  }).join('') : '<div style="font-size:.8rem;color:var(--text3);">No match. Try a town, county name, or a 5-digit ZIP.</div>';
+}
+function xPick(i) { var r = X.hits[i]; if (r) { document.getElementById('xres').innerHTML = ''; xOpen(r[0], r[1]); } }
+function xSearchEnter() { if (X.hits.length) xPick(0); }
+function xPath(type, id) {
+  if (type === 'zip') return ['zip/' + id.slice(0, 2) + '.json', id];
+  if (type === 'county') return ['county/' + id.slice(0, 2) + '.json', id];
+  if (type === 'metro') return ['metro/' + id.slice(0, 2) + '.json', id];
+  if (type === 'state') return ['states.json', id];
+  return ['us.json', 'us'];
+}
+async function xOpen(type, id) {
+  var main = document.getElementById('xmain');
+  main.innerHTML = '<div class="card" style="text-align:center;color:var(--text3);">Loading…</div>';
+  try {
+    var p = xPath(type, id), file = await mktJSON(p[0]), rec = file[p[1]];
+    if (!rec) { main.innerHTML = '<div class="card">No listing data for ' + X_TYPE[type] + ' ' + xEsc(id) + '.</div>'; return; }
+    var g = mktDecode(rec), parent = null;
+    if (type !== 'state' && type !== 'us' && rec.st) { try { var sf = await mktJSON('states.json'); if (sf[rec.st]) parent = mktDecode(sf[rec.st]); } catch (e) {} }
+    X.cur = { type: type, id: id, g: g, parent: parent };
+    xRender();
+  } catch (e) { main.innerHTML = '<div class="card">Could not load data: ' + xEsc(e.message) + '</div>'; }
+}
+function xChart(title, key, fmt, g, parent) {
+  var a = g.s[key]; if (!a) return '';
+  var n = a.length, W = 320, H = 120, pl = 38, pr = 6, pt = 8, pb = 18;
+  var vals = a.filter(function (v) { return v != null; });
+  var pa = parent && parent.s[key] && parent.s[key].length === n ? parent.s[key] : null;
+  if (pa) pa.forEach(function (v) { if (v != null) vals.push(v); });
+  if (vals.length < 3) return '';
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals); if (mx === mn) { mx += 1; mn -= 1; }
+  var pad = (mx - mn) * 0.1; mn -= pad; mx += pad;
+  function Xp(i) { return pl + (W - pl - pr) * i / (n - 1); }
+  function Yp(v) { return pt + (H - pt - pb) * (1 - (v - mn) / (mx - mn)); }
+  function path(arr) { var d = '', pen = false; arr.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + Xp(i).toFixed(1) + ' ' + Yp(v).toFixed(1) + ' '; pen = true; }); return d; }
+  var avg = a.map(function (v, i) { if (i < 2) return null; var s = 0, c = 0; for (var j = i - 2; j <= i; j++) if (a[j] != null) { s += a[j]; c++; } return c >= 2 ? s / c : null; });
+  var last = a.length - 1, l = mktLabel(mktYM(g.lastIdx)), f = mktLabel(mktYM(g.lastIdx - (n - 1)));
+  return '<div class="card" style="padding:12px;"><div style="font-size:.78rem;font-weight:600;margin-bottom:4px;">' + title + '</div>' +
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="' + title + ', last ' + n + ' months" style="display:block;">' +
+    '<text x="2" y="' + (Yp(mx - pad) + 3) + '" font-size="8" style="fill:var(--text3);">' + fmt(mx - pad) + '</text>' +
+    '<text x="2" y="' + (Yp(mn + pad) + 3) + '" font-size="8" style="fill:var(--text3);">' + fmt(mn + pad) + '</text>' +
+    (pa ? '<path d="' + path(pa) + '" fill="none" style="stroke:var(--text3);" stroke-width="1.2" stroke-dasharray="3 3"/>' : '') +
+    '<path d="' + path(a) + '" fill="none" style="stroke:var(--gold2);opacity:.45;" stroke-width="1.2"/>' +
+    '<path d="' + path(avg) + '" fill="none" style="stroke:var(--gold2);" stroke-width="2.2" stroke-linejoin="round"/>' +
+    '<text x="' + pl + '" y="' + (H - 4) + '" font-size="8" style="fill:var(--text3);">' + f + '</text>' +
+    '<text x="' + (W - pr) + '" y="' + (H - 4) + '" font-size="8" text-anchor="end" style="fill:var(--text3);">' + l + '</text></svg>' +
+    '<div style="font-size:.68rem;color:var(--text3);">Thin line: monthly · bold: 3-month average' + (pa ? ' · dashed: ' + xEsc(parent.n) : '') + '</div></div>';
+}
+function xRender() {
+  var c = X.cur, g = c.g, S = mktGeoStats(g), P = c.parent ? mktGeoStats(c.parent) : null, main = document.getElementById('xmain');
+  var read = mktRead(S, P), badge = read.score >= 2 ? 'var(--gold2)' : read.score <= -2 ? 'var(--teal)' : 'var(--text3)';
+  function tile(label, val, yoy) { return '<div class="stat-tile"><div style="font-size:.7rem;color:var(--text3);">' + label + '</div><div style="font-size:1.25rem;font-weight:700;">' + val + '</div><div style="font-size:.7rem;color:var(--text3);">' + (yoy == null ? '&nbsp;' : valPct(yoy) + ' vs year ago') + '</div></div>'; }
+  var pct = function (v) { return v == null ? '—' : Math.round(v * 100) + '%'; };
+  var h = '<div class="card mb-16"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">' +
+    '<div><div style="font-size:1.15rem;font-weight:700;">' + xEsc(g.n) + '</div><div style="font-size:.75rem;color:var(--text3);">' + X_TYPE[c.type] + ' · data through ' + mktLabel(mktYM(g.lastIdx)) + (S.flagged ? ' · recent months flagged low-quality by the source' : '') + '</div></div>' +
+    '<div style="text-align:right;"><div style="font-weight:700;color:' + badge + ';">' + read.label + '</div><div style="font-size:.7rem;color:var(--text3);">market read' + (P ? ' vs ' + xEsc(P.name) : '') + '</div></div></div>' +
+    (c.type === 'zip' ? '<div style="margin-top:12px;"><button class="btn btn-primary btn-sm" onclick="xUseZip()">Value a home in ' + xEsc(c.id) + '</button></div>' : '') + '</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;">' +
+    tile('Listing $/sq ft', S.psf == null ? '—' : '$' + Math.round(S.psf), S.psfYoY) +
+    tile('Median list price', valMoney(S.price), S.priceYoY) +
+    tile('Days on market', S.dom == null ? '—' : Math.round(S.dom), S.domYoY) +
+    tile('Active listings', S.al == null ? '—' : Math.round(S.al).toLocaleString(), S.alYoY) +
+    tile('Price-cut share', pct(S.prs), null) + tile('Pending ratio', pct(S.pr), null) + '</div>';
+  h += '<div class="card mb-16"><div style="font-weight:600;margin-bottom:6px;">Why it reads ' + read.label.toLowerCase() + '</div>' +
+    read.signals.map(function (s) { return '<div style="display:flex;justify-content:space-between;font-size:.8rem;padding:3px 0;border-bottom:1px solid var(--border);"><span>' + s.name + '</span><span style="color:var(--text3);">' + (s.val == null ? '—' : valPct(s.val)) + ' · ' + (s.tag > 0 ? 'seller' : s.tag < 0 ? 'buyer' : 'neutral') + '</span></div>'; }).join('') +
+    '<div style="font-size:.7rem;color:var(--text3);margin-top:6px;">3-month trailing averages. Six signals; +2 or more is seller-leaning, −2 or less buyer-leaning.</div></div>';
+  var money = function (v) { return '$' + Math.round(v / 1000) + 'k'; }, ps = function (v) { return '$' + Math.round(v); }, num = function (v) { return String(Math.round(v)); }, pc = function (v) { return Math.round(v * 100) + '%'; };
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:16px;">' +
+    xChart('Listing $/sq ft', 'f', ps, g, c.parent) + xChart('Median list price', 'p', money, g, c.parent) + xChart('Days on market', 'dom', num, g, c.parent) +
+    xChart('Active listings', 'al', num, g, null) + xChart('Price-cut share', 'prs', pc, g, c.parent) + xChart('Pending ratio', 'pr', pc, g, c.parent) + '</div>';
+  var rk = g.rk;
+  if (rk) {
+    var names = { p: 'List price', f: '$/sq ft', al: 'Active listings', dom: 'Days on market', prs: 'Price cuts', pr: 'Pending ratio' };
+    h += '<div class="card mb-16"><div style="font-weight:600;margin-bottom:2px;">Where it ranks in ' + xEsc(g.st) + '</div><div style="font-size:.7rem;color:var(--text3);margin-bottom:8px;">Percentile among ' + X_TYPE[c.type].toLowerCase() + 's with data (100 = highest)</div>' +
+      Object.keys(names).filter(function (k) { return rk[k] != null; }).map(function (k) {
+        return '<div style="display:flex;align-items:center;gap:8px;font-size:.78rem;margin:4px 0;"><span style="width:110px;">' + names[k] + '</span><span style="flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><span style="display:block;height:100%;width:' + rk[k] + '%;background:var(--gold2);"></span></span><span style="width:28px;text-align:right;">' + rk[k] + '</span></div>';
+      }).join('') + '</div>';
+  }
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><button class="btn btn-secondary btn-sm" onclick="xCopyCSV()">Copy monthly data as CSV</button></div>' +
+    '<div style="font-size:.7rem;color:var(--text3);">Source: realtor.com Inventory Core Metrics via Zip Market Explorer, a <a href="https://petelazzaro.github.io/zip-market-explorer/" target="_blank" rel="noopener" style="color:var(--gold2);">GeniusPete Project</a>. Asking prices and inventory, not closed sales.</div>';
+  main.innerHTML = h;
+}
+function xUseZip() {
+  var c = X.cur; if (!c || c.type !== 'zip') return;
+  showPanel('valuate');
+  var z = document.getElementById('propZip'); if (z) { z.value = c.id; onZipInput(z); }
+}
+function xCopyCSV() {
+  var g = X.cur && X.cur.g; if (!g) return;
+  var keys = ['p', 'f', 's', 'al', 'dom', 'prs', 'pr'], rows = ['month,' + keys.join(',')];
+  for (var i = 0; i < g.len; i++) {
+    var row = [mktLabel(mktYM(g.lastIdx - (g.len - 1 - i)))];
+    keys.forEach(function (k) { var v = g.s[k] && g.s[k][i]; row.push(v == null ? '' : +(+v).toFixed(4)); });
+    rows.push(row.join(','));
+  }
+  var txt = rows.join('\n');
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () { toast('Copied ' + (rows.length - 1) + ' months as CSV.', 'success'); }, function () { toast('Copy not available here.', 'error'); });
+}
+
 
 var SHEETS = {
   tools: { title: 'Tools', items: [
     ['market', '📊', 'Market', 'Rates, trends and area snapshot'],
+    ['explorer', '🔎', 'Explorer', 'Browse any ZIP, county, metro or state'],
     ['analyze', '🧮', 'Analyze', 'Mortgage, rental ROI and cash flow'],
     ['compare', '⚖️', 'Compare', 'Put up to three properties side by side'],
     ['site', '📍', 'Location', 'Map, nearby places and flood info']
@@ -5651,7 +5793,7 @@ function sheetGo(id) {
   showPanel(id);
 }
 function syncTabbar(id) {
-  var map = { valuate: 'valuate', portfolio: 'portfolio', deals: 'deals', market: 'tools', analyze: 'tools', compare: 'tools', site: 'tools', history: 'more' };
+  var map = { valuate: 'valuate', portfolio: 'portfolio', deals: 'deals', market: 'tools', explorer: 'tools', analyze: 'tools', compare: 'tools', site: 'tools', history: 'more' };
   document.querySelectorAll('#tabbar button').forEach(function(b) { b.classList.toggle('active', b.dataset.tb === map[id]); });
   document.querySelectorAll('.nav-tab').forEach(function(t) { t.removeAttribute('aria-current'); if (t.classList.contains('active')) t.setAttribute('aria-current', 'page'); });
   try { history.replaceState(null, '', '#' + id); } catch(e) {}

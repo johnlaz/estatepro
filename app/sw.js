@@ -30,9 +30,6 @@ self.addEventListener('fetch', event => {
   // Never touch AI, map or any cross-origin traffic.
   if (url.origin !== location.origin || !url.href.startsWith(SCOPE)) return;
 
-  // The market data copy (app/d/) is large and refreshed monthly: leave it to the browser's HTTP cache.
-  if (url.pathname.indexOf('/app/d/') !== -1) return;
-
   const isPage = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
   if (isPage) {
     // Network-first so a new deploy shows up right away; cached copy when offline.
