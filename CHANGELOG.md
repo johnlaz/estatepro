@@ -62,3 +62,6 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 
 ## 4.3.9
 - Nearby places: added fire, police, gas stations; added a wider search (about 25 miles) for airport, hospital, interstate, mall and university, keeping the nearest few; popups show distance; map zooms to fit.
+
+## 4.3.10
+- Nearby places: results are filtered by type (no more street names as hospitals), police and mall searches fixed, and nearest major highways (I-4, I-95, I-75, I-10, Florida Turnpike) added.

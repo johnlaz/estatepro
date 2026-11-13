@@ -5231,9 +5231,12 @@ function poiMiles(a,b,c,d){var R=3958.8,r=Math.PI/180,x=(c-a)*r,y=(d-b)*r,h=Math
 function nominatimPois(lat, lng) {
   var jobs=[
     {q:'school',d:0.03,keep:8,cat:'school'},{q:'pharmacy',d:0.03,keep:4,cat:'medical'},{q:'supermarket',d:0.03,keep:5,cat:'shopping'},
-    {q:'park',d:0.03,keep:6,cat:'park'},{q:'fire station',d:0.05,keep:2,cat:'fire'},{q:'police station',d:0.05,keep:2,cat:'police'},{q:'gas station',d:0.03,keep:3,cat:'gas'},
-    {q:'airport',d:0.4,keep:3,cat:'airport'},{q:'hospital',d:0.25,keep:4,cat:'hospital'},{q:'interstate',d:0.25,keep:3,cat:'highway'},
-    {q:'shopping mall',d:0.25,keep:3,cat:'shopping'},{q:'university',d:0.25,keep:2,cat:'school'}
+    {q:'park',d:0.03,keep:6,cat:'park'},{q:'fire station',d:0.05,keep:2,cat:'fire'},{q:'gas station',d:0.03,keep:3,cat:'gas'},
+    {q:'police station',d:0.15,keep:2,cat:'police',type:'police'},
+    {q:'airport',d:0.4,keep:3,cat:'airport',cls:'aeroway'},{q:'hospital',d:0.25,keep:4,cat:'hospital',type:'hospital'},
+    {q:'mall',d:0.25,keep:3,cat:'shopping',type:'mall'},{q:'university',d:0.25,keep:2,cat:'school',type:'university'},
+    {q:'I-4',d:0.3,keep:1,cat:'highway',type:'motorway'},{q:'I-95',d:0.3,keep:1,cat:'highway',type:'motorway'},{q:'I-75',d:0.3,keep:1,cat:'highway',type:'motorway'},
+    {q:'I-10',d:0.3,keep:1,cat:'highway',type:'motorway'},{q:'turnpike',d:0.3,keep:1,cat:'highway',type:'motorway'}
   ], els=[];
   return jobs.reduce(function(chain,j){
     return chain.then(function(){
@@ -5242,7 +5245,7 @@ function nominatimPois(lat, lng) {
         return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=15&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(j.q)).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];});
       }).then(function(rows){
         var seen={};
-        rows.map(function(r){return {lat:+r.lat,lon:+r.lon,name:(r.display_name||'').split(',')[0],mi:poiMiles(lat,lng,+r.lat,+r.lon)};})
+        rows.filter(function(r){return (!j.type||r.type===j.type)&&(!j.cls||r.class===j.cls);}).map(function(r){return {lat:+r.lat,lon:+r.lon,name:(r.display_name||'').split(',')[0],mi:poiMiles(lat,lng,+r.lat,+r.lon)};})
           .sort(function(a,b){return a.mi-b.mi;})
           .filter(function(r){var k=r.name+Math.round(r.lat*100)+Math.round(r.lon*100);if(seen[k])return false;seen[k]=1;return true;})
           .slice(0,j.keep).forEach(function(r){els.push({lat:r.lat,lon:r.lon,tags:{name:r.name,_cat:j.cat},_mi:r.mi});});
@@ -5260,7 +5263,7 @@ function ensureMapped(cb, tries) {            // Nearby POIs works straight from
 function loadPOIs() {
   if(!_currentLat||!_currentLng){ensureMapped(loadPOIs);return;}
   _poiLayers.forEach(function(l){_siteMap.removeLayer(l);});_poiLayers=[];
-  toast('Loading nearby places. This takes about 15 seconds.','');
+  toast('Loading nearby places. This takes about 25 seconds.','');
   var radius=2000;
   var q='[out:json][timeout:30];(node["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');way["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');node["amenity"~"hospital|clinic|doctors|pharmacy"](around:'+radius+','+_currentLat+','+_currentLng+');node["shop"~"supermarket|mall"](around:'+radius+','+_currentLat+','+_currentLng+');node["leisure"~"park|recreation_ground"](around:'+radius+','+_currentLat+','+_currentLng+');way["leisure"="park"](around:'+radius+','+_currentLat+','+_currentLng+');node["highway"~"motorway_junction"](around:1500,'+_currentLat+','+_currentLng+');way["highway"~"motorway|trunk"](around:1000,'+_currentLat+','+_currentLng+'););out center;';
   var poiFetch=nominatimPois(_currentLat,_currentLng).then(function(d){return d.elements.length?d:overpassRace(q);});
@@ -5292,7 +5295,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.9';
+var APP_VERSION = '4.3.10';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
