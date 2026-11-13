@@ -49,7 +49,7 @@ Your saved model and the three built-in choices are never replaced. If Groq reti
 ## Data and privacy
 
 - Portfolio, deals, notes, history and your API key live in your browser's local storage (key `lazestate_v1`, kept from earlier versions so nothing is lost).
-- Market data is fetched as static files from [Zip Market Explorer](https://petelazzaro.github.io/zip-market-explorer/) by the GeniusPete Project (realtor.com Inventory Core Metrics). Whole regional files are downloaded, so the app never sends your property or exact ZIP anywhere. They are cached in your browser for three days. EstatePro serves its own trimmed data from `app/d/` (last 24 months, about 34 MB) and only falls back to the explorer's site if that fails. A scheduled GitHub Action (`.github/workflows/refresh-data.yml`) rebuilds it each month from realtor.com's free Inventory Core Metrics files using `tools/build.py` (from Zip Market Explorer, GeniusPete Project) and `tools/trim-market-data.py`; run it by hand from the Actions tab any time.
+- Market data is fetched as static files from [Zip Market Explorer](https://petelazzaro.github.io/zip-market-explorer/) by the GeniusPete Project (realtor.com Inventory Core Metrics). Whole regional files are downloaded, so the app never sends your property or exact ZIP anywhere. They are cached in your browser for three days. The ZIP cross-check uses Zillow's public Home Value Index (Zillow Research). EstatePro serves its own trimmed data from `app/d/` (last 24 months, about 34 MB) and only falls back to the explorer's site if that fails. A scheduled GitHub Action (`.github/workflows/refresh-data.yml`) rebuilds it each month from realtor.com's free Inventory Core Metrics files using `tools/build.py` (from Zip Market Explorer, GeniusPete Project) and `tools/trim-market-data.py`; run it by hand from the Actions tab any time.
 - The only data that leaves your device is the property description you submit for AI commentary (sent to Groq with your key, only if you added one), plus map lookups to OpenStreetMap.
 - Use **Settings → Export** to back up or move your data. Clearing site data erases it.
 
@@ -63,6 +63,10 @@ Static files only, served by GitHub Pages from the repo root.
 4. Installed apps show an **Update ready — Reload** bar the next time they open online.
 
 ## Changelog
+
+### 4.3.0
+- Explorer search now shows a dropdown with ZIP, town and type, matching ZIP prefixes first.
+- Zillow Home Value Index by ZIP (Zillow Research, public CSV) added as a cross-check on the valuation and a tile in the Explorer. It is a modeled typical-home value, not sold prices. Built monthly by `tools/build_zhvi.py` in the same Action; it appears after the Action's first successful run.
 
 ### 4.2.1
 - AI models: Groq retired llama-3.3-70b and llama-3.1-8b (Aug 2026). Defaults are now gpt-oss-120b, qwen3.6-27b and gpt-oss-20b; a saved retired model is moved automatically, the list refreshes daily with a key, and a failed call retries once on a current model.

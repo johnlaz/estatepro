@@ -1,5 +1,5 @@
 # Monthly refresh of EstatePro's market data (app/d/).
-# Source: realtor.com Data Library, Inventory Core Metrics (free, public).
+# Source: realtor.com Data Library, Inventory Core Metrics (free, public), plus Zillow's ZIP-level Home Value Index (public CSV).
 # Method: tools/build.py, from Zip Market Explorer by the GeniusPete Project.
 # Runs on the 8th, 15th and 22nd (realtor.com posts the new month in the first half of the month);
 # it does nothing when the data has not changed. Run it by hand from the Actions tab any time.
@@ -45,7 +45,15 @@ jobs:
           NEW=$(python3 -c "import json;print(json.load(open('/tmp/newd/info.json'))['lastYM'])")
           echo "previous month $OLD, new month $NEW"
           if [ "$NEW" -lt "$OLD" ]; then echo "New data is older than what is published; refusing."; exit 1; fi
+          mv app/d/zhvi /tmp/zhvi_keep 2>/dev/null || true       # Zillow shard is built in its own step; keep the old one if that step fails
           rm -rf app/d && cp -r /tmp/newd app/d
+          if [ -d /tmp/zhvi_keep ]; then mv /tmp/zhvi_keep app/d/zhvi; fi
+      - name: Zillow home value index by ZIP (optional, never blocks the main refresh)
+        continue-on-error: true
+        run: |
+          curl -fL --retry 3 -o tools/raw/zhvi_zip.csv "https://files.zillowstatic.com/research/public_csvs/zhvi/Zip_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
+          python3 -I tools/build_zhvi.py tools/raw/zhvi_zip.csv /tmp/zhvi_new
+          rm -rf app/d/zhvi && cp -r /tmp/zhvi_new app/d/zhvi
       - name: Commit and publish
         run: |
           if git diff --quiet -- app/d && [ -z "$(git ls-files --others --exclude-standard app/d)" ]; then echo "No change."; exit 0; fi

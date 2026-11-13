@@ -2596,6 +2596,14 @@ function mktInventoryLabel(ref) {                // active listings now vs the p
   return r < 0.85 ? 'low' : r > 1.15 ? 'high' : 'moderate';
 }
 
+function mktZhvi(D) {                           // latest Zillow typical home value for the ZIP, its 12-month change, and its month
+  var z = D && D.zhvi; if (!z || !z.v || z.v.length < 2) return null;
+  var n = z.v.length, last = null, li = -1;
+  for (var i = n - 1; i >= 0; i--) if (z.v[i] != null) { last = z.v[i]; li = i; break; }
+  if (last == null) return null;
+  var ago = li - 12 >= 0 ? z.v[li - 12] : null;
+  return { value: last, yoy: ago ? last / ago - 1 : null, ym: mktYM(z.e - (n - 1 - li)) };
+}
 function valClamp(x, lo, hi) { return Math.min(hi, Math.max(lo, x)); }
 function valRound(x, step) { return Math.round(x / step) * step; }
 
@@ -2759,7 +2767,11 @@ async function mktLoad(zip) {
     var cr = p2[0] && fips ? p2[0][fips] : null;
     var stCode = zr.st || (cr && cr.st) || '';
     var sr = p2[1] && stCode ? p2[1][stCode] : null;
-    var data = { zip: zip, fips: fips || null, zipG: mktDecode(zr), countyG: cr ? mktDecode(cr) : null, stateG: sr ? mktDecode(sr) : null };
+    var data = { zip: zip, fips: fips || null, zipG: mktDecode(zr), countyG: cr ? mktDecode(cr) : null, stateG: sr ? mktDecode(sr) : null, zhvi: null };
+    try {                                          // Zillow ZIP home value index: optional extra, never blocks a valuation
+      var zf = await mktJSON('zhvi/' + zip.slice(0, 2) + '.json'), zq = zf && zf[zip];
+      if (zq && zq.v) data.zhvi = { v: zq.v.split(',').map(function (x) { return x === '' ? null : +x; }), e: zq.e };
+    } catch (e) {}
     cache[zip] = { t: Date.now(), data: data };
     mktCacheWrite(cache);
     return data;
@@ -3027,7 +3039,7 @@ function valChartSVG(D) {
   }).join('');
   var first = mktLabel(mktYM(D.zipG.lastIdx - (n - 1))), last = mktLabel(mktYM(D.zipG.lastIdx));
   var legend = series.map(function (s, i) { return '<text x="' + (pl + i * 62) + '" y="' + (H - 4) + '" font-size="8" style="fill:' + s.c + ';">● ' + s.n + '</text>'; }).join('');
-  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Listing price per square foot, last 36 months" style="display:block;max-width:520px;">' +
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Listing price per square foot, last 24 months" style="display:block;max-width:520px;">' +
     '<line x1="' + pl + '" y1="' + Y(mx - pad) + '" x2="' + (W - pr) + '" y2="' + Y(mx - pad) + '" style="stroke:var(--border);" stroke-width="0.5"/>' +
     '<line x1="' + pl + '" y1="' + Y(mn + pad) + '" x2="' + (W - pr) + '" y2="' + Y(mn + pad) + '" style="stroke:var(--border);" stroke-width="0.5"/>' +
     '<text x="2" y="' + (Y(mx - pad) + 3) + '" font-size="8" style="fill:var(--text3);">$' + Math.round(mx - pad) + '</text>' +
@@ -3096,10 +3108,19 @@ function renderValuationResult(j, propData) {
       '<div style="font-size:0.72rem;color:var(--text3);margin-top:8px;line-height:1.5;"><strong>data</strong> comes straight from realtor.com listings. <strong>assumption</strong> and <strong>estimate</strong> are the model\'s judgment calls, shown so you can disagree with them. Use the slider above for anything the data cannot see.</div></div>';
   }
 
+  var zh = mktZhvi(D), zhNote = '';
+  if (zh && S && !aiOnly) {
+    var ref = valCalc({ sqft: (j.basis && j.basis.sqftRef) || propData.sqft, condition: 'Good / Minor Updates Needed' }, S, 1);
+    var zdiff = ref ? ref.estimatedValue / zh.value - 1 : null;
+    zhNote = '<div style="margin-top:12px;font-size:0.8rem;color:var(--text2);line-height:1.55;"><strong style="color:var(--gold2);">Cross-check.</strong> Zillow\'s typical home value for ZIP ' + valEsc(propData.zip) + ' is <strong>' + valMoney(zh.value) + '</strong>' + (zh.yoy != null ? ' (' + valPct(zh.yoy) + ' vs a year ago)' : '') + ' as of ' + mktLabel(zh.ym) + '.' +
+      (zdiff != null ? ' The same listing-based method for a median-size home here gives ' + valMoney(ref.estimatedValue) + ', ' + (Math.abs(zdiff) < 0.005 ? 'level with it' : Math.abs(zdiff * 100).toFixed(0) + '% ' + (zdiff > 0 ? 'above' : 'below') + ' it') + '. ' +
+        (Math.abs(zdiff) <= 0.10 ? 'Two independent sources agree, which supports the estimate.' : 'A gap this size usually means asking prices and home values are drifting apart, or the ZIP mixes very different homes. Check closed sales.') : '') +
+      ' <span style="color:var(--text3);">Zillow\'s index is a modeled value for mid-priced homes, not sold prices. Source: Zillow Research.</span></div>';
+  }
   h += '<div class="card mb-16"><div style="font-size:0.82rem; font-weight:600; color:var(--gold2); margin-bottom:6px;">📊 Verdict and market evidence</div>' +
     '<div style="font-size:0.85rem; color:var(--text2); margin-bottom:10px;">' + valEsc(j.verdictDetail) + '</div>' +
     (j.marketRead ? '<div style="font-size:0.8rem;color:var(--text2);margin-bottom:10px;">Market read: <strong style="color:var(--gold2);">' + valEsc(j.marketRead.label) + '</strong> <span style="color:var(--text3);">(score ' + (j.marketRead.score > 0 ? '+' : '') + j.marketRead.score + ' from ' + j.marketRead.signals.length + ' signals)</span></div>' : '') +
-    (S ? valEvidenceTable(S) : '') + (D ? '<div style="margin-top:12px;font-size:0.72rem;color:var(--text3);margin-bottom:4px;">Median listing $/sq ft, last 36 months</div>' + valChartSVG(D) : '') + '</div>';
+    (S ? valEvidenceTable(S) : '') + zhNote + (D ? '<div style="margin-top:12px;font-size:0.72rem;color:var(--text3);margin-bottom:4px;">Median listing $/sq ft, last 24 months</div>' + valChartSVG(D) : '') + '</div>';
 
   h += '<div id="valAnalysisBox">' + valAnalysisHTML(an) + '</div>';
 
@@ -5634,7 +5655,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.2.1';
+var APP_VERSION = '4.3.0';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
@@ -5654,23 +5675,32 @@ function xSearchInput(v) {
 async function xSearch(v) {
   var box = document.getElementById('xres'); v = (v || '').trim().toLowerCase();
   if (!v) { box.innerHTML = ''; X.hits = []; return; }
-  if (/^\d{5}$/.test(v)) { X.hits = [['zip', v, 'ZIP ' + v, '']]; return xShowHits(); }
-  if (v.length < 2) { box.innerHTML = ''; return; }
-  box.innerHTML = '<div style="font-size:.8rem;color:var(--text3);">Searching…</div>';
-  var idx; try { idx = await xLoadIdx(); } catch (e) { box.innerHTML = '<div style="font-size:.8rem;color:var(--red,#e57373);">Search list unavailable (' + xEsc(e.message) + '). A 5-digit ZIP still works.</div>'; return; }
-  var rank = { state: 0, metro: 1, county: 2, zip: 3, us: 0 }, out = [];
-  for (var i = 0; i < idx.length && out.length < 60; i++) {
-    var r = idx[i], hay = (r[2] + ' ' + r[3] + ' ' + (r[0] === 'zip' ? r[1] : '')).toLowerCase();
-    if (hay.indexOf(v) !== -1) out.push(r);
+  var digits = /^\d{2,5}$/.test(v);
+  if (/^\d{5}$/.test(v)) { X.hits = [['zip', v, 'ZIP ' + v, '']]; X.q = v; }
+  if (v.length < 2 && !digits) { box.innerHTML = ''; return; }
+  box.innerHTML = '<div style="font-size:.8rem;color:var(--text3);padding:6px 2px;">Searching…</div>';
+  var idx; try { idx = await xLoadIdx(); } catch (e) { if (/^\d{5}$/.test(v)) return xShowHits(); box.innerHTML = '<div style="font-size:.8rem;color:var(--red,#e57373);">Search list unavailable (' + xEsc(e.message) + '). A 5-digit ZIP still works.</div>'; return; }
+  var rank = { us: 0, state: 1, metro: 2, county: 3, zip: 4 }, pre = [], rest = [];
+  for (var i = 0; i < idx.length; i++) {
+    var r = idx[i], name = r[2].toLowerCase(), id = r[1].toLowerCase();
+    if (digits) { if (r[0] === 'zip' && id.indexOf(v) === 0) pre.push(r); else if (r[0] === 'zip' && id.indexOf(v) > 0) rest.push(r); continue; }
+    var hay = name + ' ' + r[3].toLowerCase();
+    if (name.indexOf(v) === 0) pre.push(r); else if (hay.indexOf(v) !== -1) rest.push(r);
   }
-  out.sort(function (a, b) { var as = a[2].toLowerCase().indexOf(v) === 0 ? 0 : 1, bs = b[2].toLowerCase().indexOf(v) === 0 ? 0 : 1; return as - bs || rank[a[0]] - rank[b[0]]; });
-  X.hits = out.slice(0, 8); xShowHits();
+  var byType = function (a, b) { return rank[a[0]] - rank[b[0]] || (a[1] < b[1] ? -1 : 1); };
+  pre.sort(byType); rest.sort(byType);
+  X.hits = pre.concat(rest).slice(0, 10); X.q = v; xShowHits();
 }
 function xShowHits() {
   var box = document.getElementById('xres');
-  box.innerHTML = X.hits.length ? X.hits.map(function (r, i) {
-    return '<button type="button" class="btn btn-secondary btn-sm" style="margin:0 6px 6px 0;" onclick="xPick(' + i + ')">' + xEsc(r[0] === 'zip' && !/^Zip /.test(r[2]) ? r[1] + ' ' + r[2] : r[2]) + ' <span style="opacity:.6;font-size:.7rem;">' + X_TYPE[r[0]] + '</span></button>';
-  }).join('') : '<div style="font-size:.8rem;color:var(--text3);">No match. Try a town, county name, or a 5-digit ZIP.</div>';
+  if (!X.hits.length) { box.innerHTML = '<div style="font-size:.8rem;color:var(--text3);padding:6px 2px;">No match. Try a town, county name, or a 5-digit ZIP.</div>'; return; }
+  box.innerHTML = '<div role="listbox" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg2);">' + X.hits.map(function (r, i) {
+    var isZip = r[0] === 'zip', nm = /^Zip \d{5}$/.test(r[2]) ? '' : r[2];
+    return '<button type="button" role="option" onclick="xPick(' + i + ')" style="display:flex;align-items:baseline;gap:12px;width:100%;text-align:left;padding:12px 14px;background:' + (i === 0 ? 'var(--card)' : 'transparent') + ';border:0;border-top:' + (i ? '1px solid var(--border)' : '0') + ';color:var(--text);cursor:pointer;font:inherit;">' +
+      '<span style="flex:0 0 52px;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);">' + X_TYPE[r[0]] + '</span>' +
+      (isZip ? '<span style="font-weight:700;color:var(--gold2);">' + xEsc(r[1]) + '</span>' : '') +
+      '<span>' + xEsc(nm || (isZip ? '' : r[1])) + '</span></button>';
+  }).join('') + '</div>';
 }
 function xPick(i) { var r = X.hits[i]; if (r) { document.getElementById('xres').innerHTML = ''; xOpen(r[0], r[1]); } }
 function xSearchEnter() { if (X.hits.length) xPick(0); }
@@ -5689,7 +5719,9 @@ async function xOpen(type, id) {
     if (!rec) { main.innerHTML = '<div class="card">No listing data for ' + X_TYPE[type] + ' ' + xEsc(id) + '.</div>'; return; }
     var g = mktDecode(rec), parent = null;
     if (type !== 'state' && type !== 'us' && rec.st) { try { var sf = await mktJSON('states.json'); if (sf[rec.st]) parent = mktDecode(sf[rec.st]); } catch (e) {} }
-    X.cur = { type: type, id: id, g: g, parent: parent };
+    var zhvi = null;
+    if (type === 'zip') { try { var zf = await mktJSON('zhvi/' + id.slice(0, 2) + '.json'); if (zf[id]) zhvi = mktZhvi({ zhvi: { v: zf[id].v.split(',').map(function (x) { return x === '' ? null : +x; }), e: zf[id].e } }); } catch (e) {} }
+    X.cur = { type: type, id: id, g: g, parent: parent, zhvi: zhvi };
     xRender();
   } catch (e) { main.innerHTML = '<div class="card">Could not load data: ' + xEsc(e.message) + '</div>'; }
 }
@@ -5732,7 +5764,8 @@ function xRender() {
     tile('Median list price', valMoney(S.price), S.priceYoY) +
     tile('Days on market', S.dom == null ? '—' : Math.round(S.dom), S.domYoY) +
     tile('Active listings', S.al == null ? '—' : Math.round(S.al).toLocaleString(), S.alYoY) +
-    tile('Price-cut share', pct(S.prs), null) + tile('Pending ratio', pct(S.pr), null) + '</div>';
+    tile('Price-cut share', pct(S.prs), null) + tile('Pending ratio', pct(S.pr), null) +
+    (c.zhvi ? tile('Zillow typical value', valMoney(c.zhvi.value), c.zhvi.yoy) : '') + '</div>';
   h += '<div class="card mb-16"><div style="font-weight:600;margin-bottom:6px;">Why it reads ' + read.label.toLowerCase() + '</div>' +
     read.signals.map(function (s) { return '<div style="display:flex;justify-content:space-between;font-size:.8rem;padding:3px 0;border-bottom:1px solid var(--border);"><span>' + s.name + '</span><span style="color:var(--text3);">' + (s.val == null ? '—' : valPct(s.val)) + ' · ' + (s.tag > 0 ? 'seller' : s.tag < 0 ? 'buyer' : 'neutral') + '</span></div>'; }).join('') +
     '<div style="font-size:.7rem;color:var(--text3);margin-top:6px;">3-month trailing averages. Six signals; +2 or more is seller-leaning, −2 or less buyer-leaning.</div></div>';
@@ -5749,7 +5782,7 @@ function xRender() {
       }).join('') + '</div>';
   }
   h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><button class="btn btn-secondary btn-sm" onclick="xCopyCSV()">Copy monthly data as CSV</button></div>' +
-    '<div style="font-size:.7rem;color:var(--text3);">Source: realtor.com Inventory Core Metrics via Zip Market Explorer, a <a href="https://petelazzaro.github.io/zip-market-explorer/" target="_blank" rel="noopener" style="color:var(--gold2);">GeniusPete Project</a>. Asking prices and inventory, not closed sales.</div>';
+    '<div style="font-size:.7rem;color:var(--text3);">Source: realtor.com Inventory Core Metrics via Zip Market Explorer, a <a href="https://petelazzaro.github.io/zip-market-explorer/" target="_blank" rel="noopener" style="color:var(--gold2);">GeniusPete Project</a>. Asking prices and inventory, not closed sales.' + (c.zhvi ? ' Zillow typical home value: Zillow Research (modeled value, as of ' + mktLabel(c.zhvi.ym) + ').' : '') + '</div>';
   main.innerHTML = h;
 }
 function xUseZip() {
