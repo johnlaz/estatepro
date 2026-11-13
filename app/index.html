@@ -5556,11 +5556,11 @@ function searchSiteAddress() {
 }
 function geocodeAndCenter(addr) {
   if(!addr) return;
-  var url=_serverAvail?'http://localhost:7844/geocode?q='+encodeURIComponent(addr):'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(addr);
+  var url=_serverAvail?'http://localhost:7844/geocode?q='+encodeURIComponent(addr):'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr);
   return fetch(url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
     if((!data||!data.length)&&!_serverAvail&&state.defaultLocation&&addr.toLowerCase().indexOf(state.defaultLocation.split(',')[0].toLowerCase())===-1){
-      return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(addr+', '+state.defaultLocation)).then(function(r3){return r3.json();}).then(function(d3){return d3;});   // street only: try again near your default location
+      return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr+', '+state.defaultLocation)).then(function(r3){return r3.json();}).then(function(d3){return d3;});   // street only: try again near your default location
     }
     return data;
   })
@@ -5671,7 +5671,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.2';
+var APP_VERSION = '4.3.3';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════

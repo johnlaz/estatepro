@@ -64,6 +64,9 @@ Static files only, served by GitHub Pages from the repo root.
 
 ## Changelog
 
+### 4.3.3
+- Map It: removed a geocoder option that caused the lookup to fail in some browsers.
+
 ### 4.3.2
 - Site Analysis: fixed Map It and Nearby POIs, which crashed on an undeclared variable. Nearby POIs now maps a typed address by itself. Monthly data job: fixed a trim-step bug found on its first run.
 
