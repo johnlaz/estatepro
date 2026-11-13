@@ -5313,6 +5313,7 @@ function renderMortgageScenarios() {
 // ═══════════════════════════════════════════════════════
 // SERVER CHECK
 // ═══════════════════════════════════════════════════════
+var _serverAvail = false;   // was never declared when the optional local server was not checked, which broke Map It and Nearby POIs
 function checkServer() {
   try { localStorage.setItem('estatepro_server', '1'); } catch(e) {}
   fetch('http://localhost:7844/ping', {signal: AbortSignal.timeout(1500)})
@@ -5555,8 +5556,14 @@ function searchSiteAddress() {
 }
 function geocodeAndCenter(addr) {
   if(!addr) return;
-  var url=_serverAvail?'http://localhost:7844/geocode?q='+encodeURIComponent(addr):'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr);
-  fetch(url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  var url=_serverAvail?'http://localhost:7844/geocode?q='+encodeURIComponent(addr):'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(addr);
+  return fetch(url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(data){
+    if((!data||!data.length)&&!_serverAvail&&state.defaultLocation&&addr.toLowerCase().indexOf(state.defaultLocation.split(',')[0].toLowerCase())===-1){
+      return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(addr+', '+state.defaultLocation)).then(function(r3){return r3.json();}).then(function(d3){return d3;});   // street only: try again near your default location
+    }
+    return data;
+  })
   .then(function(data){
     if(!data||!data.length){
       var parts=addr.split(',');
@@ -5611,8 +5618,15 @@ function toggleFloodLayer() {
   window.open(url,'_blank');
   toast('Opening FEMA Flood Map','success');
 }
+function ensureMapped(cb, tries) {            // Nearby POIs works straight from a typed address, no need to press Map It first
+  if(_currentLat&&_currentLng){cb();return;}
+  var a=((document.getElementById('siteSearchInput')||{}).value||'').trim();
+  if(!a){toast('Enter an address first.','error');return;}
+  if(!_siteMap){ if((tries||0)>8){toast('Map did not load. Check your connection.','error');return;} initSiteMap(); setTimeout(function(){ensureMapped(cb,(tries||0)+1);},500); return; }
+  var p=geocodeAndCenter(a); if(p&&p.then) p.then(function(){ if(_currentLat&&_currentLng) cb(); });
+}
 function loadPOIs() {
-  if(!_currentLat||!_currentLng){toast('Search an address first.','error');return;}
+  if(!_currentLat||!_currentLng){ensureMapped(loadPOIs);return;}
   _poiLayers.forEach(function(l){_siteMap.removeLayer(l);});_poiLayers=[];
   toast('Loading nearby points...','');
   var radius=2000;
@@ -5657,7 +5671,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.1';
+var APP_VERSION = '4.3.2';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════

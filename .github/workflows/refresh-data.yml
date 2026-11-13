@@ -41,7 +41,7 @@ jobs:
       - name: Trim into app/d (stays unchanged if anything fails)
         run: |
           OLD=$(python3 -c "import json;print(json.load(open('app/d/info.json'))['lastYM'])")
-          python3 -I tools/trim-market-data.py tools/site/d /tmp/newd
+          python3 -I tools/trim-market-data.py tools/site/d /tmp/newd app/d
           NEW=$(python3 -c "import json;print(json.load(open('/tmp/newd/info.json'))['lastYM'])")
           echo "previous month $OLD, new month $NEW"
           if [ "$NEW" -lt "$OLD" ]; then echo "New data is older than what is published; refusing."; exit 1; fi

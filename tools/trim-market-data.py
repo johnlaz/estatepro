@@ -9,7 +9,7 @@ keeps a trimmed copy in app/d/ so valuations keep working even if the original h
 Normally the monthly GitHub Action (.github/workflows/refresh-data.yml) runs tools/build.py on the
 free realtor.com files and then this script. To run it by hand against any explorer-format data:
 
-    python3 -I tools/trim-market-data.py <explorer d/ folder> app/d
+    python3 -I tools/trim-market-data.py <explorer d/ folder> <out> [folder holding the current zip_to_county.json]
 
 What it keeps: the ZIP and county shards and the state file, last 24 months, only the series the
 app uses. Records keep the explorer's format, plus "e": the global month index of the last value
@@ -52,15 +52,16 @@ def trim_file(src, dst):
     return len(out)
 
 
-def main(src_dir, out_dir):
+def main(src_dir, out_dir, keep_dir=None):
     src, out = Path(src_dir), Path(out_dir)
+    keep = Path(keep_dir) if keep_dir else out        # where an existing zip_to_county.json can be taken from
     if not (src / 'states.json').exists():
         sys.exit('No states.json in %s: point this at the explorer\'s d/ folder' % src)
     z2c_keep = None
     if not (src / 'zip_to_county.json').exists():          # build.py does not make it; it only changes once a decade (Census ZCTA file)
-        old = out / 'zip_to_county.json'
+        old = keep / 'zip_to_county.json'
         if not old.exists():
-            sys.exit('No zip_to_county.json in the source or in %s' % out)
+            sys.exit('No zip_to_county.json in the source or in %s' % keep)
         z2c_keep = old.read_bytes()
     if out.exists():
         shutil.rmtree(out)
@@ -96,6 +97,6 @@ def main(src_dir, out_dir):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in (3, 4):
         sys.exit(__doc__)
-    main(sys.argv[1], sys.argv[2])
+    main(*sys.argv[1:])

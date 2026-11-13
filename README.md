@@ -64,6 +64,9 @@ Static files only, served by GitHub Pages from the repo root.
 
 ## Changelog
 
+### 4.3.2
+- Site Analysis: fixed Map It and Nearby POIs, which crashed on an undeclared variable. Nearby POIs now maps a typed address by itself. Monthly data job: fixed a trim-step bug found on its first run.
+
 ### 4.3.1
 - Phones: pop-up windows (Settings, Notes and the rest) now stop above the bottom tab bar, and the Save button stays pinned at the bottom of Settings.
 
