@@ -3020,6 +3020,7 @@ function renderValuationResult(j, propData) {
         (Math.abs(zdiff) <= 0.10 ? 'Two independent sources agree, which supports the estimate.' : 'A gap this size usually means asking prices and home values are drifting apart, or the ZIP mixes very different homes. Check closed sales.') : '') +
       ' <span style="color:var(--text3);">Zillow\'s index is a modeled value for mid-priced homes, not sold prices. Source: Zillow Research.</span></div>';
   }
+  window._zhNoteHTML = zhNote;
   h += '<div class="card mb-16"><div style="font-size:0.82rem; font-weight:600; color:var(--gold2); margin-bottom:6px;">📊 Verdict and market evidence</div>' +
     '<div style="font-size:0.85rem; color:var(--text2); margin-bottom:10px;">' + valEsc(j.verdictDetail) + '</div>' +
     (j.marketRead ? '<div style="font-size:0.8rem;color:var(--text2);margin-bottom:10px;">Market read: <strong style="color:var(--gold2);">' + valEsc(j.marketRead.label) + '</strong> <span style="color:var(--text3);">(score ' + (j.marketRead.score > 0 ? '+' : '') + j.marketRead.score + ' from ' + j.marketRead.signals.length + ' signals)</span></div>' : '') +
@@ -3945,7 +3946,7 @@ function printLastReport() {
   if (!window._lastJ) { toast('Run a valuation first.', 'error'); return; }
   var hasMkt  = !!(window._mkt && window._mkt.S);
   var hasMort = !!((document.getElementById('mortPrice')||{}).value||'');
-  var hasSite = !!((_poiLayers&&_poiLayers.length)||((document.getElementById('siteAnalysisArea')||{}).innerText||'').trim());
+  var hasSite = !!(_poiList&&_poiList.length);
   var mkt = document.getElementById('pdf_market');
   var mort = document.getElementById('pdf_mortgage');
   var loc  = document.getElementById('pdf_location');
@@ -3962,7 +3963,7 @@ function togglePDFRow(id) {
 }
 
 function toggleAllPDFRows(on) {
-  ['pdf_valuation','pdf_comps','pdf_investment','pdf_mortgage','pdf_market','pdf_location','pdf_notes'].forEach(function(id) {
+  ['pdf_valuation','pdf_market','pdf_investment','pdf_mortgage','pdf_location','pdf_notes'].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
     if (on) el.classList.add('active');
@@ -3978,7 +3979,6 @@ function generateSelectedPDF() {
   }
   var opts = {
     valuation:  isOn('pdf_valuation'),
-    comps:      isOn('pdf_comps'),
     investment: isOn('pdf_investment'),
     mortgage:   isOn('pdf_mortgage'),
     market:     isOn('pdf_market'),
@@ -3990,208 +3990,181 @@ function generateSelectedPDF() {
 }
 
 function printReport(j, propData, opts) {
-  opts = opts || {valuation:true,comps:true,investment:true,mortgage:true,market:true,location:true,notes:true};
+  opts = opts || {valuation:true,market:true,investment:true,mortgage:true,location:true,notes:true};
+  var E = valEsc, M = valMoney;
+  var VARS = {'--gold2':'#9a6f00','--gold':'#9a6f00','--teal':'#16707e','--text3':'#777','--text2':'#444','--text':'#1a1a2e','--border':'#d8d8d8','--success':'#2e7d32','--crimson':'#b00020','--warn':'#c75b00','--sky':'#1565c0','--bg2':'#f6f6f2'};
+  function plain(h){return String(h||'').replace(/var\((--[a-z0-9]+)\)/g,function(m,v){return VARS[v]||'#555';}).replace(/class="comp-table"/g,'class="ct"').replace(/class="comp-psf"/g,'').replace(/<div style="overflow-x:auto;">/g,'<div>');}
 
   var addr   = propData.address||(propData.city+(propData.state_?', '+propData.state_:''));
-  var estVal = j.estimatedValue?'$'+Number(j.estimatedValue).toLocaleString():'--';
-  var low    = j.valueLow  ?'$'+Number(j.valueLow).toLocaleString() :'--';
-  var high   = j.valueHigh ?'$'+Number(j.valueHigh).toLocaleString():'--';
-  var ask    = propData.ask?'$'+Number(propData.ask).toLocaleString():'--';
-  var grade  = j.investmentGrade||'--';
-  var gc     = {A:'#2e7d32',B:'#1565c0',C:'#e65100',D:'#b00020'}[grade]||'#555';
+  var place  = [propData.city, [propData.state_, propData.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  var ask    = propData.ask?M(propData.ask):'—';
+  var grade  = j.investmentGrade||'—';
+  var gc     = {A:'#2e7d32',B:'#1565c0',C:'#c75b00',D:'#b00020'}[grade]||'#555';
   var verdict= (j.verdict||'').replace(/_/g,' ');
-  var strHTML= (j.strengths||[]).map(function(s){return '<li>'+s+'</li>';}).join('');
-  var conHTML= (j.concerns||[]).map(function(c){return '<li>'+c+'</li>';}).join('');
-  var appColors={strong:'#2e7d32',moderate:'#1565c0',flat:'#666',declining:'#b00020'};
+  var aiOnly = !j.basis;
+  var D = window._mkt && window._mkt.D, S = window._mkt && window._mkt.S;
+  var zh = D ? mktZhvi(D) : null;
+  var gapPct = (propData.ask && j.estimatedValue) ? (propData.ask - j.estimatedValue) / j.estimatedValue : null;
+  var list = function(a){return (a||[]).map(function(x){return '<li>'+E(x)+'</li>';}).join('');};
 
-  // Collect tab data
-  var mktText=''; try{if(window._mkt&&window._mkt.S){var e=document.createElement('div');e.innerHTML=marketSignalsHTML(window._mkt.S,window._mkt.D);mktText=e.innerText.trim().slice(0,800);}}catch(e2){}
-  var nhText='';
-  var mortPrice=(document.getElementById('mortPrice')||{}).value||'';
-  var mortMonthly=((document.getElementById('mortMonthly')||{}).textContent||'').trim();
-  var mortDown=(document.getElementById('mortDown')||{}).value||'20';
-  var mortRate=(document.getElementById('mortRate')||{}).value||'';
-  var mortInt=((document.getElementById('mortInterest')||{}).textContent||'').trim();
-  var cfText=''; try{var e=document.getElementById('cfArea');if(e)cfText=e.innerText.trim().slice(0,400);}catch(e2){}
-  var siteText=''; try{var e=document.getElementById('siteAnalysisArea');if(e)siteText=e.innerText.trim().slice(0,600);}catch(e2){}
-  var siteAddr=(document.getElementById('siteSearchInput')||{}).value||addr;
-  var poiCount=(_poiLayers||[]).length;
-  var poiSummary={};
-  try{(_poiLayers||[]).forEach(function(m){var c=m.getPopup().getContent().match(/<span[^>]*>([^<]+)<\/span>/);if(c)poiSummary[c[1]]=(poiSummary[c[1]]||0)+1;});}catch(e){}
-  var poiRows=Object.keys(poiSummary).map(function(k){return '<div class="dr"><span class="dl">'+k+'</span><span class="dv">'+poiSummary[k]+'</span></div>';}).join('');
-  var femaUrl='https://msc.fema.gov/portal/search?AddressQuery='+encodeURIComponent(siteAddr)+'#searchresultsanchor';
-  var lat=_currentLat?_currentLat.toFixed(5):null;
-  var lng=_currentLng?_currentLng.toFixed(5):null;
-
-  var css='@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\');'+
-    '*{box-sizing:border-box;margin:0;padding:0;}body{font-family:\'DM Sans\',sans-serif;color:#1a1a2e;background:#f4f4f0;font-size:13px;line-height:1.5;}'+
-    '.page{max-width:860px;margin:0 auto;background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.08);}'+
-    '.rh{background:linear-gradient(135deg,#1a1408,#2a1a0e);color:#fff;padding:28px 32px 20px;display:flex;justify-content:space-between;align-items:flex-start;}'+
-    '.rb{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(226,176,74,.8);margin-bottom:6px;}'+
-    '.rt{font-family:\'Playfair Display\',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:3px;}'+
-    '.rs{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;}'+
-    '.gg{width:46px;height:46px;border-radius:50%;border:2px solid;font-family:\'Playfair Display\',serif;font-size:19px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 0 5px auto;}'+
-    '.rd{font-size:10px;color:rgba(255,255,255,.35);}'+
-    '.ks{display:grid;grid-template-columns:repeat(4,1fr);background:#1a1408;}'+
-    '.kc{padding:13px 15px;border-right:1px solid rgba(255,255,255,.07);}'+
-    '.kc:last-child{border-right:none;}'+
-    '.kl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:rgba(226,176,74,.7);margin-bottom:3px;}'+
-    '.kv{font-family:\'DM Mono\',monospace;font-size:16px;color:#fff;font-weight:700;}'+
-    '.ksb{font-size:9px;color:rgba(255,255,255,.35);margin-top:2px;}'+
-    '.cb{height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:5px;}'+
-    '.cf{height:3px;background:#c4824a;border-radius:2px;}'+
-    '.bd{padding:22px 30px;}'+
-    '.sec{margin-bottom:18px;}'+
-    '.st{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:#888;border-bottom:1px solid #e8e8e8;padding-bottom:4px;margin-bottom:10px;font-weight:700;}'+
-    '.two{display:grid;grid-template-columns:1fr 1fr;gap:11px;}'+
-    '.bx{background:#f8f8f8;border-radius:6px;padding:11px;border-left:3px solid #e0e0e0;}'+
-    '.bs{border-left-color:#2e7d32;}.bc{border-left-color:#b00020;}'+
-    '.btt{font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:6px;}'+
-    '.bts{color:#2e7d32;}.btc{color:#b00020;}'+
-    'ul{padding-left:13px;margin:0;}li{margin-bottom:4px;font-size:11px;color:#333;}'+
-    '.dr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:12px;}'+
-    '.dl{color:#888;}.dv{font-weight:600;color:#1a1a2e;}'+
-    '.sm{font-size:12px;color:#444;line-height:1.7;}'+
-    '.mb{background:#f0f4f8;border-left:3px solid #1a1408;border-radius:0 6px 6px 0;padding:11px 13px;font-size:12px;color:#444;line-height:1.7;}'+
-    '.vc{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;background:#e8f5e9;color:#2e7d32;display:inline-block;}'+
-    '.fb{display:inline-block;margin-top:7px;padding:7px 14px;background:#1a1408;color:#fff;border-radius:5px;font-size:11px;font-weight:600;text-decoration:none;}'+
+  var css='*{box-sizing:border-box;margin:0;padding:0;}'+
+    'body{font-family:Inter,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;background:#ecebe6;font-size:12.5px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'+
+    '.page{max-width:820px;margin:0 auto;background:#fff;}'+
+    '.rh{background:#1a1408;color:#fff;padding:26px 32px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}'+
+    '.rb{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#e2b04a;margin-bottom:6px;font-weight:600;}'+
+    '.rt{font-size:21px;font-weight:700;margin-bottom:3px;line-height:1.2;}'+
+    '.rs{font-size:11px;color:rgba(255,255,255,.6);}'+
+    '.gg{width:44px;height:44px;border-radius:50%;border:2px solid;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 0 6px auto;background:#fff;}'+
+    '.rd{font-size:10px;color:rgba(255,255,255,.55);text-align:right;}'+
+    '.ks{display:grid;grid-template-columns:repeat(4,1fr);background:#2a2113;}'+
+    '.kc{padding:13px 16px;border-right:1px solid rgba(255,255,255,.08);}.kc:last-child{border-right:none;}'+
+    '.kl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:#e2b04a;margin-bottom:3px;font-weight:600;}'+
+    '.kv{font-size:17px;color:#fff;font-weight:700;font-variant-numeric:tabular-nums;}'+
+    '.ksb{font-size:9.5px;color:rgba(255,255,255,.55);margin-top:2px;}'+
+    '.cb{height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin-top:6px;}.cf{height:3px;background:#e2b04a;border-radius:2px;}'+
+    '.bd{padding:20px 32px 8px;}'+
+    '.sec{margin-bottom:20px;break-inside:avoid;}.sec.flow{break-inside:auto;}'+
+    '.st{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#666;border-bottom:1.5px solid #1a1408;padding-bottom:4px;margin-bottom:10px;font-weight:700;}'+
+    '.two{display:grid;grid-template-columns:1fr 1fr;gap:6px 28px;}'+
+    '.dr{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #efefef;font-size:12px;}'+
+    '.dl{color:#777;}.dv{font-weight:600;text-align:right;}'+
+    '.sm{font-size:12px;color:#333;line-height:1.65;}'+
+    '.mb{background:#f4f2ec;border-left:3px solid #e2b04a;border-radius:0 6px 6px 0;padding:10px 13px;font-size:12px;color:#333;line-height:1.65;}'+
+    '.bx{background:#f8f8f6;border-radius:6px;padding:11px 13px;border-left:3px solid #ccc;}.bs{border-left-color:#2e7d32;}.bc{border-left-color:#b00020;}'+
+    '.btt{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}.bts{color:#2e7d32;}.btc{color:#b00020;}'+
+    'ul{padding-left:15px;}li{margin-bottom:4px;font-size:11.5px;color:#333;}'+
     '.ct{width:100%;border-collapse:collapse;}'+
-    '.ct th{padding:5px 7px;border-bottom:2px solid #e0e0e0;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#888;font-weight:700;}'+
-    '.ct th:not(:first-child){text-align:right;}'+
-    '.ct td{padding:5px 7px;border-bottom:1px solid #f0f0f0;font-size:11px;}'+
-    '.ct td:not(:first-child){text-align:right;}'+
-    '.ft{background:#1a1408;color:rgba(255,255,255,.3);padding:11px 30px;display:flex;justify-content:space-between;font-size:9px;}'+
-    '.pb{text-align:center;padding:13px;background:#f8f5f0;border-top:1px solid #e8e0d8;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a2e;}'+
-    '@media print{.pb{display:none!important;}body{background:#fff!important;}.page{box-shadow:none!important;}}';
+    '.ct th{padding:5px 8px;border-bottom:1.5px solid #ccc;text-align:right;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#777;font-weight:700;}'+
+    '.ct th:first-child{text-align:left;}.ct td{padding:5px 8px;border-bottom:1px solid #efefef;font-size:11.5px;text-align:right;font-variant-numeric:tabular-nums;vertical-align:top;}.ct td:first-child{text-align:left;color:#555;}'+
+    '.ct tr.grp td{background:#f4f2ec;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#444;padding:6px 8px;border-bottom:1px solid #e3dfd2;}'+
+    '.tag{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:10px;border:1px solid;white-space:nowrap;}'+
+    '.sub{font-size:10px;color:#888;display:block;font-weight:400;}'+
+    '.fb{display:inline-block;margin-top:8px;padding:7px 14px;background:#1a1408;color:#fff;border-radius:5px;font-size:11px;font-weight:600;text-decoration:none;}'+
+    '.src{font-size:10px;color:#777;line-height:1.65;}'+
+    '.ft{background:#1a1408;color:rgba(255,255,255,.55);padding:11px 32px;display:flex;justify-content:space-between;gap:12px;font-size:9px;}'+
+    '.pb{text-align:center;padding:14px;background:#f6f2e8;border-top:1px solid #e3dccb;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a2e;}'+
+    '@page{margin:12mm;}@media print{.pb{display:none!important;}body{background:#fff!important;}.page{max-width:none;}}';
 
   var sections='';
 
   if(opts.valuation){
+    var steps=(j.steps||[]).map(function(s){
+      var col={data:'#16707e',assumption:'#c75b00',estimate:'#c75b00',you:'#9a6f00'}[s.src]||'#777';
+      var v=s.val!=null?'$'+Math.round(s.val)+'/sq ft':'×'+Number(s.factor).toFixed(3);
+      return '<tr><td>'+E(s.label)+'<span class="sub">'+E(s.note)+'</span></td><td style="white-space:nowrap;">'+v+'</td><td><span class="tag" style="color:'+col+';border-color:'+col+';">'+E(s.src||'')+'</span></td></tr>';
+    }).join('');
     sections+=
-      '<div class="sec"><div class="st">Property Details</div><div class="two">'+
-        '<div>'+
-          '<div class="dr"><span class="dl">Type</span><span class="dv">'+(propData.type||'--')+'</span></div>'+
-          '<div class="dr"><span class="dl">Beds / Baths</span><span class="dv">'+(propData.beds||'--')+' / '+(propData.baths||'--')+'</span></div>'+
-          '<div class="dr"><span class="dl">Living Area</span><span class="dv">'+(propData.sqft?Number(propData.sqft).toLocaleString()+' sqft':'--')+'</span></div>'+
-          '<div class="dr"><span class="dl">Year Built</span><span class="dv">'+(propData.year||'--')+'</span></div>'+
-        '</div>'+
-        '<div>'+
-          '<div class="dr"><span class="dl">Lot Size</span><span class="dv">'+(propData.lot||'--')+'</span></div>'+
-          '<div class="dr"><span class="dl">Condition</span><span class="dv">'+(propData.condition||'--')+'</span></div>'+
-          '<div class="dr"><span class="dl">Asking Price</span><span class="dv">'+ask+'</span></div>'+
-          '<div class="dr"><span class="dl">Verdict</span><span class="dv"><span class="vc">'+verdict+'</span></span></div>'+
-        '</div>'+
+      '<div class="sec"><div class="st">Property</div><div class="two">'+
+        '<div><div class="dr"><span class="dl">Type</span><span class="dv">'+E(propData.type||'—')+'</span></div>'+
+          '<div class="dr"><span class="dl">Beds / baths</span><span class="dv">'+E(propData.beds||'—')+' / '+E(propData.baths||'—')+'</span></div>'+
+          '<div class="dr"><span class="dl">Living area</span><span class="dv">'+(propData.sqft?Number(propData.sqft).toLocaleString()+' sq ft':'—')+'</span></div></div>'+
+        '<div><div class="dr"><span class="dl">Year built</span><span class="dv">'+E(propData.year||'—')+'</span></div>'+
+          '<div class="dr"><span class="dl">Condition</span><span class="dv">'+E(propData.condition||'—')+'</span></div>'+
+          '<div class="dr"><span class="dl">Lot</span><span class="dv">'+E(propData.lot||'—')+'</span></div></div>'+
       '</div></div>'+
-      (j.marketSummary?'<div class="sec"><div class="st">Market Summary</div><div class="mb">'+j.marketSummary+'</div></div>':'')+
-      '<div class="sec"><div class="st">Analysis</div><div class="two">'+
-        '<div class="bx bs"><div class="btt bts">Strengths</div><ul>'+strHTML+'</ul></div>'+
-        '<div class="bx bc"><div class="btt btc">Concerns</div><ul>'+conHTML+'</ul></div>'+
-      '</div></div>'+
-      (j.recommendation?'<div class="sec"><div class="st">Recommendation</div><div class="sm">'+j.recommendation+'</div></div>':'');
+      '<div class="sec"><div class="st">Valuation</div>'+
+        (j.verdictDetail?'<div class="mb">'+E(j.verdictDetail)+'</div>':'')+
+        (j.pricePerSqft?'<div class="two" style="margin-top:8px;"><div class="dr"><span class="dl">This property</span><span class="dv">$'+Math.round(j.pricePerSqft).toLocaleString()+' / sq ft</span></div>'+(j.localMedianPricePerSqft?'<div class="dr"><span class="dl">Local listing median</span><span class="dv">$'+Math.round(j.localMedianPricePerSqft).toLocaleString()+' / sq ft</span></div>':'<div></div>')+'</div>':'')+
+        (aiOnly&&j.valuationMethod?'<div class="mb" style="margin-top:8px;border-left-color:#c75b00;">⚠ '+E(j.valuationMethod)+'. Treat as a rough starting point and verify with a broker or appraiser.</div>':'')+
+      '</div>'+
+      (steps?'<div class="sec"><div class="st">How this was calculated</div><table class="ct"><tbody>'+steps+
+        '<tr><td style="font-weight:700;color:#1a1a2e;">Result</td><td colspan="2" style="font-weight:700;">$'+Math.round(j.pricePerSqft).toLocaleString()+' × '+Number(propData.sqft).toLocaleString()+' sq ft = '+M(j.estimatedValue)+'</td></tr></tbody></table>'+
+        '<div class="src" style="margin-top:6px;"><b>data</b> comes straight from realtor.com listings. <b>assumption</b> and <b>estimate</b> are judgment calls shown so you can disagree with them.</div></div>':'')+
+      ((j.strengths&&j.strengths.length)||(j.concerns&&j.concerns.length)?'<div class="sec"><div class="st">Analysis</div><div class="two" style="gap:12px;">'+
+        '<div class="bx bs"><div class="btt bts">Strengths</div><ul>'+list(j.strengths)+'</ul></div>'+
+        '<div class="bx bc"><div class="btt btc">Concerns</div><ul>'+list(j.concerns)+'</ul></div></div></div>':'')+
+      (j.marketSummary?'<div class="sec"><div class="st">Market summary</div><div class="sm">'+E(j.marketSummary)+'</div></div>':'')+
+      (j.recommendation?'<div class="sec"><div class="st">Recommendation</div><div class="sm">'+E(j.recommendation)+'</div>'+
+        ((j.verify&&j.verify.length)?'<div style="margin-top:8px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#777;font-weight:700;">Verify before acting</div><ul style="margin-top:4px;">'+list(j.verify)+'</ul>':'')+'</div>':'');
   }
 
-  if(opts.comps && j.comps && j.comps.length){
-    sections+='<div class="sec"><div class="st">Comparable Sales ('+j.comps.length+')</div>'+
-      '<table class="ct"><thead><tr><th>Address</th><th>Price</th><th>$/SqFt</th><th>Beds</th><th>SqFt</th><th>Date</th></tr></thead><tbody>'+
-      j.comps.map(function(c){
-        var psf=c.pricePerSqft||(c.price&&c.sqft?Math.round(c.price/c.sqft):null);
-        return '<tr>'+
-          '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+c.address+'</td>'+
-          '<td style="font-family:monospace;font-weight:600;">'+(c.price?'$'+Number(c.price).toLocaleString():'--')+'</td>'+
-          '<td style="color:#1565c0;">'+(psf?'$'+psf:'--')+'</td>'+
-          '<td style="color:#666;">'+(c.beds||'--')+'</td>'+
-          '<td style="color:#666;">'+(c.sqft?Number(c.sqft).toLocaleString():'--')+'</td>'+
-          '<td style="color:#666;">'+(c.date||'--')+'</td>'+
-        '</tr>';
-      }).join('')+'</tbody></table></div>';
+  if(opts.market && S && D){
+    var mr=j.marketRead;
+    sections+='<div class="sec flow"><div class="st">Market evidence</div>'+
+      (mr?'<div class="sm" style="margin-bottom:8px;">Market read: <b>'+E(mr.label)+'</b> · score '+(mr.score>0?'+':'')+mr.score+' · data through '+E(mktLabel(mktYM(D.zipG.lastIdx)))+'. These are listing metrics (asking prices, active inventory), not closed sales.</div>':'')+
+      plain(valEvidenceTable(S))+
+      (window._zhNoteHTML?'<div class="mb" style="margin-top:10px;">'+plain(window._zhNoteHTML).replace(/margin-top:12px;/,'')+'</div>':'')+
+      '<div style="margin-top:12px;font-size:10px;color:#777;">Median listing $/sq ft, last 24 months</div>'+plain(valChartSVG(D))+
+    '</div>';
   }
 
   if(opts.investment){
-    sections+='<div class="sec"><div class="st">Investment Metrics</div><div class="two">'+
-      '<div>'+
-        '<div class="dr"><span class="dl">Investment Grade</span><span class="dv" style="color:'+gc+';">'+grade+'</span></div>'+
-        (j.capRateEst!=null?'<div class="dr"><span class="dl">Cap Rate Est.</span><span class="dv">'+j.capRateEst+'%</span></div>':'')+
-        (j.appreciationOutlook?'<div class="dr"><span class="dl">12-mo Trend</span><span class="dv" style="color:'+(appColors[j.appreciationOutlook]||'#333')+';">'+j.appreciationOutlook+'</span></div>':'')+
-        (j.timeToSell?'<div class="dr"><span class="dl">Days on Market</span><span class="dv">'+j.timeToSell+'</span></div>':'')+
-      '</div>'+
-      '<div>'+
-        (j.noi?'<div class="dr"><span class="dl">Est. NOI</span><span class="dv">$'+Number(j.noi).toLocaleString()+'/yr</span></div>':'')+
-        (j.grm?'<div class="dr"><span class="dl">GRM</span><span class="dv">'+j.grm+'x</span></div>':'')+
+    sections+='<div class="sec"><div class="st">Deal metrics</div><div class="two">'+
+      '<div><div class="dr"><span class="dl">Deal grade</span><span class="dv" style="color:'+gc+';">'+E(grade)+'</span></div>'+
+        '<div class="dr"><span class="dl">Verdict</span><span class="dv" style="text-transform:capitalize;">'+E(verdict||'—')+'</span></div>'+
+        '<div class="dr"><span class="dl">Asking price</span><span class="dv">'+ask+'</span></div>'+
+        '<div class="dr"><span class="dl">Calculated value</span><span class="dv">'+M(j.estimatedValue)+'</span></div></div>'+
+      '<div>'+(gapPct!=null?'<div class="dr"><span class="dl">Asking vs calculated</span><span class="dv">'+(gapPct>=0?'+':'')+(gapPct*100).toFixed(1)+'%</span></div>':'')+
+        '<div class="dr"><span class="dl">Value range</span><span class="dv">'+M(j.valueLow)+' – '+M(j.valueHigh)+'</span></div>'+
         '<div class="dr"><span class="dl">Confidence</span><span class="dv">'+j.confidence+'%</span></div>'+
-      '</div>'+
+        (j.trendYoY!=null?'<div class="dr"><span class="dl">Listing $/sq ft vs year ago</span><span class="dv">'+valPct(j.trendYoY)+'</span></div>':'')+
+        (j.capRateEst!=null?'<div class="dr"><span class="dl">Cap rate (estimate)</span><span class="dv">'+E(j.capRateEst)+'%</span></div>':'')+
+        (j.noi?'<div class="dr"><span class="dl">Est. NOI</span><span class="dv">'+M(j.noi)+'/yr</span></div>':'')+
+        (j.grm?'<div class="dr"><span class="dl">GRM</span><span class="dv">'+E(j.grm)+'×</span></div>':'')+'</div>'+
     '</div></div>';
   }
 
+  var mortPrice=(document.getElementById('mortPrice')||{}).value||'';
   if(opts.mortgage && mortPrice){
-    sections+='<div class="sec"><div class="st">Mortgage Analysis</div><div class="two">'+
-      '<div>'+
-        '<div class="dr"><span class="dl">Purchase Price</span><span class="dv">$'+Number(mortPrice).toLocaleString()+'</span></div>'+
-        '<div class="dr"><span class="dl">Down Payment</span><span class="dv">'+mortDown+'%</span></div>'+
-        (mortRate?'<div class="dr"><span class="dl">Rate</span><span class="dv">'+mortRate+'%</span></div>':'')+
-      '</div>'+
-      '<div>'+
-        (mortMonthly?'<div class="dr"><span class="dl">Monthly Payment</span><span class="dv">'+mortMonthly+'</span></div>':'')+
-        (mortInt?'<div class="dr"><span class="dl">Total Interest</span><span class="dv">'+mortInt+'</span></div>':'')+
-      '</div>'+
-    '</div>'+
-    (cfText?'<div style="margin-top:8px;font-size:11px;color:#555;background:#f8f8f8;padding:10px;border-radius:4px;">'+cfText+'</div>':'')+
-    '</div>';
-  }
-
-  if(opts.market && (mktText||nhText)){
-    sections+='<div class="sec"><div class="st">Market Intelligence</div>'+
-      (mktText?'<div class="mb" style="margin-bottom:8px;">'+mktText+'</div>':'')+
-      (nhText?'<div style="font-size:11px;color:#555;">'+nhText+'</div>':'')+
-    '</div>';
+    var mortMonthly=((document.getElementById('mortMonthly')||{}).textContent||'').trim();
+    var mortDown=(document.getElementById('mortDown')||{}).value||'20';
+    var mortRate=(document.getElementById('mortRate')||{}).value||'';
+    var mortInt=((document.getElementById('mortInterest')||{}).textContent||'').trim();
+    var cfText=''; try{var ce=document.getElementById('cfArea');if(ce)cfText=ce.innerText.trim().slice(0,500);}catch(e2){}
+    sections+='<div class="sec"><div class="st">Mortgage analysis</div><div class="two">'+
+      '<div><div class="dr"><span class="dl">Purchase price</span><span class="dv">$'+Number(mortPrice).toLocaleString()+'</span></div>'+
+        '<div class="dr"><span class="dl">Down payment</span><span class="dv">'+E(mortDown)+'%</span></div>'+
+        (mortRate?'<div class="dr"><span class="dl">Rate</span><span class="dv">'+E(mortRate)+'%</span></div>':'')+'</div>'+
+      '<div>'+(mortMonthly?'<div class="dr"><span class="dl">Monthly payment</span><span class="dv">'+E(mortMonthly)+'</span></div>':'')+
+        (mortInt?'<div class="dr"><span class="dl">Total interest</span><span class="dv">'+E(mortInt)+'</span></div>':'')+'</div></div>'+
+      (cfText?'<div class="mb" style="margin-top:8px;">'+E(cfText)+'</div>':'')+'</div>';
   }
 
   if(opts.location){
-    sections+='<div class="sec"><div class="st">Location Analysis</div>'+
-      (lat?'<div class="dr"><span class="dl">Coordinates</span><span class="dv" style="font-family:monospace;font-size:11px;">'+lat+', '+lng+'</span></div>':'')+
-      (poiCount?'<div class="dr"><span class="dl">Nearby POIs</span><span class="dv">'+poiCount+' found within 2km</span></div>':'')+
-      poiRows+
-      (siteText?'<div class="mb" style="margin-top:8px;">'+siteText+'</div>':'')+
-      '<div style="margin-top:8px;"><a class="fb" href="'+femaUrl+'" target="_blank">View FEMA Flood Map</a></div>'+
-    '</div>';
+    var siteAddr=(document.getElementById('siteSearchInput')||{}).value||addr;
+    var femaUrl='https://msc.fema.gov/portal/search?AddressQuery='+encodeURIComponent(siteAddr)+'#searchresultsanchor';
+    var rows='';
+    Object.keys(POI_CATS).forEach(function(cat){
+      var items=(_poiList||[]).filter(function(p){return p.cat===cat;}); if(!items.length) return;
+      rows+='<tr class="grp"><td colspan="3">'+POI_CATS[cat][1]+' '+E(POI_CATS[cat][2])+'</td></tr>'+
+        items.map(function(p){return '<tr><td><b style="color:#1a1a2e;">'+E(p.name)+'</b>'+(p.addr?'<span class="sub">'+E(p.addr)+'</span>':'')+'</td><td style="white-space:nowrap;">'+p.mi.toFixed(1)+' mi</td><td>'+p.dir+'</td></tr>';}).join('');
+    });
+    sections+='<div class="sec flow"><div class="st">Nearby places</div>'+
+      (_currentLat?'<div class="src" style="margin-bottom:6px;">Straight-line distance from the mapped address ('+_currentLat.toFixed(5)+', '+_currentLng.toFixed(5)+'). Source: OpenStreetMap.</div>':'')+
+      (rows?'<table class="ct"><thead><tr><th>Place</th><th>Distance</th><th>Direction</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="sm">No places loaded. Open Site Analysis, tap Map It, then Nearby POIs, before building the report.</div>')+
+      '<a class="fb" href="'+femaUrl+'" target="_blank">View FEMA flood map</a></div>';
   }
 
   if(opts.notes && propData.notes){
-    sections+='<div class="sec"><div class="st">Notes</div><div class="sm">'+propData.notes+'</div></div>';
+    sections+='<div class="sec"><div class="st">Notes</div><div class="sm">'+E(propData.notes)+'</div></div>';
   }
 
-  // Build full HTML as a blob — works even with popup blockers
-  var fullHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-    '<title>EstatePro Report -- '+addr+'</title>' +
-    '<style>'+css+'</style></head><body><div class="page">'+
-    '<div class="rh">'+
-      '<div><div class="rb">EstatePro - Market-Calculated Valuation</div>'+
-        '<div class="rt">'+addr+'</div>'+
-        '<div class="rs">'+(propData.type||'Residential')+(propData.city?' - '+propData.city+(propData.state_?', '+propData.state_:''):'')+'</div></div>'+
-      '<div style="text-align:right;margin-left:16px;">'+
-        '<div class="gg" style="color:'+gc+';border-color:'+gc+';">'+grade+'</div>'+
-        '<div class="rd">'+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</div>'+
-      '</div>'+
-    '</div>'+
+  sections+='<div class="sec"><div class="st">Sources and limits</div><div class="src">'+
+    (aiOnly?'This value is an AI estimate from the details entered, not market-calculated.':'Market data: realtor.com Inventory Core Metrics (listing metrics, 3-month averages) via Zip Market Explorer, a GeniusPete project.')+
+    (zh?' Home value cross-check: Zillow Research ZHVI (modeled typical value, not sold prices).':'')+
+    ' Maps and places: OpenStreetMap. Addresses: US Census Geocoder. Flood data: FEMA.<br>'+
+    'ZIP medians mix houses and condos and cannot see lot, view, waterfront or upgrades. This is an estimate, not an appraisal. Verify with closed sales, MLS or your county property appraiser.</div></div>';
+
+  var fullHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>EstatePro Report - '+E(addr)+'</title><style>'+css+'</style></head><body><div class="page">'+
+    '<div class="rh"><div><div class="rb">EstatePro · Market-Calculated Valuation</div>'+
+        '<div class="rt">'+E(addr)+'</div><div class="rs">'+E(propData.type||'Residential')+(place?' · '+E(place):'')+'</div></div>'+
+      '<div><div class="gg" style="color:'+gc+';border-color:'+gc+';">'+E(grade)+'</div>'+
+        '<div class="rd">'+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</div></div></div>'+
     '<div class="ks">'+
-      '<div class="kc"><div class="kl">Calculated Value</div><div class="kv">'+estVal+'</div><div class="ksb">'+low+' -- '+high+'</div></div>'+
-      '<div class="kc"><div class="kl">Asking Price</div><div class="kv">'+ask+'</div><div class="ksb">'+verdict+'</div></div>'+
+      '<div class="kc"><div class="kl">'+(aiOnly?'AI estimate':'Calculated value')+'</div><div class="kv">'+M(j.estimatedValue)+'</div><div class="ksb">'+M(j.valueLow)+' – '+M(j.valueHigh)+'</div></div>'+
+      '<div class="kc"><div class="kl">Asking price</div><div class="kv">'+ask+'</div><div class="ksb" style="text-transform:capitalize;">'+E(verdict)+(gapPct!=null?' · '+(gapPct>=0?'+':'')+(gapPct*100).toFixed(1)+'%':'')+'</div></div>'+
       '<div class="kc"><div class="kl">Confidence</div><div class="kv">'+j.confidence+'%</div><div class="cb"><div class="cf" style="width:'+j.confidence+'%"></div></div></div>'+
-      '<div class="kc"><div class="kl">Grade</div><div class="kv" style="color:'+gc+'">'+grade+'</div><div class="ksb">'+(j.appreciationOutlook||'')+'</div></div>'+
-    '</div>'+
-    '<div class="bd">'+sections+'</div>'+
-    '<div class="ft"><span>EstatePro - Confidential</span><span>Estimate from listing data, not an appraisal</span></div>'+
-    '<div class="pb" onclick="window.print()">Print / Save as PDF</div>'+
-  '</div><!-- © LAZLAB Creations -->'+
-'</body></html>';
-  fullHtml += '';
+      '<div class="kc"><div class="kl">Zillow typical, ZIP</div><div class="kv">'+(zh?M(zh.value):'—')+'</div><div class="ksb">'+(zh&&zh.yoy!=null?valPct(zh.yoy)+' vs year ago':'not available')+'</div></div>'+
+    '</div><div class="bd">'+sections+'</div>'+
+    '<div class="ft"><span>EstatePro · Confidential</span><span>Estimate from listing data, not an appraisal</span></div>'+
+    '<div class="pb" onclick="window.print()">Print / Save as PDF</div></div></body></html>';
   var blob = new Blob([fullHtml], {type: 'text/html'});
   var url  = URL.createObjectURL(blob);
-  var w    = window.open(url, '_blank');
-  if (!w) {
-    // Popup blocked — download as file instead
-    var a = document.createElement('a');
-    a.href = url; a.download = 'EstatePro-Report.html'; a.click();
-    toast('PDF saved as HTML file — open in browser to print.', 'success');
+  var w = window.open(url, '_blank');
+  if (!w) {   // popup blocked: download the report as a file instead
+    var a = document.createElement('a'); a.href = url; a.download = 'EstatePro-Report.html'; a.click();
+    toast('Report saved as an HTML file. Open it in your browser to print.', 'success');
   }
 }
 
@@ -4207,21 +4180,10 @@ function printSiteReport() {
   var siteArea = document.getElementById('siteAnalysisArea');
   if (siteArea) siteText = siteArea.innerText.trim();
 
-  // Collect POI summary
-  var poiSummary = {};
-  _poiLayers.forEach(function(m) {
-    try {
-      var content = m.getPopup().getContent();
-      var match = content.match(/<span[^>]*>([^<]+)<\/span>/);
-      if (match) {
-        var cat = match[1];
-        poiSummary[cat] = (poiSummary[cat]||0) + 1;
-      }
-    } catch(e) {}
-  });
-  var poiCount = _poiLayers.length;
-  var poiLines = Object.keys(poiSummary).map(function(k){
-    return '<div class="poi-row"><span>' + k + '</span><span>' + poiSummary[k] + ' found</span></div>';
+  var poiCount = (_poiList||[]).length;
+  var poiLines = Object.keys(POI_CATS).map(function(cat){
+    var items=(_poiList||[]).filter(function(p){return p.cat===cat;}); if(!items.length) return '';
+    return '<div class="poi-row"><span><b>'+POI_CATS[cat][2]+'</b></span><span></span></div>'+items.map(function(p){return '<div class="poi-row"><span>'+valEsc(p.name)+'</span><span>'+p.mi.toFixed(1)+' mi '+p.dir+'</span></div>';}).join('');
   }).join('');
 
   var lat = _currentLat ? _currentLat.toFixed(5) : '—';
@@ -4921,9 +4883,31 @@ function searchSiteAddress() {
   if(!_siteMap){initSiteMap();setTimeout(function(){if(_siteMap)geocodeAndCenter(addr);else setTimeout(function(){geocodeAndCenter(addr);},500);},600);return;}
   geocodeAndCenter(addr);
 }
+var _nomLast = 0;
+function nomGate() {   // Nominatim allows about one request a second; space calls out so the public server does not block us
+  var wait = Math.max(0, _nomLast + 1150 - Date.now()); _nomLast = Date.now() + wait;
+  return new Promise(function (r) { setTimeout(r, wait); });
+}
+function jsonpGet(url, ms) {   // the US Census geocoder has no CORS headers, but it supports JSONP
+  return new Promise(function (resolve, reject) {
+    var cb = 'epj' + Math.random().toString(36).slice(2), sc = document.createElement('script');
+    var to = setTimeout(function () { cleanup(); reject(new Error('timeout')); }, ms || 9000);
+    function cleanup() { clearTimeout(to); try { delete window[cb]; } catch (e) { window[cb] = undefined; } sc.remove(); }
+    window[cb] = function (d) { cleanup(); resolve(d); };
+    sc.onerror = function () { cleanup(); reject(new Error('blocked')); };
+    sc.src = url + '&callback=' + cb; document.head.appendChild(sc);
+  });
+}
+function censusGeocode(q) {   // authoritative US street addresses: fast, free, no key, no strict rate limit
+  if (!/^\d/.test(q)) return Promise.resolve([]);
+  return jsonpGet('https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?benchmark=Public_AR_Current&format=jsonp&address=' + encodeURIComponent(q))
+    .then(function (d) { return ((d.result && d.result.addressMatches) || []).map(function (m) { return { lat: m.coordinates.y, lon: m.coordinates.x, matched: m.matchedAddress }; }); })
+    .catch(function () { return []; });
+}
 function nomUS(q){   // US-only results: the public geocoder searches the whole world, so a street with no city can land in another country
-  return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q='+encodeURIComponent(q)).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-    .then(function(rows){return (rows||[]).filter(function(r){return !r.address||r.address.country_code==='us';});});
+  return nomGate().then(function () {
+    return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q='+encodeURIComponent(q)).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});
+  }).then(function(rows){return (rows||[]).filter(function(r){return !r.address||r.address.country_code==='us';});});
 }
 function siteQueries(addr){
   var v=function(id){var e=document.getElementById(id);return e?e.value.trim():'';};
@@ -4938,19 +4922,23 @@ function siteQueries(addr){
 }
 function geocodeAndCenter(addr) {
   if(!addr) return;
-  var qs=siteQueries(addr);
-  return qs.reduce(function(chain,q){return chain.then(function(found){return found&&found.length?found:nomUS(q);});},Promise.resolve([]))
-  .then(function(data){ if(!data||!data.length) throw new Error('not_found'); return data; })
+  var qs=siteQueries(addr), blocked=0;
+  var census=qs.reduce(function(chain,q){return chain.then(function(f){return f.length?f:censusGeocode(q);});},Promise.resolve([]));
+  return census.then(function(f){
+    if(f.length) return f;
+    return qs.reduce(function(chain,q){return chain.then(function(found){return found&&found.length?found:nomUS(q).catch(function(e){blocked++;return [];});});},Promise.resolve([]));
+  })
+  .then(function(data){ if(!data||!data.length){ throw new Error(blocked?'map service busy, try again in a minute':'not_found'); } return data; })
   .then(function(data){
     var lat=parseFloat(data[0].lat),lng=parseFloat(data[0].lon);
     _currentLat=lat;_currentLng=lng;
     _siteMap.setView([lat,lng],15);
     if(_siteMarker)_siteMap.removeLayer(_siteMarker);
     var icon=L.divIcon({html:'<div style="background:#c9a84c;border:3px solid #fff;border-radius:50%;width:20px;height:20px;box-shadow:0 2px 8px rgba(0,0,0,0.5);"></div>',iconSize:[20,20],iconAnchor:[10,10],className:''});
-    _siteMarker=L.marker([lat,lng],{icon:icon,draggable:true}).addTo(_siteMap).bindPopup('<strong>'+addr+'</strong>').openPopup();
+    _siteMarker=L.marker([lat,lng],{icon:icon,draggable:true}).addTo(_siteMap).bindPopup('<strong>'+valEsc(addr)+'</strong>'+(data[0].matched?'<br><small>Matched: '+valEsc(data[0].matched)+'</small>':'')).openPopup();
     _siteMarker.on('dragend',function(e){var p=e.target.getLatLng();_currentLat=p.lat;_currentLng=p.lng;toast('Pin moved — click Nearby POIs to refresh.','success');});
     var msg=document.getElementById('siteMapMsg');if(msg)msg.style.display='none';
-    toast('Mapped successfully','success');
+    toast(data[0].matched?'Mapped: '+data[0].matched:'Mapped successfully','success');
   })
   .catch(function(e){
     if(e.message==='not_found'){toast('Address not found. Try City, State or ZIP.','error');showManualLatLng();}
@@ -5003,30 +4991,37 @@ function overpassRace(q) {                      // the public Overpass servers a
 }
 function poiMiles(a,b,c,d){var R=3958.8,r=Math.PI/180,x=(c-a)*r,y=(d-b)*r,h=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)*Math.sin(y/2);return 2*R*Math.asin(Math.sqrt(h));}
 // Two passes: everyday places close to the pin, and "always want to know" places (airport, hospital, highway, mall, university) searched about 25 miles out, nearest few kept.
+var POI_CATS = {   // display order, colour, emoji, label
+  airport:['#00838f','✈️','Airports'], hospital:['#1565c0','🏥','Hospitals'], highway:['#5d4037','🛣','Highways'],
+  shopping:['#2e7d32','🛒','Shopping'], school:['#e53935','🏫','Schools & universities'], park:['#fb8c00','🌳','Parks'],
+  medical:['#1565c0','💊','Pharmacies'], fire:['#d84315','🚒','Fire stations'], police:['#283593','🚓','Police'], gas:['#6d4c41','⛽','Gas stations']
+};
+function poiBearing(a,b,c,d){var y=Math.sin((d-b)*Math.PI/180)*Math.cos(c*Math.PI/180),x=Math.cos(a*Math.PI/180)*Math.sin(c*Math.PI/180)-Math.sin(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.cos((d-b)*Math.PI/180);return ['N','NE','E','SE','S','SW','W','NW'][Math.round(((Math.atan2(y,x)*180/Math.PI+360)%360)/45)%8];}
+// Two passes: everyday places close to the pin, and "always want to know" places (airport, hospital, highway, mall, university) searched about 25 miles out, nearest few kept.
 function nominatimPois(lat, lng) {
   var jobs=[
-    {q:'school',d:0.03,keep:8,cat:'school'},{q:'pharmacy',d:0.03,keep:4,cat:'medical'},{q:'supermarket',d:0.03,keep:5,cat:'shopping'},
-    {q:'park',d:0.03,keep:6,cat:'park'},{q:'fire station',d:0.05,keep:2,cat:'fire'},{q:'gas station',d:0.03,keep:3,cat:'gas'},
-    {q:'police station',d:0.15,keep:2,cat:'police',type:'police'},
     {q:'airport',d:0.4,keep:3,cat:'airport',cls:'aeroway'},{q:'hospital',d:0.25,keep:4,cat:'hospital',type:'hospital'},
-    {q:'mall',d:0.25,keep:3,cat:'shopping',type:'mall'},{q:'university',d:0.25,keep:2,cat:'school',type:'university'},
     {q:'I-4',d:0.3,keep:1,cat:'highway',type:'motorway'},{q:'I-95',d:0.3,keep:1,cat:'highway',type:'motorway'},{q:'I-75',d:0.3,keep:1,cat:'highway',type:'motorway'},
-    {q:'I-10',d:0.3,keep:1,cat:'highway',type:'motorway'},{q:'turnpike',d:0.3,keep:1,cat:'highway',type:'motorway'}
-  ], els=[];
+    {q:'I-10',d:0.3,keep:1,cat:'highway',type:'motorway'},{q:'turnpike',d:0.3,keep:1,cat:'highway',type:'motorway'},
+    {q:'school',d:0.03,keep:8,cat:'school'},{q:'park',d:0.03,keep:6,cat:'park'},{q:'supermarket',d:0.04,keep:5,cat:'shopping'},
+    {q:'mall',d:0.25,keep:3,cat:'shopping',type:'mall'},{q:'university',d:0.25,keep:2,cat:'school',type:'university'},
+    {q:'pharmacy',d:0.03,keep:4,cat:'medical'},{q:'fire station',d:0.05,keep:2,cat:'fire'},{q:'police station',d:0.15,keep:2,cat:'police',type:'police'},{q:'gas station',d:0.03,keep:3,cat:'gas'}
+  ], els=[], fails=0, ok=0;
   return jobs.reduce(function(chain,j){
     return chain.then(function(){
-      return new Promise(function(res){setTimeout(res,1100);}).then(function(){
+      if (fails >= 4 && !ok) return;   // the server is refusing us: stop early instead of waiting out every request
+      return nomGate().then(function(){
         var vb=[lng-j.d,lat+j.d,lng+j.d,lat-j.d].join(',');
-        return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=15&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(j.q)).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];});
+        return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=15&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(j.q)).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);ok++;return r.json();}).catch(function(){fails++;return [];});
       }).then(function(rows){
         var seen={};
-        rows.filter(function(r){return (!j.type||r.type===j.type)&&(!j.cls||r.class===j.cls);}).map(function(r){return {lat:+r.lat,lon:+r.lon,name:(r.display_name||'').split(',')[0],mi:poiMiles(lat,lng,+r.lat,+r.lon)};})
+        rows.filter(function(r){return (!j.type||r.type===j.type)&&(!j.cls||r.class===j.cls);}).map(function(r){var p=(r.display_name||'').split(',').map(function(x){return x.trim();});return {lat:+r.lat,lon:+r.lon,name:p[0],addr:p.slice(1,3).filter(function(x){return x&&!/^\d{5}$/.test(x);}).join(', '),mi:poiMiles(lat,lng,+r.lat,+r.lon)};})
           .sort(function(a,b){return a.mi-b.mi;})
           .filter(function(r){var k=r.name+Math.round(r.lat*100)+Math.round(r.lon*100);if(seen[k])return false;seen[k]=1;return true;})
-          .slice(0,j.keep).forEach(function(r){els.push({lat:r.lat,lon:r.lon,tags:{name:r.name,_cat:j.cat},_mi:r.mi});});
+          .slice(0,j.keep).forEach(function(r){els.push({lat:r.lat,lon:r.lon,tags:{name:r.name,_cat:j.cat,_addr:r.addr},_mi:r.mi});});
       });
     });
-  },Promise.resolve()).then(function(){return {elements:els};});
+  },Promise.resolve()).then(function(){return {elements:els,blocked:fails>=4&&!ok};});
 }
 function ensureMapped(cb, tries) {            // Nearby POIs works straight from a typed address, no need to press Map It first
   if(_currentLat&&_currentLng){cb();return;}
@@ -5035,29 +5030,60 @@ function ensureMapped(cb, tries) {            // Nearby POIs works straight from
   if(!_siteMap){ if((tries||0)>8){toast('Map did not load. Check your connection.','error');return;} initSiteMap(); setTimeout(function(){ensureMapped(cb,(tries||0)+1);},500); return; }
   var p=geocodeAndCenter(a); if(p&&p.then) p.then(function(){ if(_currentLat&&_currentLng) cb(); });
 }
+var _poiList = [];
+function poiCatOf(t){var a=t.amenity,sh=t.shop,l=t.leisure,h=t.highway;if(t._cat)return t._cat;if(a==='school'||a==='college'||a==='university')return 'school';if(a==='hospital')return 'hospital';if(a==='clinic'||a==='doctors'||a==='pharmacy')return 'medical';if(sh==='supermarket'||sh==='mall')return 'shopping';if(l==='park'||l==='recreation_ground')return 'park';if(h==='motorway_junction'||h==='motorway'||h==='trunk')return 'highway';return null;}
 function loadPOIs() {
   if(!_currentLat||!_currentLng){ensureMapped(loadPOIs);return;}
-  _poiLayers.forEach(function(l){_siteMap.removeLayer(l);});_poiLayers=[];
-  toast('Loading nearby places. This takes about 25 seconds.','');
+  _poiLayers.forEach(function(l){_siteMap.removeLayer(l);});_poiLayers=[];_poiList=[];renderPoiList();
+  var key='ep_poi_'+_currentLat.toFixed(3)+'_'+_currentLng.toFixed(3), cached=null;
+  try{var c=JSON.parse(localStorage.getItem(key)||'null');if(c&&Date.now()-c.t<30*864e5&&c.els&&c.els.length)cached=c.els;}catch(e){}
   var radius=2000;
   var q='[out:json][timeout:30];(node["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');way["amenity"="school"](around:'+radius+','+_currentLat+','+_currentLng+');node["amenity"~"hospital|clinic|doctors|pharmacy"](around:'+radius+','+_currentLat+','+_currentLng+');node["shop"~"supermarket|mall"](around:'+radius+','+_currentLat+','+_currentLng+');node["leisure"~"park|recreation_ground"](around:'+radius+','+_currentLat+','+_currentLng+');way["leisure"="park"](around:'+radius+','+_currentLat+','+_currentLng+');node["highway"~"motorway_junction"](around:1500,'+_currentLat+','+_currentLng+');way["highway"~"motorway|trunk"](around:1000,'+_currentLat+','+_currentLng+'););out center;';
-  var poiFetch=nominatimPois(_currentLat,_currentLng).then(function(d){return d.elements.length?d:overpassRace(q);});
+  var poiFetch;
+  if(cached){ poiFetch=Promise.resolve({elements:cached,cached:true}); }
+  else {
+    toast('Loading nearby places. This takes about 25 seconds.','');
+    poiFetch=nominatimPois(_currentLat,_currentLng).then(function(d){return d.elements.length?d:overpassRace(q);});
+  }
   poiFetch.then(function(data){
-    if(!data.elements||!data.elements.length){toast('No POIs found.','');return;}
-    function classify(t){if(!t)return null;var C={school:['#e53935','🏫','School'],hospital:['#1565c0','🏥','Hospital'],medical:['#1565c0','💊','Pharmacy'],shopping:['#2e7d32','🛒','Shopping'],park:['#fb8c00','🌳','Park'],fire:['#d84315','🚒','Fire station'],police:['#283593','🚓','Police'],gas:['#6d4c41','⛽','Gas station'],airport:['#00838f','✈️','Airport'],highway:['#5d4037','🛣','Highway']};if(t._cat&&C[t._cat])return{color:C[t._cat][0],emoji:C[t._cat][1],label:C[t._cat][2]};var a=t.amenity,s=t.shop,l=t.leisure,h=t.highway;if(a==='school'||a==='college'||a==='university')return{color:'#e53935',emoji:'🏫',label:'School'};if(a==='hospital')return{color:'#1565c0',emoji:'🏥',label:'Hospital'};if(a==='clinic'||a==='doctors'||a==='pharmacy')return{color:'#1565c0',emoji:'🏥',label:'Medical'};if(s==='supermarket'||s==='mall')return{color:'#2e7d32',emoji:'🛒',label:'Shopping'};if(l==='park'||l==='recreation_ground')return{color:'#fb8c00',emoji:'🌳',label:'Park'};if(h==='motorway_junction'||h==='motorway'||h==='trunk')return{color:'#5d4037',emoji:'🛣',label:'Highway'};return null;}
+    if(!data.elements||!data.elements.length){toast('No nearby places found. The map service may be busy; try again in a minute.','error');return;}
+    var keep=[];
     data.elements.forEach(function(el){
       var lat=el.lat||(el.center&&el.center.lat),lon=el.lon||(el.center&&el.center.lon);
       if(!lat||!lon)return;
-      var info=classify(el.tags);if(!info)return;
-      var name=(el.tags&&el.tags.name)||info.label;
-      var pi=L.divIcon({html:'<div style="background:'+info.color+';color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.8);">'+info.emoji+'</div>',iconSize:[24,24],iconAnchor:[12,12],className:''});
-      var m=L.marker([lat,lon],{icon:pi}).addTo(_siteMap).bindPopup('<strong>'+name+'</strong><br><small>'+info.label+(el._mi!=null?' · '+el._mi.toFixed(1)+' mi':'')+'</small>');
-      _poiLayers.push(m);
+      var cat=poiCatOf(el.tags||{});if(!cat||!POI_CATS[cat])return;
+      var mi=poiMiles(_currentLat,_currentLng,lat,lon), C=POI_CATS[cat];
+      var name=(el.tags&&el.tags.name)||(C[2].replace(/s$/,''));
+      var item={cat:cat,name:name,addr:(el.tags&&el.tags._addr)||'',mi:mi,dir:poiBearing(_currentLat,_currentLng,lat,lon),lat:lat,lon:lon,
+        label:{school:'School',hospital:'Hospital',medical:'Pharmacy / clinic',shopping:'Shopping',park:'Park',fire:'Fire station',police:'Police',gas:'Gas station',airport:'Airport',highway:'Highway'}[cat]};
+      var pi=L.divIcon({html:'<div style="background:'+C[0]+';color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.4);">'+C[1]+'</div>',iconSize:[24,24],iconAnchor:[12,12],className:''});
+      item.marker=L.marker([lat,lon],{icon:pi}).addTo(_siteMap).bindPopup('<strong>'+valEsc(name)+'</strong><br><small>'+item.label+' · '+mi.toFixed(1)+' mi '+item.dir+'</small>');
+      _poiLayers.push(item.marker);_poiList.push(item);
+      keep.push({lat:lat,lon:lon,tags:{name:name,_cat:cat,_addr:item.addr}});
     });
+    _poiList.sort(function(a,b){return a.mi-b.mi;});
+    if(!data.cached&&keep.length){try{localStorage.setItem(key,JSON.stringify({t:Date.now(),els:keep}));}catch(e){}}
     try{if(_poiLayers.length){var g=L.featureGroup(_poiLayers.concat(_siteMarker?[_siteMarker]:[]));_siteMap.fitBounds(g.getBounds().pad(0.1));}}catch(e){}
-    toast(_poiLayers.length+' nearby points loaded','success');
-  }).catch(function(e){toast('POI error: '+e.message,'error');});
+    renderPoiList();
+    toast(_poiLayers.length+' nearby places loaded','success');
+  }).catch(function(e){toast('Nearby places error: '+e.message,'error');});
 }
+function renderPoiList() {
+  var el=document.getElementById('poiList'); if(!el) return;
+  if(!_poiList.length){el.innerHTML='';return;}
+  var html='<div style="margin-top:16px;"><div class="section-title" style="font-size:1rem;margin-bottom:2px;">📍 Nearby places</div><div style="font-size:0.72rem;color:var(--text3);margin-bottom:10px;">Straight-line distance from the pin. Tap a place to find it on the map.</div>';
+  Object.keys(POI_CATS).forEach(function(cat){
+    var rows=_poiList.filter(function(p){return p.cat===cat;}); if(!rows.length) return;
+    html+='<div style="margin-bottom:12px;"><div style="font-size:0.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 4px;">'+POI_CATS[cat][1]+' '+POI_CATS[cat][2]+'</div>'+
+      rows.map(function(p){var i=_poiList.indexOf(p);return '<div onclick="poiFocus('+i+')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:5px;cursor:pointer;background:var(--bg2);">'+
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+POI_CATS[cat][0]+';flex:none;"></div>'+
+        '<div style="flex:1;min-width:0;"><div style="font-size:0.85rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+valEsc(p.name)+'</div>'+
+        '<div style="font-size:0.72rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+valEsc(p.label+(p.addr?' · '+p.addr:''))+'</div></div>'+
+        '<div style="text-align:right;flex:none;"><div style="font-size:0.85rem;font-weight:700;color:var(--gold2);">'+p.mi.toFixed(1)+' mi</div><div style="font-size:0.68rem;color:var(--text3);">'+p.dir+'</div></div></div>';}).join('')+'</div>';
+  });
+  el.innerHTML=html+'</div>';
+}
+function poiFocus(i){var p=_poiList[i]; if(!p||!_siteMap) return; var m=document.getElementById('siteMap'); if(m) m.scrollIntoView({behavior:'smooth',block:'center'}); _siteMap.setView([p.lat,p.lon],15); if(p.marker) p.marker.openPopup();}
 // ═══════════════════════════════════════
 // KEYBOARD SHORTCUT: ESC closes modals
 // ═══════════════════════════════════════
@@ -5070,7 +5096,7 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════
 // ESTATEPRO v4 — shell, models, updates
 // ═══════════════════════════════════════
-var APP_VERSION = '4.3.17';
+var APP_VERSION = '4.4.0';
 (function(){ var v = document.getElementById('verStamp'); if (v) { v.innerHTML = '<span class="ver-num">v' + APP_VERSION + '</span>'; v.title = 'EstatePro v' + APP_VERSION + ' · cache estatepro-app-v' + APP_VERSION; } })();
 
 // ═══════════════════════════════════════
@@ -5451,10 +5477,11 @@ window.addEventListener('load', function() { labelFields(); renderModelOptions()
   <div id="siteMap" style="width:100%;height:440px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--bg2);"></div>
   <div id="siteMapMsg" style="text-align:center;padding:16px;color:var(--text3);font-size:0.85rem;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;margin-top:-460px;pointer-events:none;height:440px;"><div class="spinner"></div><span>Enter an address above or run a valuation to load the map</span></div>
 
+  <div id="poiList"></div>
   <div id="siteAnalysisArea"></div>
 
   <div style="font-size:0.7rem;color:var(--text3);margin-top:10px;">
-    Map: OpenStreetMap · Flood data: FEMA NFHL · POIs: OpenStreetMap Overpass API · All free, no API key required.
+    Map and places: OpenStreetMap · Addresses: US Census Geocoder · Flood data: FEMA NFHL · All free, no API key required.
   </div>
 </div>
 
@@ -5470,27 +5497,23 @@ window.addEventListener('load', function() { labelFields(); renderModelOptions()
     <div style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;" id="pdfSectionList">
       <div class="pdf-row active" id="pdf_valuation" onclick="togglePDFRow('pdf_valuation')">
         <div class="pdf-row-check">✓</div><span class="pdf-check-icon">📊</span>
-        <div class="pdf-check-text"><div>Valuation &amp; Analysis</div><div class="pdf-check-sub">Estimate · strengths · concerns · recommendation</div></div>
+        <div class="pdf-check-text"><div>Valuation &amp; Analysis</div><div class="pdf-check-sub">Value · how it was calculated · strengths · concerns · recommendation</div></div>
       </div>
-      <div class="pdf-row active" id="pdf_comps" onclick="togglePDFRow('pdf_comps')">
-        <div class="pdf-row-check">✓</div><span class="pdf-check-icon">🏘</span>
-        <div class="pdf-check-text"><div>Comparable Sales</div><div class="pdf-check-sub">Address · price · $/sqft · date</div></div>
+      <div class="pdf-row active" id="pdf_market" onclick="togglePDFRow('pdf_market')">
+        <div class="pdf-row-check">✓</div><span class="pdf-check-icon">📈</span>
+        <div class="pdf-check-text"><div>Market Evidence</div><div class="pdf-check-sub">Market read · ZIP, county, state metrics · price chart · Zillow cross-check</div></div>
       </div>
       <div class="pdf-row active" id="pdf_investment" onclick="togglePDFRow('pdf_investment')">
         <div class="pdf-row-check">✓</div><span class="pdf-check-icon">💰</span>
-        <div class="pdf-check-text"><div>Investment Metrics</div><div class="pdf-check-sub">Grade · cap rate · appreciation · DOM</div></div>
+        <div class="pdf-check-text"><div>Deal Metrics</div><div class="pdf-check-sub">Grade · value vs asking price · returns when available</div></div>
       </div>
       <div class="pdf-row" id="pdf_mortgage" onclick="togglePDFRow('pdf_mortgage')">
         <div class="pdf-row-check"></div><span class="pdf-check-icon">🏦</span>
-        <div class="pdf-check-text"><div>Mortgage Analysis</div><div class="pdf-check-sub">Scenarios · payment · interest · cash flow</div></div>
-      </div>
-      <div class="pdf-row" id="pdf_market" onclick="togglePDFRow('pdf_market')">
-        <div class="pdf-row-check"></div><span class="pdf-check-icon">📈</span>
-        <div class="pdf-check-text"><div>Market Intelligence</div><div class="pdf-check-sub">Briefing · neighborhood · heat indicators</div></div>
+        <div class="pdf-check-text"><div>Mortgage Analysis</div><div class="pdf-check-sub">Payment · interest · cash flow</div></div>
       </div>
       <div class="pdf-row" id="pdf_location" onclick="togglePDFRow('pdf_location')">
         <div class="pdf-row-check"></div><span class="pdf-check-icon">📍</span>
-        <div class="pdf-check-text"><div>Location Analysis</div><div class="pdf-check-sub">POIs · AI site report · FEMA flood link</div></div>
+        <div class="pdf-check-text"><div>Nearby Places</div><div class="pdf-check-sub">Airports, hospitals, highways, shopping, schools, parks · distances · FEMA link</div></div>
       </div>
       <div class="pdf-row" id="pdf_notes" onclick="togglePDFRow('pdf_notes')" style="border-bottom:none;">
         <div class="pdf-row-check"></div><span class="pdf-check-icon">📝</span>

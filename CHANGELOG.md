@@ -86,3 +86,8 @@ Reinstall: yes. The repo name and path change (/lazestate/ → /estatepro/), so 
 
 ## 4.3.17
 - Realtor.com and Redfin buttons back to a site-restricted Google search (the lucky redirect still showed a Google click-through page). New-tab choice is saved with the app data.
+
+## 4.4.0
+- Map It now looks addresses up with the US Census Geocoder first (fast, free, no strict rate limit) and falls back to OpenStreetMap. This fixes "failed to fetch" when the OpenStreetMap geocoder was refusing requests. Marker popup and message show the address the Census matched.
+- Nearby places now appear in a list below the map, grouped by type with distance and compass direction. Tap one to find it on the map. Results are cached on the device for 30 days, and the search stops early if the map server is refusing requests.
+- PDF report rebuilt: how the value was calculated, market evidence table and chart, Zillow cross-check, deal metrics, mortgage, nearby places with distances, and a sources and limits block. Removed the empty Comparable Sales section.
